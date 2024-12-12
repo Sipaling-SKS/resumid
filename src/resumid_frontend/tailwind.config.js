@@ -1,8 +1,14 @@
 /** @type {import('tailwindcss').Config} */
+import tailwindcssAnimate from "tailwindcss-animate";
+
 export default {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
+		fontFamily: {
+			outfit: ["Outfit", "sans-serif"],
+			inter: ["Inter", "sans-serif"]
+		},
   	extend: {
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -10,19 +16,9 @@ export default {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
-  			text: {
-  				'50': '#0d0d0d',
-  				'100': '#1a1a1a',
-  				'200': '#333333',
-  				'300': '#4d4d4d',
-  				'400': '#666666',
-  				'500': '#808080',
-  				'600': '#999999',
-  				'700': '#b3b3b3',
-  				'800': '#cccccc',
-  				'900': '#e6e6e6',
-  				'950': '#f2f2f2'
-  			},
+        heading: "#0d0d0d",
+        paragraph: "#262626",
+        placeholder: "#b8b8b8",
   			background: {
   				'50': '#0d0d0d',
   				'100': '#1a1a1a',
@@ -100,6 +96,6 @@ export default {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 }
 
