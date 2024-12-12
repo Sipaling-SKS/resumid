@@ -5,7 +5,7 @@ import HeroIllustration from "@/assets/hero-illustration.svg";
 
 function Hero() {
   return (
-    <header className="responsive-container flex justify-between items-center md:pt-16 md:pb-8">
+    <header className="responsive-container flex justify-between items-center md:py-16 border-b border-neutral-200 min-h-[70vh]">
       <div className="w-3/5">
         <h1 className="font-outfit font-semibold text-[40px] text-balance leading-tight text-heading">
           Unleash Your Resume’s Potential with <Highlight>AI-Powered</Highlight> Analysis
