@@ -25,18 +25,18 @@ interface PlanProps extends Plan {
   className?: string
 }
 
-function Plan({ title, description, price, list, highlightPlan, highlightFirstItem, onPress }: Plan) {
+function Plan({ title, description, price, list, highlightPlan, highlightFirstItem, onPress, className }: PlanProps) {
   return (
-    <Card className={cn("flex flex-col p-0 space-y-0", highlightPlan && "p-[2px] bg-gradient-to-r from-primary-500 to-accent-500", !highlightPlan && "mt-[42px]")} key={title}>
-      {highlightPlan && <div className="p-2 h-10 inline-flex gap-1 items-center justify-center text-white font-semibold font-inter">
+    <Card className={cn("flex flex-col p-0 space-y-0 border-b border-neutral-200", highlightPlan && "p-[2px] bg-gradient-to-r from-primary-500 to-accent-500", !highlightPlan && "mt-0 lg:mt-[42px]", className)} key={title}>
+      {highlightPlan && <div className="p-2 h-10 inline-flex text-sm md:text-md gap-1 items-center justify-center text-white font-semibold font-inter">
         Most Popular <Stars size={16} />
       </div>}
-      <div className="w-full h-full flex flex-col space-y-6 p-8 bg-white rounded-[calc(0.75rem-2px)]">
+      <div className="w-full h-full flex flex-col space-y-6 p-6 md:p-8 bg-white rounded-[calc(0.75rem-2px)]">
         <CardHeader className="">
           <CardTitle className="font-outfit font-semibold text-heading">
             {title}
           </CardTitle>
-          <CardDescription className="font-inter text-paragraph">
+          <CardDescription className="font-inter text-md text-paragraph">
             {description}
           </CardDescription>
           {price !== undefined && <section className="inline-flex items-end space-x-2 pt-2">
@@ -47,8 +47,8 @@ function Plan({ title, description, price, list, highlightPlan, highlightFirstIt
             <p className="font-inter text-paragraph">Monthly</p>
           </section>}
         </CardHeader>
-        <hr className="border-b border-neutral-200" />
-        <CardContent className="flex flex-col gap-10 justify-between flex-grow">
+        <hr className="h-[1px] w-full bg-neutral-200" />
+        <CardContent className="flex flex-col gap-8 md:gap-10 justify-between flex-grow">
           <ul className="space-y-4">
             {list.map((val: string, index: number) => (
               <li className="inline-flex items-center gap-3" key={index}>
@@ -60,7 +60,7 @@ function Plan({ title, description, price, list, highlightPlan, highlightFirstIt
             ))}
           </ul>
           <section className="flex justify-center">
-            <Button onClick={onPress ? () => onPress() : () => { }} className="w-fit" variant={highlightPlan ? "gradient" : "secondary"} size="lg">
+            <Button onClick={onPress ? () => onPress() : () => { }} className="w-full" variant={highlightPlan ? "gradient" : "secondary"} size="lg">
               Get Started
               <ArrowRightIcon />
             </Button>
@@ -105,13 +105,14 @@ function Pricing() {
   ]
 
   return (
-    <section className="responsive-container pt-24 pb-32">
-      <h2 className="text-balance font-outfit text-heading text-4xl text-center font-semibold md:mb-14">
+    <section className="responsive-container py-12 md:py-16 lg:pt-24 lg:pb-32">
+      <h2 className="text-balance font-outfit text-heading leading-tight text-3xl md:text-4xl text-center font-semibold mb-10 md:mb-14 px-4">
         Flexible Plans for Every Need
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {planList.map((plan: Plan) => (
+      <div className="mx-auto max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        {planList.map((plan: Plan, index: number) => (
           <Plan
+            className={cn(index === 1 && "order-first lg:order-none")}
             title={plan.title}
             description={plan.description}
             price={plan?.price}
