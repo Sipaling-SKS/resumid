@@ -18,6 +18,7 @@ type Plan = {
   list: string[]
   highlightFirstItem?: boolean
   highlightPlan?: boolean
+  buttonLabel?: string
   onPress?: () => void
 }
 
@@ -25,7 +26,7 @@ interface PlanProps extends Plan {
   className?: string
 }
 
-function Plan({ title, description, price, list, highlightPlan, highlightFirstItem, onPress, className }: PlanProps) {
+function Plan({ title, description, price, list, highlightPlan, highlightFirstItem, buttonLabel, onPress, className }: PlanProps) {
   return (
     <Card className={cn("flex flex-col p-0 space-y-0 border-b border-neutral-200", highlightPlan && "p-[2px] bg-gradient-to-r from-primary-500 to-accent-500", !highlightPlan && "mt-0 lg:mt-[42px]", className)} key={title}>
       {highlightPlan && <div className="p-2 h-10 inline-flex text-sm md:text-md gap-1 items-center justify-center text-white font-semibold font-inter">
@@ -61,7 +62,7 @@ function Plan({ title, description, price, list, highlightPlan, highlightFirstIt
           </ul>
           <section className="flex justify-center">
             <Button onClick={onPress ? () => onPress() : () => { }} className="w-full" variant={highlightPlan ? "gradient" : "secondary"} size="lg">
-              Get Started
+              {buttonLabel ? buttonLabel : "Get Started"}
               <ArrowRightIcon />
             </Button>
           </section>
@@ -100,7 +101,8 @@ function Pricing() {
         "Everything included in Pro Tier",
         "Bulk analysis, custom AI models, and dedicated support.",
       ],
-      highlightFirstItem: true
+      highlightFirstItem: true,
+      buttonLabel: "Contact Sales"
     }
   ]
 
@@ -119,6 +121,7 @@ function Pricing() {
             list={plan.list}
             highlightFirstItem={plan?.highlightFirstItem}
             highlightPlan={plan?.highlightPlan}
+            buttonLabel={plan?.buttonLabel}
             onPress={plan?.onPress}
           />
         ))}
