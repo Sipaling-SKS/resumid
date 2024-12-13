@@ -1,6 +1,6 @@
-import Achievement from "@/parts/HomePage/Achievement";
-import Hero from "@/parts/HomePage/Hero";
-import Pricing from "@/parts/HomePage/Pricing";
+import Achievement from "@/components/parts/Achievement";
+import Hero from "@/components/parts/Hero";
+import Pricing from "@/components/parts/Pricing";
 
 function Home() {
   return (
