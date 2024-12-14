@@ -12,7 +12,7 @@ module {
     weaknesses : Text;
     gaps : Text;
     suggestions : Text;
-    createdAt : Int;
+    createdAt : Text;
   };
 
   public type AddHistoryInput = {
