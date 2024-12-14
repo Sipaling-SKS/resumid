@@ -1,15 +1,19 @@
 import Nat "mo:base/Nat";
-import Nat16 "mo:base/Nat16";
+import Nat64 "mo:base/Nat64";
 import Blob "mo:base/Blob";
 
 module HttpTypes {
     public type HttpRequest =  {
         url : Text;
-        max_response_bytes: Nat16;
-        headers: [HttpHeader];
+        max_response_bytes: ?Nat64;
+        
+        // Headers Data
+        header_host : Text;
+        header_user_agent : Text;
+        header_content_type : Text;
+        
         body: ?Blob;
         method: HttpMethod;
-        // transform: ;
     };
 
     public type HttpResponse = {
