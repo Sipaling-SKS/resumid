@@ -1,20 +1,24 @@
-import Achievement from "@/parts/HomePage/Achievement";
+import Layout from "@/components/layout";
+
+import Achievement from "@/components/parts/Achievement";
 import CTA from "@/parts/HomePage/CTA";
 import FAQ from "@/parts/HomePage/FAQ";
 import Features from "@/parts/HomePage/Features";
-import Hero from "@/parts/HomePage/Hero";
-import Pricing from "@/parts/HomePage/Pricing";
+import Hero from "@/components/parts/Hero";
+import Pricing from "@/components/parts/Pricing";
 
 function Home() {
+  const description = "Decentralized, Insightful, and Ready to Elevate Your Career."
+
   return (
-    <main className="min-h-screen">
+    <Layout description={description}>
       <Hero />
       <Achievement />
       <Features/>
       <Pricing />
       <FAQ />
       <CTA />
-    </main>
+    </Layout>
   )
 }
 
