@@ -6,16 +6,18 @@ module {
   public type History = {
     userId : Text;
     historyId : Text;
+    fileName : Text;
     summary : Text;
     score : Int;
     strengths : Text;
     weaknesses : Text;
     gaps : Text;
     suggestions : Text;
-    createdAt : Text;
+    createdAt : Int;
   };
 
   public type AddHistoryInput = {
+    fileName : Text;
     summary : Text;
     score : Int;
     strengths : Text;

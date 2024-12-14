@@ -6,8 +6,10 @@ import HistoryTypes "types/HistoryTypes";
 import HistoryServices "services/HistoryServices";
 
 actor Resumid {
- private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(
-    10, Text.equal, Text.hash
+  private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(
+    10,
+    Text.equal,
+    Text.hash,
   );
 
   // TODO: Change 'getUserId' to use II fetched from Front-End
@@ -20,12 +22,13 @@ actor Resumid {
     return await HistoryServices.addHistory(
       histories,
       userId,
+      input.fileName,
       input.summary,
       input.score,
       input.strengths,
       input.weaknesses,
       input.gaps,
-      input.suggestions
+      input.suggestions,
     );
   };
 
