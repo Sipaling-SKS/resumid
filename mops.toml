@@ -1,2 +1,4 @@
 [dependencies]
 base = "0.13.5"
+idempotency-keys = "1.0.2"
+"json.mo" = "0.1.2"
