@@ -10,9 +10,9 @@ actor Resumid {
     10, Text.equal, Text.hash
   );
 
-  // TODO: Change II fetched from Front-End
+  // TODO: Change 'getUserId' to use II fetched from Front-End
   private func getUserId() : Text {
-    return Principal.toText(Principal.fromActor(Resumid)); // Use 'this' instead of 'Resumid'
+    return Principal.toText(Principal.fromActor(Resumid));
   };
 
   public func addHistory(input : HistoryTypes.AddHistoryInput) : async HistoryTypes.History {

@@ -5,6 +5,7 @@ import Time "mo:base/Time";
 import Array "mo:base/Array";
 import HistoryTypes "../types/HistoryTypes";
 import UUID "mo:idempotency-keys/idempotency-keys";
+import LocalDateTime "mo:datetime/LocalDateTime";
 
 module {
   public func addHistory(
@@ -20,6 +21,14 @@ module {
     let entropy = await Random.blob();
     let historyId = UUID.generateV4(entropy);
 
+    let timestamp = Time.now();
+    let timeZone = #fixed(#hours(7));
+    let localDateTime = LocalDateTime.fromTime(timestamp, timeZone);
+    let createdAt = LocalDateTime.toTextFormatted(
+      localDateTime,
+      #iso
+    );
+
     // Create the new History entry
     let newHistory : HistoryTypes.History = {
       userId = userId;
@@ -30,16 +39,16 @@ module {
       weaknesses = weaknesses;
       gaps = gaps;
       suggestions = suggestions;
-      createdAt = Time.now();
+      createdAt = createdAt;
     };
 
     // Add history to the user's history list
     switch (histories.get(userId)) {
       case null {
-        histories.put(userId, [newHistory]); // Create a new list with the new history
+        histories.put(userId, [newHistory]);
       };
       case (?existingHistories) {
-        histories.put(userId, Array.append(existingHistories, [newHistory])); // Append to the existing list
+        histories.put(userId, Array.append([newHistory], existingHistories));
       };
     };
 
