@@ -76,4 +76,21 @@ const CardFooter = React.forwardRef<
 ))
 CardFooter.displayName = "CardFooter"
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+const NoticeCard = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <Card
+    ref={ref}
+    className={cn(
+      "border-[#8C3DDB] bg-[#F2E9FB] text-black", // Warna border, background, dan teks yang diminta
+      className
+    )}
+    {...props}
+  />
+))
+NoticeCard.displayName = "NoticeCard"
+
+
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, NoticeCard }
