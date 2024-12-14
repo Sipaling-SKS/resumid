@@ -18,6 +18,7 @@ const buttonVariants = cva(
       gradient: "bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:from-primary-500/90 hover:to-accent-500/90 font-medium",
       ghost: "hover:bg-secondary-900 text-paragraph font-medium",
       link: "text-paragraph underline-offset-8 hover:underline",
+      blue: "bg-[#215ADE] text-white hover:bg-[#215ADE]/90 font-semibold",  // Add the blue variant
     },
     size: {
       default: "h-10 px-4 py-2 text-sm [&_svg]:w-4 [&_svg]:h-4",
@@ -32,6 +33,7 @@ const buttonVariants = cva(
   },
 }
 )
+
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
