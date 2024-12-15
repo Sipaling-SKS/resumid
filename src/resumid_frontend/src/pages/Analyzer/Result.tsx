@@ -1,4 +1,5 @@
 import Layout from "@/components/layout"
+import { Helmet } from "react-helmet";
 import { useParams } from "react-router";
 
 function Result() {
@@ -6,16 +7,28 @@ function Result() {
 
   if (!id) {
     return (
-      <Layout title="Error, result not found - Resumid">
-        <h1>Error!</h1>
-      </Layout>
+      <>
+        <Helmet>
+          <meta charSet="utf-8" />
+          <title>Error, result not found - Resumid</title>
+        </Helmet>
+        <main className="min-h-screen">
+          <h1>Error!</h1>
+        </main>
+      </>
     ) 
   }
 
   return (
-    <Layout title="Resume Summary 15/12/2024 - Resumid">
-      <h1>Resume Summary ID: {id}</h1>
-    </Layout>
+    <>
+        <Helmet>
+          <meta charSet="utf-8" />
+          <title>Resume Summary 15/12/2024 - Resumid</title>
+        </Helmet>
+        <main className="min-h-screen">
+          <h1>=Resume Summary ID: {id}</h1>
+        </main>
+      </>
   )
 }
 
