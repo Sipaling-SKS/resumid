@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-function DesktopNavbar({ isAuthenticated }: any) {
+function DesktopNavbar({ isAuthenticated, navigate }: any) {
   return (
     <>
       <div className="inline-flex items-center gap-8 md:gap-10 xl:gap-12">
-        <img className="pb-2" src={Logo} alt="Resumid Logo" />
+        <img onClick={() => navigate("/")} className="pb-2" src={Logo} alt="Resumid Logo" />
         <ul className="inline-flex items-center gap-4 md:gap-8 xl:gap-10">
           {!isAuthenticated ? (
             <>
@@ -44,12 +44,23 @@ function DesktopNavbar({ isAuthenticated }: any) {
             <>
               <NavLink
                 to="/"
+                onClick={() => {
+                  if (window.location.pathname === "/") {
+                    scrollToTop()
+                  }
+                }}
+                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
+              >
+                Home
+              </NavLink>
+              <NavLink
+                to="/"
                 className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
               >
                 History
               </NavLink>
               <NavLink
-                to="/analyze"
+                to="/resume-analyzer"
                 className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
               >
                 Resume Analyzer
@@ -86,9 +97,6 @@ function DesktopNavbar({ isAuthenticated }: any) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-
-
         </div>
       ) : (
         <Button variant="gradient" size="lg">
