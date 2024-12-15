@@ -114,6 +114,7 @@ function Pricing() {
       <div className="mx-auto max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {planList.map((plan: Plan, index: number) => (
           <Plan
+            key={index}
             className={cn(index === 1 && "order-first lg:order-none")}
             title={plan.title}
             description={plan.description}
