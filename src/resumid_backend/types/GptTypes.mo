@@ -1,17 +1,12 @@
 module GptTypes {
     // Define the main record type for the JSON structure
-    // public type GptResponse = {
-    //     status : Nat64;
-    //     message : Text;
-    //     data : Text;
-    //     error: Text;
-    // };
+
     public type GptResponse = {
         id : ?Text;
         objectField : ?Text;
         created : ?Nat64;
         model : ?Text;
-        choices: ?[Choice];
+        choices: [Choice];
         usage: ?Usage;
         system_fingerprint : ?Text;
     };
@@ -48,4 +43,11 @@ module GptTypes {
         rejected_prediction_tokens : ?Nat;
     };
 
+    // Analyze Resume Structure
+    public type AnalyzeStructure = {
+        strength : [Text];
+        gap : [Text];
+        suggestion: [Text];
+        weakness: [Text];
+    }
 };
