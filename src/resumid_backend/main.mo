@@ -9,6 +9,8 @@ actor Resumid {
  private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(
     10, Text.equal, Text.hash
   );
+  private var users : HashMap.HashMap<Principal, UserTypes.UserData> = HashMap.HashMap(0, Principal.equal, Principal.hash);
+
 
   // TODO: Change 'getUserId' to use II fetched from Front-End
   private func getUserId() : Text {
@@ -42,5 +44,21 @@ actor Resumid {
   public func deleteHistory(input : HistoryTypes.HistoryIdInput) : async Result.Result<Text, Text> {
     let userId = getUserId();
     HistoryServices.deleteHistory(histories, userId, input.historyId);
+  };
+
+
+  // //user
+
+  public shared(msg) func whoami() : async Principal {
+    Debug.print("Caller Principal: " # Principal.toText(msg.caller));  // Ubah di sini
+    return msg.caller;
+};
+
+  public shared(msg) func authenticateUser() : async ?UserTypes.UserData {
+      let userId = await whoami(); 
+      return await UserServices.authenticateUser(users, userId); 
+  };
+   public shared(msg) func getUserById(userId: Principal) : async ?UserTypes.UserData {
+      return users.get(userId); 
   };
 };
