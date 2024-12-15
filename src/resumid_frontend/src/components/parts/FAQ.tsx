@@ -5,8 +5,8 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 
 const AccordionSection = () => {
   const accordionData = [
-    { title: "How does the AI analyze resumes?", description: "React is a JavaScript library for building user interfaces." },
-    { title: "What formats are supported?", description: "Radix UI provides low-level, unstyled components that are highly customizable." },
+    { title: "How does the AI analyze resumes?", description: "AI analyzes resumes by extracting key information like skills, experience, and education using natural language processing. It then matches this data with job requirements to assess the candidate’s suitability." },
+    { title: "What formats are supported?", description: "CVs are supported in PDF format, ensuring proper formatting and easy readability across platforms." },
     { title: "Is my data secure?", description: "Yes. It’s secure by default. We’re using Web3 technologies and everything is decentralized ensuring user security." },
   ];
 
@@ -27,7 +27,7 @@ const AccordionSection = () => {
 // FAQ Komponen utama ing jgn lupa
 function FAQ() {
   return (
-    <header className="responsive-container flex flex-col md:flex-row justify-between items-start md:py-16 border-b border-neutral-200 min-h-[70vh] gap-16">
+    <section className="responsive-container flex flex-col md:flex-row justify-between items-start md:py-16 border-b border-neutral-200 min-h-[67vh] gap-16">
       <div className="w-full md:w-1/2 text-center md:text-left pr-6">
         <h2 className="font-outfit font-semibold text-[36px] text-balance leading-tight text-heading">
           <Highlight>Got Questions?</Highlight> We’ve Got
@@ -43,7 +43,7 @@ function FAQ() {
           <AccordionSection />
         </div>
       </div>
-    </header>
+    </section>
   );
 }
 
