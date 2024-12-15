@@ -1,6 +1,6 @@
 import Text "mo:base/Text";
 import Debug "mo:base/Debug";
-import Serde "mo:serde";
+import { JSON } = "mo:serde";
 
 import GlobalConstants "../constants/Global";
 
@@ -11,7 +11,7 @@ import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
     public func AnalyzeResume() : async ?Text {
-        let route : Text = "/leads";
+        let route : Text = "/gpt-mockup";
 
         // Construct Request Body
         let body = "{\"email\": \"calvinny2@mail.com\", \"password\": \"pard\"}";
@@ -36,36 +36,23 @@ module GptServices {
             case (?y) { ?y };
         };
 
-        type Item = {
-            item_type : Text;
-            item_label : Text;
-            id : Nat;
-        };
-
         switch (decodedText) {
             case (null) {
                 Debug.print("Data item is null");
-                null;
             };
-
-            // case (?text) {
-            //     switch (Serde.JSON.fromText(text, null)) {
-            //         case (#ok(blob)) {
-            //             // Handle the case where JSON decoding is successful
-            //             Debug.print("JSON decoding succeeded");
-            //             let users : ?GptTypes.GptResponse = from_candid (blob);
-
-            //             //  assert users == ?{ name = "Tomi"; id = ?32 };
-            //         };
-            //         case (#err(e)) {
-            //             // Handle the case where JSON decoding fails
-            //             Debug.print("JSON decoding failed");
-            //         };
-            //     };
-
-            //     // let #ok(blob) = Serde.JSON.fromText(text, null); // you probably want to handle the error case here :)
-            //     // let users : ?[GptTypes.GptResponse] = from_candid(blob);
-            // };
+            case (?text) {
+                switch (JSON.fromText(text, null)) {
+                    case (#ok(blob)) {
+                        let gptResponse : ?GptTypes.GptResponse = from_candid (blob);
+                        Debug.print(debug_show (gptResponse));
+                    };
+                    case (#err(error)) {
+                        Debug.print(debug_show (error));
+                    };
+                }
+            };
         };
+
+        null;
     };
 };
