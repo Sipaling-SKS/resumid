@@ -54,7 +54,7 @@ function DesktopNavbar({ isAuthenticated, navigate }: any) {
                 Home
               </NavLink>
               <NavLink
-                to="/"
+                to="/history"
                 className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
               >
                 History

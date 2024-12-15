@@ -4,14 +4,10 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn, scrollToTop, scrollTo } from "@/lib/utils";
 import { Menu, X as Close, LogOut, User2 as ProfileIcon } from "lucide-react";
-import { NavLink } from "react-router";
+import { NavLink, type NavLinkProps } from "react-router";
+
 
 function MobileNavbar({ isAuthenticated, navigate, isOpen, setIsOpen }: any) {
-  const handleMenuClick = (callback?: () => void) => {
-    if (callback) callback()
-    setIsOpen(false)
-  }
-
   return (
     <>
       <div className={cn("fixed flex flex-col h-screen min-w-fit w-1/2 max-w-64 pb-[4vh] z-50 top-0 bottom-0 bg-white border-l border-neutral-200 transition-all duration-500 ease-in-out", isOpen ? "right-0" : "-right-full")}>
@@ -25,22 +21,39 @@ function MobileNavbar({ isAuthenticated, navigate, isOpen, setIsOpen }: any) {
             <>
               <NavLink
                 to="/"
-                onClick={() => handleMenuClick(() => {
+                onClick={() => {
                   if (window.location.pathname === "/") {
-                    scrollToTop()
+                    scrollToTop();
                   }
-                })}
+                  setIsOpen(false);
+                }}
                 className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
               >
                 Home
               </NavLink>
-              <Button onClick={() => handleMenuClick(() => scrollTo('features', 73))} variant="link" size="lg" className="p-2">
+              <Button 
+                onClick={() => {
+                  scrollTo('features', 73);
+                  setIsOpen(false);
+                }} 
+                variant="link" 
+                size="lg" 
+                className="p-2"
+              >
                 Features
               </Button>
-              <Button onClick={() => handleMenuClick(() => scrollTo('pricing', 73))} variant="link" size="lg" className="p-2">
+              <Button 
+                onClick={() => {
+                  scrollTo('pricing', 73);
+                  setIsOpen(false);
+                }} 
+                variant="link" 
+                size="lg" 
+                className="p-2"
+              >
                 Pricing
               </Button>
-              <Button onClick={() => handleMenuClick()} variant="gradient" size="lg">
+              <Button onClick={() => setIsOpen(false)} variant="gradient" size="lg">
                 Sign In
               </Button>
             </>
@@ -48,23 +61,25 @@ function MobileNavbar({ isAuthenticated, navigate, isOpen, setIsOpen }: any) {
             <>
               <NavLink
                 to="/"
-                onClick={() => handleMenuClick(() => {
+                onClick={() => {
                   if (window.location.pathname === "/") {
-                    scrollToTop()
+                    scrollToTop();
                   }
-                })}
+                  setIsOpen(false);
+                }}
                 className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
               >
                 Home
               </NavLink>
               <NavLink
-                to="/"
+                to="/history"
                 className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
               >
                 History
               </NavLink>
               <NavLink
                 to="/resume-analyzer"
+                onClick={() => setIsOpen(false)}
                 className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
               >
                 Resume Analyzer
