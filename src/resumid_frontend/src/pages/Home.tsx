@@ -1,9 +1,9 @@
 import Layout from "@/components/layout";
 
 import Achievement from "@/components/parts/Achievement";
-import CTA from "@/parts/HomePage/CTA";
-import FAQ from "@/parts/HomePage/FAQ";
-import Features from "@/parts/HomePage/Features";
+import CTA from "@/components/parts/CTA";
+import FAQ from "@/components/parts/FAQ";
+import Features from "@/components/parts/Features";
 import Hero from "@/components/parts/Hero";
 import Pricing from "@/components/parts/Pricing";
 

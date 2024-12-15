@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import Gambar1 from "@/assets/gambar1.svg";
 import Gambar2 from "@/assets/gambar2.svg";
 import Gambar3 from "@/assets/gambar3.svg";
+import { BadgeInfo } from "lucide-react";
 
 type Feature = {
   title: string;
@@ -30,25 +31,29 @@ function FeatureCard({
   };
 
   return (
-    <Card className={cn("flex flex-col items-center p-6 space-y-6 bg-white rounded-lg shadow-md", className)}>
+    <Card className={cn("flex flex-col items-center p-6 space-y-6 bg-white rounded-lg shadow-md mt-10 mb-10", className)}>
       <img src={imageUrl} alt={title} className="w-auto h-32 object-contain" />
       <CardHeader className="space-y-4">
         <CardTitle className="font-outfit font-semibold text-heading">{title}</CardTitle>
-        <CardDescription className="text-neutral-600 mt-4">{description}</CardDescription>
+        <CardDescription className="font-inter text-md text-paragraph mt-4">{description}</CardDescription>
       </CardHeader>
       <CardContent className="text-center">
         {buttonText ? (
           <section className="flex justify-start w-full">
-            <Button onClick={handlePress} variant="blue" className="w-fit text-sm" size="lg">
+            <Button onClick={handlePress} variant="blue" className="w-fit text-sm font-inter " size="lg">
               {buttonText}
             </Button>
           </section>
         ) : (
-          <NoticeCard>
-            <CardDescription className="text-neutral-600 text-xs text-left">
-              Easy-to-understand progress reports for skill enhancement.
+          <NoticeCard className="p-4 max-w-lg rounded-lg shadow-md text-left">
+            <CardDescription 
+              className="font-inter  text-sm flex items-center"
+            >
+              <BadgeInfo className="scale-150 bg-purple-100 w-6 h-6 rounded-full"/>
+              <span className="pl-3 text-heading">Easy-to-understand progress reports for skill enhancement.</span>
             </CardDescription>
-          </NoticeCard> 
+          </NoticeCard>
+
         )}
       </CardContent>
     </Card>
@@ -80,7 +85,7 @@ function Features() {
   ];
 
   return (
-    <section className="responsive-container py-16">
+    <section id="features" className="responsive-container py-28 border-b border-neutral-200 ">
       <h2 className="text-balance font-outfit text-heading text-4xl text-left font-semibold md:mb-2">
         Why Resumid is the Best Resume Analyzer Platform to Date
       </h2>
