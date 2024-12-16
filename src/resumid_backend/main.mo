@@ -6,8 +6,9 @@ import HistoryTypes "types/HistoryTypes";
 import HistoryServices "services/HistoryServices";
 
 actor Resumid {
+  // Analyze History type
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(
-    10,
+    50,
     Text.equal,
     Text.hash,
   );
@@ -17,9 +18,14 @@ actor Resumid {
     return Principal.toText(Principal.fromActor(Resumid));
   };
 
-  public func addHistory(input : HistoryTypes.AddHistoryInput) : async HistoryTypes.History {
+  // Auth related method
+
+  // Resume Analyzer related method
+
+  // Analyze History related method
+  public func addHistory(input : HistoryTypes.AddHistoryInput) : async Result.Result<HistoryTypes.History, Text> {
     let userId = getUserId();
-    return await HistoryServices.addHistory(
+    await HistoryServices.addHistory(
       histories,
       userId,
       input.fileName,
@@ -32,12 +38,12 @@ actor Resumid {
     );
   };
 
-  public query func getHistories() : async [HistoryTypes.History] {
+  public query func getHistories() : async Result.Result<[HistoryTypes.History], Text> {
     let userId = getUserId();
     HistoryServices.getHistories(histories, userId);
   };
 
-  public query func getHistoryById(input : HistoryTypes.HistoryIdInput) : async ?HistoryTypes.History {
+  public query func getHistoryById(input : HistoryTypes.HistoryIdInput) : async Result.Result<HistoryTypes.History, Text> {
     let userId = getUserId();
     HistoryServices.getHistoryById(histories, userId, input.historyId);
   };
