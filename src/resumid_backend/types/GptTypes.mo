@@ -1,6 +1,19 @@
 module GptTypes {
-    // Define the main record type for the JSON structure
 
+    // Request Sections
+    public type GptRequest = {
+        model: Text;
+        message: [GptRequestMessage];
+        max_tokens: Nat;
+        temperature: Float;
+    };
+
+    public type GptRequestMessage = {
+        role: Text;
+        content: Text;
+    };
+
+    // Response Sections
     public type GptResponse = {
         id : ?Text;
         objectField : ?Text;
@@ -11,7 +24,6 @@ module GptTypes {
         system_fingerprint : ?Text;
     };
 
-    // Define the type for "Choice"
     public type Choice = {
         index : Nat;
         message : Message;
@@ -19,14 +31,12 @@ module GptTypes {
         finish_reason : Text;
     };
 
-    // Define the type for "Message"
     public type Message = {
         role : Text;
         content : Text;
         refusal : ?Text;
     };
 
-    // Define the type for "Usage"
     public type Usage = {
         prompt_tokens : Nat;
         completion_tokens : Nat;
@@ -35,7 +45,6 @@ module GptTypes {
         completion_tokens_details : ?TokenDetails;
     };
 
-    // Define the type for "TokenDetails"
     public type TokenDetails = {
         cached_tokens : ?Nat;
         audio_tokens : ?Nat;
@@ -43,11 +52,12 @@ module GptTypes {
         rejected_prediction_tokens : ?Nat;
     };
 
-    // Analyze Resume Structure
     public type AnalyzeStructure = {
         strengths : [Text];
         gaps : [Text];
         suggestions: [Text];
         weakness: [Text];
+        score: Text;
+        summary: Text;
     }
 };

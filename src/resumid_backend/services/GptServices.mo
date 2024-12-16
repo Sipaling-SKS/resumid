@@ -1,4 +1,6 @@
 import Text "mo:base/Text";
+import Nat "mo:base/Nat";
+import Int "mo:base/Int";
 import Debug "mo:base/Debug";
 import Array "mo:base/Array";
 import { JSON } = "mo:serde";
@@ -11,97 +13,150 @@ import GptTypes "../types/GptTypes";
 import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
-    public func AnalyzeResume() : async ?GptTypes.AnalyzeStructure {
+    public func AnalyzeResume(resumeContent : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
         let route : Text = "/gpt-mockup";
 
         // Construct Request Body
-        let body = "{\"email\": \"calvinny2@mail.com\", \"password\": \"pard\"}";
-        let bodyAsBlob = Text.encodeUtf8(body);
+        let message : [GptTypes.GptRequestMessage] = [
+            {
+                role = "system";
+                content = "";
+            },
+            { role = "user"; content = "Resume: " # resumeContent },
+            {
+                role = "user";
+                content = "Job Title and Requirement: " # jobDescription;
+            },
+        ];
 
-        // Construct HttpRequest Data
-        let request : HttpTypes.HttpRequest = {
-            url = GlobalConstants.GPT_BASE_URL # route;
-            max_response_bytes = null;
-            header_host = GlobalConstants.GPT_HOST;
-            header_user_agent = GlobalConstants.GPT_USER_AGENT;
-            header_content_type = GlobalConstants.GPT_CONTENT_TYPE;
-            body = ?bodyAsBlob;
-            method = #post;
+        let body : GptTypes.GptRequest = {
+            model = GlobalConstants.MODEL_NAME;
+            message = message;
+            max_tokens = GlobalConstants.MAX_TOKENS;
+            temperature = GlobalConstants.TEMPERATURE;
         };
 
-        let result : HttpTypes.HttpResponse = await HttpHelper.sendPostHttpRequest(request);
+        let bodyKeys = ["model", "message", "max_tokens", "temperature", "role", "content"];
+        let blobBody = to_candid (body);
 
-        // Decode Body Response
-        let decodedText : ?Text = switch (Text.decodeUtf8(result.body)) {
-            case (null) { null };
-            case (?y) { ?y };
-        };
-
-        switch (decodedText) {
-            case (null) {
-                Debug.print("Data item is null");
+        switch (JSON.toText(blobBody, bodyKeys, null)) {
+            case (#err(error)) {
+                Debug.print("Error occured when create request body" # error);
                 null;
             };
-            case (?text) {
-                switch (JSON.fromText(text, null)) {
-                    case (#ok(blob)) {
-                        let gptResponse : ?GptTypes.GptResponse = from_candid (blob);
-                        Debug.print(debug_show (gptResponse));
+            case (#ok(jsonBody)) {
 
-                        switch (gptResponse) {
-                            case (null) {
-                                Debug.print("Fail decode the json string");
-                                null;
-                            };
-                            case (?analizeResult) {
-                                // Ensure content is a non-null and non-empty string before splitting
-                                let content = analizeResult.choices[0].message.content;
-                                if (content != "") {
-                                    let sections = Text.split(content, #text "\n\n");
-                                    var strengths : [Text] = [];
-                                    var gaps : [Text] = [];
-                                    var suggestions : [Text] = [];
-                                    var weakness : [Text] = [];
-                                    Debug.print("============================");
-                                    Debug.print(content);
-                                    for (item in sections) {
-                                        if (Text.startsWith(item, #text GlobalConstants.STRENGTH_KEY)) {
-                                            for (subitem in Text.split(item, #text "\n")) {
-                                                strengths := Array.append<Text>(strengths, [subitem]);
+                Debug.print(debug_show (jsonBody));
+
+                let bodyAsBlob = Text.encodeUtf8(jsonBody);
+                Debug.print(debug_show (bodyAsBlob));
+                // Construct HttpRequest Data
+                let request : HttpTypes.HttpRequest = {
+                    url = GlobalConstants.GPT_BASE_URL # route;
+                    max_response_bytes = null;
+                    header_host = GlobalConstants.GPT_HOST;
+                    header_user_agent = GlobalConstants.GPT_USER_AGENT;
+                    header_content_type = GlobalConstants.GPT_CONTENT_TYPE;
+                    body = ?"";
+                    method = #post;
+                };
+
+                let result : HttpTypes.HttpResponse = await HttpHelper.sendPostHttpRequest(request);
+
+                // Decode Body Response
+                let decodedText : ?Text = switch (Text.decodeUtf8(result.body)) {
+                    case (null) { null };
+                    case (?y) { ?y };
+                };
+
+                switch (decodedText) {
+                    case (null) {
+                        Debug.print("Data item is null");
+                        null;
+                    };
+                    case (?text) {
+                        switch (JSON.fromText(text, null)) {
+                            case (#ok(blob)) {
+                                let gptResponse : ?GptTypes.GptResponse = from_candid (blob);
+                                Debug.print(debug_show (gptResponse));
+
+                                switch (gptResponse) {
+                                    case (null) {
+                                        Debug.print("Fail decode the json string");
+                                        null;
+                                    };
+                                    case (?analizeResult) {
+                                        // Ensure content is a non-null and non-empty string before splitting
+                                        let content = analizeResult.choices[0].message.content;
+                                        if (content != "") {
+                                            let sections = Text.split(content, #text "\n\n");
+                                            var strengths : [Text] = [];
+                                            var gaps : [Text] = [];
+                                            var suggestions : [Text] = [];
+                                            var weakness : [Text] = [];
+                                            var score : Text = "";
+                                            var summary : Text = "";
+
+                                            Debug.print("============================");
+                                            Debug.print(content);
+                                            for (item in sections) {
+                                                // Get Key
+                                                let strengthKey = GlobalConstants.STRENGTH_KEY;
+                                                let weaknessesKey = GlobalConstants.WEAKNESSES_KEY;
+                                                let gapsKey = GlobalConstants.GAPS_KEY;
+                                                let sugesstionsKey = GlobalConstants.SUGESSTIONS_KEY;
+                                                let summaryKey = GlobalConstants.SUMMARY_KEY;
+                                                let scoreKey = GlobalConstants.SCORE_KEY;
+
+                                                if (Text.startsWith(item, #text strengthKey)) {
+                                                    for (subitem in Text.split(item, #text "\n")) {
+                                                        strengths := Array.append<Text>(strengths, [subitem]);
+                                                    };
+                                                } else if (Text.startsWith(item, #text weaknessesKey)) {
+                                                    for (subitem in Text.split(item, #text "\n")) {
+                                                        weakness := Array.append<Text>(weakness, [subitem]);
+                                                    };
+                                                } else if (Text.startsWith(item, #text gapsKey)) {
+                                                    for (subitem in Text.split(item, #text "\n")) {
+                                                        gaps := Array.append<Text>(gaps, [subitem]);
+                                                    };
+                                                } else if (Text.startsWith(item, #text sugesstionsKey)) {
+                                                    for (subitem in Text.split(item, #text "\n")) {
+                                                        suggestions := Array.append<Text>(suggestions, [subitem]);
+                                                    };
+                                                } else if (Text.startsWith(item, #text summaryKey)) {
+                                                    for (subitem in Text.split(item, #text "\n")) {
+                                                        summary := subitem;
+                                                    };
+                                                } else if (Text.startsWith(item, #text scoreKey)) {
+                                                    for (subitem in Text.split(item, #text "\n")) {
+                                                        score := subitem;
+                                                    };
+                                                };
                                             };
-                                        } else if (Text.startsWith(item, #text "Weakness")) {
-                                            for (subitem in Text.split(item, #text "\n")) {
-                                                weakness := Array.append(weakness, [subitem]);
+
+                                            ?{
+                                                strengths = strengths;
+                                                gaps = gaps;
+                                                suggestions = suggestions;
+                                                weakness = weakness;
+                                                score = score;
+                                                summary = summary;
                                             };
-                                        } else if (Text.startsWith(item, #text "Gaps")) {
-                                            for (subitem in Text.split(item, #text "\n")) {
-                                                gaps := Array.append(gaps, [subitem]);
-                                            };
-                                        } else if (Text.startsWith(item, #text "Suggestions")) {
-                                            for (subitem in Text.split(item, #text "\n")) {
-                                                suggestions := Array.append(suggestions, [subitem]);
-                                            };
+                                        } else {
+                                            Debug.print("Content is null or empty");
+                                            null; // Explicitly return `null` for the optional type
                                         };
-                                    };
 
-                                    ?{
-                                        strengths = strengths;
-                                        gaps = gaps;
-                                        suggestions = suggestions;
-                                        weakness = weakness;
                                     };
-                                } else {
-                                    Debug.print("Content is null or empty");
-                                    null; // Explicitly return `null` for the optional type
                                 };
 
                             };
+                            case (#err(error)) {
+                                Debug.print(debug_show (error));
+                                null;
+                            };
                         };
-
-                    };
-                    case (#err(error)) {
-                        Debug.print(debug_show (error));
-                        null;
                     };
                 };
             };
