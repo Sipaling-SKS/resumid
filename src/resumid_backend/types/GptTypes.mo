@@ -45,9 +45,9 @@ module GptTypes {
 
     // Analyze Resume Structure
     public type AnalyzeStructure = {
-        strength : [Text];
-        gap : [Text];
-        suggestion: [Text];
+        strengths : [Text];
+        gaps : [Text];
+        suggestions: [Text];
         weakness: [Text];
     }
 };

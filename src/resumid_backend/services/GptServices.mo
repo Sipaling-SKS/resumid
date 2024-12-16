@@ -11,7 +11,7 @@ import GptTypes "../types/GptTypes";
 import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
-    public func AnalyzeResume() : async ?Text {
+    public func AnalyzeResume() : async ?GptTypes.AnalyzeStructure {
         let route : Text = "/gpt-mockup";
 
         // Construct Request Body
@@ -40,6 +40,7 @@ module GptServices {
         switch (decodedText) {
             case (null) {
                 Debug.print("Data item is null");
+                null;
             };
             case (?text) {
                 switch (JSON.fromText(text, null)) {
@@ -50,50 +51,60 @@ module GptServices {
                         switch (gptResponse) {
                             case (null) {
                                 Debug.print("Fail decode the json string");
+                                null;
                             };
                             case (?analizeResult) {
                                 // Ensure content is a non-null and non-empty string before splitting
                                 let content = analizeResult.choices[0].message.content;
                                 if (content != "") {
                                     let sections = Text.split(content, #text "\n\n");
-                                    var strength : [Text] = [];
-                                    var gap : [Text] = [];
-                                    var suggestion : [Text] = [];
+                                    var strengths : [Text] = [];
+                                    var gaps : [Text] = [];
+                                    var suggestions : [Text] = [];
                                     var weakness : [Text] = [];
+                                    Debug.print("============================");
+                                    Debug.print(content);
                                     for (item in sections) {
-                                        if (Text.startsWith(item, #text "Strength")) {
-                                            // var rest = Text.drop(item, 8); // 8 characters for "Strength"
-                                            for(subitem in Text.split(item, #text "\n")) {
-                                                Array.append<Text>(strength, [subitem]);
-                                                null;
-                                            }
+                                        if (Text.startsWith(item, #text GlobalConstants.STRENGTH_KEY)) {
+                                            for (subitem in Text.split(item, #text "\n")) {
+                                                strengths := Array.append<Text>(strengths, [subitem]);
+                                            };
                                         } else if (Text.startsWith(item, #text "Weakness")) {
-                                            var rest = Text.drop(item, 9); // 9 characters for "Weakness"
-                                            weakness := Text.split(item, "\n").toVector();
+                                            for (subitem in Text.split(item, #text "\n")) {
+                                                weakness := Array.append(weakness, [subitem]);
+                                            };
                                         } else if (Text.startsWith(item, #text "Gaps")) {
-                                            var rest = Text.drop(item, 4); // 4 characters for "Gaps"
-                                            gap := Text.split(rest, "\n").toVector();
+                                            for (subitem in Text.split(item, #text "\n")) {
+                                                gaps := Array.append(gaps, [subitem]);
+                                            };
                                         } else if (Text.startsWith(item, #text "Suggestions")) {
-                                            var rest = Text.drop(item, 13); // 13 characters for "Suggestions"
-                                            suggestion := Text.split(rest, "\n").toVector();
+                                            for (subitem in Text.split(item, #text "\n")) {
+                                                suggestions := Array.append(suggestions, [subitem]);
+                                            };
                                         };
+                                    };
 
-                                        Debug.print("aa" # item); // Debug output for each section
+                                    ?{
+                                        strengths = strengths;
+                                        gaps = gaps;
+                                        suggestions = suggestions;
+                                        weakness = weakness;
                                     };
                                 } else {
                                     Debug.print("Content is null or empty");
+                                    null; // Explicitly return `null` for the optional type
                                 };
+
                             };
                         };
 
                     };
                     case (#err(error)) {
                         Debug.print(debug_show (error));
+                        null;
                     };
                 };
             };
         };
-
-        null;
     };
 };
