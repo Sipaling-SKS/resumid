@@ -9,10 +9,10 @@ module {
     fileName : Text;
     summary : Text;
     score : Int;
-    strengths : Text;
-    weaknesses : Text;
-    gaps : Text;
-    suggestions : Text;
+    strengths : [Text];
+    weaknesses : [Text];
+    gaps : [Text];
+    suggestions : [Text];
     createdAt : Text;
   };
 
@@ -20,10 +20,10 @@ module {
     fileName : Text;
     summary : Text;
     score : Int;
-    strengths : Text;
-    weaknesses : Text;
-    gaps : Text;
-    suggestions : Text;
+    strengths : [Text];
+    weaknesses : [Text];
+    gaps : [Text];
+    suggestions : [Text];
   };
 
   public type HistoryIdInput = {

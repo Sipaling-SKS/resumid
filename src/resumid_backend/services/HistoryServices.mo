@@ -11,13 +11,7 @@ module {
   public func addHistory(
     histories : HistoryTypes.Histories,
     userId : Text,
-    fileName : Text,
-    summary : Text,
-    score : Int,
-    strengths : Text,
-    weaknesses : Text,
-    gaps : Text,
-    suggestions : Text,
+    input : HistoryTypes.AddHistoryInput,
   ) : async Result.Result<HistoryTypes.History, Text> {
     let entropy = await Random.blob();
     let historyId = UUID.generateV4(entropy);
@@ -29,13 +23,13 @@ module {
     let newHistory : HistoryTypes.History = {
       userId = userId;
       historyId = historyId;
-      fileName = fileName;
-      summary = summary;
-      score = score;
-      strengths = strengths;
-      weaknesses = weaknesses;
-      gaps = gaps;
-      suggestions = suggestions;
+      fileName = input.fileName;
+      summary = input.summary;
+      score = input.score;
+      strengths = input.strengths;
+      weaknesses = input.weaknesses;
+      gaps = input.gaps;
+      suggestions = input.suggestions;
       createdAt = createdAt;
     };
 
