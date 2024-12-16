@@ -4,9 +4,9 @@ import GptTypes "types/GptTypes";
 import GptServices "services/GptServices";
 
 actor ResumId {
-    public shared func AnalyzeResume() : async ?GptTypes.AnalyzeStructure {
-        let test = await GptServices.AnalyzeResume();
-        Debug.print("Test Masuk");
-        test;
+    public shared func AnalyzeResume(resumeContent : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
+        let analyzeResult = await GptServices.AnalyzeResume(resumeContent, jobDescription);
+        Debug.print(debug_show(analyzeResult));
+        analyzeResult;
     };
 };
