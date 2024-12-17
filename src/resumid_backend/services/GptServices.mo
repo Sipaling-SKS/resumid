@@ -12,7 +12,8 @@ import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
     public func AnalyzeResume(resumeContent : Text, jobTitle: Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
-        let route : Text = "/gpt-service";
+        // let route : Text = "/gpt-service";
+        let route : Text = "/gpt-mockup";
 
         // Construct Request Body
         let messages : [GptTypes.GptRequestMessage] = [
