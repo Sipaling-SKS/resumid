@@ -39,7 +39,7 @@ function Analyzer() {
 
       setResume({
         fullText: cleanedText,
-        filename: file.name || "default_file.pdf",
+        filename: file.name,
       });
       setStep(1);
     } catch (error) {
