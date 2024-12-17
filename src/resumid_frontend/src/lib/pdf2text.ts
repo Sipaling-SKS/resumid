@@ -7,7 +7,9 @@ export async function extractPDFContent(file: File): Promise<string> {
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
+    const content = await page.getTextContent({
+      disableNormalization: true,
+    });
 
     const lines: string[] = [];
     let lastY: number | null = null;
