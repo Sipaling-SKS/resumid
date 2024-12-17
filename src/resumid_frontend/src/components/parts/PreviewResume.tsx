@@ -9,23 +9,32 @@ import { Resolver, SubmitHandler, useForm } from "react-hook-form";
 
 export type PreviewFormValues = {
   fullText: string
-  jobTitle?: string
+  jobTitle: string
   jobDescription?: string
 }
 
 const resolver: Resolver<PreviewFormValues> = async (values) => {
-  return {
-    values: values.fullText ? values : {},
-    errors: !values.fullText
-      ? {
-          fullText: {
-            type: "required",
-            message: "You can't leave the resume blank.",
-          },
-        }
-      : {},
+  const errors: Record<string, { type: string; message: string }> = {};
+
+  if (!values.fullText) {
+    errors.fullText = {
+      type: "required",
+      message: "You can't leave the resume blank.",
+    };
   }
-}
+
+  if (!values.jobTitle) {
+    errors.jobTitle = {
+      type: "required",
+      message: "You can't leave job title blank.",
+    };
+  }
+
+  return {
+    values: Object.keys(errors).length === 0 ? values : {},
+    errors,
+  };
+};
 
 interface PreviewResumeProps {
   onSubmit: SubmitHandler<PreviewFormValues>
@@ -65,15 +74,15 @@ function PreviewResume({ onSubmit, resume, setResume, setStep }: PreviewResumePr
             {errors?.fullText && <p className="text-sm text-red-500">{errors.fullText.message}</p>}
           </Label>
           <Label htmlFor="job-title" className="space-y-2">
-            <p className="text-paragraph">{"Job Title (Optional)"}</p>
+            <p className="text-paragraph">Job Title<span className="text-red-500">*</span></p>
             <Input
-              {...register("jobTitle")}
+              {...register("jobTitle", { required: true })}
               id="job-title"
               className="font-normal"
               type="text"
               placeholder="Ex: Software Engineer, Management Trainee, etc.."
-              
-            />          
+            />
+            {errors?.jobTitle && <p className="text-sm text-red-500">{errors.jobTitle.message}</p>}          
           </Label>
           <Label htmlFor="job-description" className="space-y-2">
             <p className="text-paragraph">{"Job Description (Optional)"}</p>
