@@ -6,9 +6,10 @@ const TrGptRequestLog = require("../models/TrGptRequestLog");
 const { API_IDEMPOTENCY_KEY } = require("../constants/global");
 
 const AnalyzeResume = async (req) => {
-  const route = "/gpt-mockup";
-
-  console.log(route);
+  const route = "/chat/completions";
+  console.log(req.body);
+  const cleanedContent = req.body.messages[0].content.replaceAll("<ACK0006>", "\n")
+  req.body.messages[0].content = cleanedContent;
   try {
     const response = await axios.post(
       process.env.GPT_BASE_URL + route,
@@ -20,6 +21,8 @@ const AnalyzeResume = async (req) => {
         },
       }
     );
+
+    console.log(response.data);
 
     const now = new Date();
     const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
@@ -36,7 +39,10 @@ const AnalyzeResume = async (req) => {
     await newData.save();
     return response;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
+    console.log(err.message);
+    console.log(err.response.data);
+    console.log(err.response.data.message);
     return err;
   }
 };
