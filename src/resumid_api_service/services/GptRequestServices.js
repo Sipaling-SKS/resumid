@@ -3,6 +3,8 @@ const axios = require("axios");
 
 const TrGptRequestLog = require("../models/TrGptRequestLog");
 
+const { API_IDEMPOTENCY_KEY } = require("../constants/global");
+
 const AnalyzeResume = async (req) => {
   const route = "/gpt-mockup";
 
@@ -13,7 +15,7 @@ const AnalyzeResume = async (req) => {
       req.body,
       {
         headers: {
-          Authorization: `Bearer `,
+          Authorization: `Bearer ${process.env.GPT_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
@@ -23,7 +25,7 @@ const AnalyzeResume = async (req) => {
     const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
 
     const newData = new TrGptRequestLog({
-      idempotency_key: req.headers["idempotency-key"],
+      idempotency_key: req.headers[API_IDEMPOTENCY_KEY],
       gpt_request: JSON.stringify(req.body),
       gpt_response: JSON.stringify(response.data),
       expired_date: expired_date,
@@ -32,7 +34,6 @@ const AnalyzeResume = async (req) => {
     });
 
     await newData.save();
-    console.log(response.data);
     return response;
   } catch (err) {
     console.log(err);
