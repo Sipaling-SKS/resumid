@@ -1,6 +1,6 @@
 import { AuthClient } from "@dfinity/auth-client";
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { canisterId, createActor } from "../../declarations/lagi_backend"; // Pastikan import actor yang benar
+import { canisterId, createActor } from "../../../declarations/resumid_backend"; // Pastikan import actor yang benar
 
 // Define types for the AuthContext
 interface AuthContextType {
@@ -12,12 +12,12 @@ interface AuthContextType {
   principal: any | null;
   whoamiActor: any | null;
   userData: any | null; 
+  fetchUserData: () => void;
+
 }
 
-// Create context with a default value of null
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Identity provider logic
 export const getIdentityProvider = (): string | undefined => {
   let idpProvider;
   if (typeof window !== "undefined") {
@@ -43,7 +43,6 @@ export const defaultOptions = {
   },
 };
 
-// Hook to manage authentication logic
 export const useAuthClient = (options = defaultOptions) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
@@ -63,7 +62,6 @@ export const useAuthClient = (options = defaultOptions) => {
       ...options.loginOptions,
       onSuccess: async () => {
         await updateClient(authClient!); 
-        await fetchUserData(); 
       },
     });
   };
@@ -102,17 +100,24 @@ export const useAuthClient = (options = defaultOptions) => {
   //   }
   // }
 
+  // const fetchWhoami = async () => {
+  //   if (whoamiActor) {
+  //     const principal = await whoamiActor.whoami();
+  //     console.log("Your principal ID:", principal);
+  //   }
+  // };
+
+
   async function fetchUserData() {
     if (whoamiActor) {
       try {
-        // Authenticate user first (insert if not already authenticated)
-        await whoamiActor.authenticateUser();
-  
-        // Fetch user data after authentication
-        const userId = await whoamiActor.whoami(); // Get the current user's ID (Principal)
-        const data = await whoamiActor.getUserById(userId); // Fetch the user data using their ID
         
-        setUserData(data); // Store the user data in state
+        const userId = await whoamiActor.whoami(); 
+        await whoamiActor.authenticateUser();
+        const data = await whoamiActor.getUserById(userId); 
+        console.log("id:", userId);
+        console.log("data:", data);
+        setUserData(data); 
       } catch (error) {
         console.error("Failed to authenticate or fetch user data:", error);
       }
@@ -138,7 +143,8 @@ export const useAuthClient = (options = defaultOptions) => {
     identity,
     principal,
     whoamiActor,
-    userData, // Berikan akses ke data user
+    userData,
+    fetchUserData // Berikan akses ke data user
   };
 };
 

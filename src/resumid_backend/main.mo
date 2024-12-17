@@ -2,8 +2,13 @@ import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
 import Result "mo:base/Result";
 import Text "mo:base/Text";
+import Debug "mo:base/Debug";
+
+
 import HistoryTypes "types/HistoryTypes";
 import HistoryServices "services/HistoryServices";
+import UserTypes "types/UserTypes";
+import UserServices "services/UserServices";
 
 actor Resumid {
  private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(
@@ -47,18 +52,18 @@ actor Resumid {
   };
 
 
-  // //user
-
+  //user
   public shared(msg) func whoami() : async Principal {
-    Debug.print("Caller Principal: " # Principal.toText(msg.caller));  // Ubah di sini
+    Debug.print("Caller Principal: " # Principal.toText(msg.caller));  
     return msg.caller;
-};
+  };
 
   public shared(msg) func authenticateUser() : async ?UserTypes.UserData {
       let userId = await whoami(); 
       return await UserServices.authenticateUser(users, userId); 
   };
-   public shared(msg) func getUserById(userId: Principal) : async ?UserTypes.UserData {
+
+  public shared(msg) func getUserById(userId: Principal) : async ?UserTypes.UserData {
       return users.get(userId); 
   };
 };

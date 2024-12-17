@@ -1,22 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "./useAuthClient";
+import { useAuth } from "../hooks/useAuthClient";
 
 const whoamiStyles: React.CSSProperties = {
   border: "1px solid #1a1a1a",
   marginBottom: "1rem",
 };
 
+// Fungsi replacer untuk mengonversi BigInt menjadi string
 const bigIntReplacer = (key: string, value: any) => {
   if (typeof value === 'bigint') {
-    return value.toString(); 
+    return value.toString(); // Mengonversi BigInt ke string
   }
   return value;
 };
 
-const Login: React.FC = () => {
+const LoggedIn: React.FC = () => {
   const [result, setResult] = useState<string>(""); 
-  const { whoamiActor, logout, userData } = useAuth(); 
+  const { whoamiActor, logout, userData, fetchUserData } = useAuth(); // Mengambil whoamiActor dan logout dari useAuth
   
+  // Menyimpan data yang akan dipetakan
   const [userDetails, setUserDetails] = useState<any[]>([]);
 
   useEffect(() => {
@@ -34,8 +36,10 @@ const Login: React.FC = () => {
 
   const handleClick = async () => {
     if (whoamiActor) {
+      await fetchUserData();
       const whoami = await whoamiActor.whoami();
       setResult(whoami);
+
     }
   };
 
@@ -61,7 +65,7 @@ const Login: React.FC = () => {
         style={whoamiStyles}
       />
       
-    
+      {/* Menampilkan user data dalam bentuk array */}
       <div style={{ marginTop: "20px" }}>
         {userDetails.length > 0 ? (
           userDetails.map((item, index) => (
@@ -83,4 +87,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default LoggedIn;
