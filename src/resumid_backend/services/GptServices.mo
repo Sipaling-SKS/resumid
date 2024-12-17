@@ -11,11 +11,11 @@ import GptTypes "../types/GptTypes";
 import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
-    public func AnalyzeResume(resumeContent : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
+    public func AnalyzeResume(resumeContent : Text, jobTitle: Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
         let route : Text = "/gpt-service";
 
         // Construct Request Body
-        let message : [GptTypes.GptRequestMessage] = [
+        let messages : [GptTypes.GptRequestMessage] = [
             {
                 role = "system";
                 content = "";
@@ -23,18 +23,18 @@ module GptServices {
             { role = "user"; content = "Resume: " # resumeContent },
             {
                 role = "user";
-                content = "Job Title and Requirement: " # jobDescription;
+                content = "Job Description: " # "Job Title: " # jobTitle # "Job Description: " # jobDescription;
             },
         ];
 
         let body : GptTypes.GptRequest = {
             model = GlobalConstants.MODEL_NAME;
-            message = message;
+            messages = messages;
             max_tokens = GlobalConstants.MAX_TOKENS;
             temperature = GlobalConstants.TEMPERATURE;
         };
 
-        let bodyKeys = ["model", "message", "max_tokens", "temperature", "role", "content"];
+        let bodyKeys = ["model", "messages", "max_tokens", "temperature", "role", "content"];
         let blobBody = to_candid (body);
 
         switch (JSON.toText(blobBody, bodyKeys, null)) {

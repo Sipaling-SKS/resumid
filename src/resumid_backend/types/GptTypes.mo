@@ -3,7 +3,7 @@ module GptTypes {
     // Request Sections
     public type GptRequest = {
         model: Text;
-        message: [GptRequestMessage];
+        messages: [GptRequestMessage];
         max_tokens: Nat;
         temperature: Float;
     };
