@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 
@@ -9,11 +8,11 @@ const root = document.getElementById('root');
 
 if (root) {
   ReactDOM.createRoot(root).render(
-    <React.StrictMode>
+    // <React.StrictMode>
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    </React.StrictMode>,
+    // </React.StrictMode>,
   );
 } else {
   console.error("Root element with ID 'root' not found.");
