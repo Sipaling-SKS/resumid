@@ -9,6 +9,10 @@ const AnalyzeResume = async (req) => {
   const route = "/chat/completions";
   console.log(req.body);
   const cleanedContent = req.body.messages[0].content.replaceAll("<ACK0006>", "\n")
+  const cleanedContent = req.body.messages[0].content.replaceAll(
+    "<ACK0006>",
+    "\n"
+  );
   req.body.messages[0].content = cleanedContent;
   try {
     const response = await axios.post(
