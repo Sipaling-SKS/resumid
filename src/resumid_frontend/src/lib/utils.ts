@@ -18,3 +18,20 @@ export function scrollTo(section: string, offset: number = 0) {
 export function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+import { useEffect } from 'react';
+import { useLocation } from "react-router";
+
+export function DefaultScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
+export function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
