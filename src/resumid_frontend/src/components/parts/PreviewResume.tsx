@@ -68,7 +68,7 @@ function PreviewResume({ onSubmit, resume, setResume, setStep }: PreviewResumePr
             <div className="p-1">
               <Textarea
                 {...register("fullText", { required: true })}
-                className="min-h-32 max-h-64 py-1 font-normal outline-dashed outline-2 outline-primary-500 outline-offset-1"
+                className="min-h-32 max-h-64 py-1 font-normal outline-dashed outline-2 outline-primary-500 outline-offset-1 scrollbar"
               />
             </div>
             {errors?.fullText && <p className="text-sm text-red-500">{errors.fullText.message}</p>}
