@@ -11,6 +11,8 @@ import Serde "mo:serde";
 
 import HttpTypes "../types/HttpTypes";
 
+import GlobalConstants "../constants/Global";
+
 module HttpHelper {
   public func _generateIdempotencyKey() : async Text {
     let entropy = await Random.blob();
@@ -39,6 +41,7 @@ module HttpHelper {
       { name = "User-Agent"; value = req.header_user_agent },
       { name = "Content-Type"; value = req.header_content_type },
       { name = "Idempotency-Key"; value =  idempotencyKey},
+      { name = "x-api-key"; value =  GlobalConstants.API_KEY},
     ];
 
     // Construct IC HTTP Request Arguments

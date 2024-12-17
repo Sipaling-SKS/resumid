@@ -1,6 +1,4 @@
 import Text "mo:base/Text";
-import Nat "mo:base/Nat";
-import Int "mo:base/Int";
 import Debug "mo:base/Debug";
 import Array "mo:base/Array";
 import { JSON } = "mo:serde";
@@ -14,7 +12,7 @@ import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
     public func AnalyzeResume(resumeContent : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
-        let route : Text = "/gpt-mockup";
+        let route : Text = "/gpt-service";
 
         // Construct Request Body
         let message : [GptTypes.GptRequestMessage] = [
@@ -57,7 +55,7 @@ module GptServices {
                     header_host = GlobalConstants.GPT_HOST;
                     header_user_agent = GlobalConstants.GPT_USER_AGENT;
                     header_content_type = GlobalConstants.GPT_CONTENT_TYPE;
-                    body = ?"";
+                    body = ?bodyAsBlob;
                     method = #post;
                 };
 

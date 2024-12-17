@@ -15,4 +15,5 @@ module GlobalConstants {
     public let MODEL_NAME : Text = "gpt-4o-mini";
     public let MAX_TOKENS : Nat = 1000;
     public let TEMPERATURE : Float = 0.7;
+    public let API_KEY: Text = "f8b8d923-3bc2-4cf3-b999-141a8fbc5df1";
 };
