@@ -2,17 +2,15 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils"
 import { FolderUp, FileCheck, X as Remove, CheckCircle2 as Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 
 interface FileInputProps {
-  onFileSelected: (file: File) => void
+  onFileSelected: (file: File) => void;
+  file: File | null;
+  setFile: (file: File | null) => void;
 }
 
-function FileInput({ onFileSelected }: FileInputProps) {
-  const { toast } = useToast();
-
-  const [file, setFile] = useState<File | null>(null);
-
+function FileInput({ onFileSelected, file, setFile }: FileInputProps) {
   const handleFileChange = (e: React.FormEvent<HTMLInputElement>) => {
     e.preventDefault();
     const selectedFiles = e.currentTarget.files;
@@ -26,15 +24,11 @@ function FileInput({ onFileSelected }: FileInputProps) {
   };
 
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    if (file) return;
-
     e.preventDefault();
     const droppedFiles = e.dataTransfer.items;
     
     if (droppedFiles.length > 0) {
       const newFile = droppedFiles[0]
-      
-      console.log(newFile)
 
       if (newFile.type === "application/pdf") {
         setFile(newFile.getAsFile())
@@ -56,7 +50,7 @@ function FileInput({ onFileSelected }: FileInputProps) {
     if (file) {
       onFileSelected(file);
     }
-  }, [file, onFileSelected]);
+  }, [file]);
 
   return (
     <section
@@ -64,7 +58,7 @@ function FileInput({ onFileSelected }: FileInputProps) {
       onDrop={handleFileDrop}
       onDragOver={(e) => e.preventDefault()}
     >
-      {file && <Remove onClick={handleRemoveFile} className="text-primary-500 absolute top-3 right-3 md:top-4 md:right-4" />}
+      {file && <Remove onClick={handleRemoveFile} className="cursor-pointer text-primary-500 absolute top-3 right-3 md:top-4 md:right-4" />}
       {!file ? (
         <>
           <FolderUp className="text-primary-500" size={64} strokeWidth={1.5} />
@@ -85,9 +79,8 @@ function FileInput({ onFileSelected }: FileInputProps) {
         id="browse"
         onChange={handleFileChange}
         accept=".pdf"
-        multiple
       />
-      <Button asChild size="lg">
+      <Button className="cursor-pointer" asChild>
         <label htmlFor="browse">
           Browse files
         </label>
