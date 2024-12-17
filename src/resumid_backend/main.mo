@@ -2,6 +2,10 @@ import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
 import Result "mo:base/Result";
 import Text "mo:base/Text";
+import Debug "mo:base/Debug";
+
+import GptTypes "types/GptTypes";
+import GptServices "services/GptServices";
 import HistoryTypes "types/HistoryTypes";
 import HistoryServices "services/HistoryServices";
 
@@ -43,5 +47,11 @@ actor Resumid {
   public shared (msg) func deleteHistory(input : HistoryTypes.HistoryIdInput) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     HistoryServices.deleteHistory(histories, userId, input.historyId);
+  };
+  
+  public shared func AnalyzeResume(resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
+      let analyzeResult = await GptServices.AnalyzeResume(resumeContent, jobTitle, jobDescription);
+      Debug.print(debug_show(analyzeResult));
+      analyzeResult;
   };
 };
