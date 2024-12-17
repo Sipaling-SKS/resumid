@@ -1,6 +1,4 @@
 import Text "mo:base/Text";
-import Nat "mo:base/Nat";
-import Int "mo:base/Int";
 import Debug "mo:base/Debug";
 import Array "mo:base/Array";
 import { JSON } = "mo:serde";
@@ -14,13 +12,13 @@ import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
     public func AnalyzeResume(resumeContent : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
-        let route : Text = "/gpt-mockup";
+        let route : Text = "/gpt-service";
 
         // Construct Request Body
         let message : [GptTypes.GptRequestMessage] = [
             {
                 role = "system";
-                content = "I want you to act as a resume reviewer. I will provide you with my current resume and the job requirements. You will review the resume for any errors or areas for improvement based on the job requirements. Include a complete breakdown of the resume in form of strengths, weaknesses, gaps, and suggestions. Mention as many points as possible in each section. A good resume must have all the requirements mentioned in the job requirements. A good resume must not have any errors. A resume must have a description of the candidate's skills and experience. A resume must have at least 200 words. Provide constructive suggestions and recommendations as to how the resumes could be improved to fit the job requirements. Do not show anything other than these 4 sections: Strength, Weakness and Gaps, Suggestions. ## Output Format\n        Strength:\n        {List of strength points}\n        {Line break}\n        Weakness:\n        {List of weakness points}\n        {Line break}\n        Gaps:\n        {List of gap points}\n        {Line break}\n        Suggestions:\n        {List of suggestion points}\n        {Line break}\n        Summary:\n        {Text of summary}\n        {Line break}        Score:\n        {Score point}\n        {Line break}";
+                content = "I want you to act as a resume reviewer. I will provide you with my current resume and the job requirements. You will review the resume for any errors or areas for improvement based on the job requirements. Include a complete breakdown of the resume in form of strengths, weaknesses, gaps, and suggestions. Mention as many points as possible in each section. A good resume must have all the requirements mentioned in the job requirements. A good resume must not have any errors. A resume must have a description of the candidate's skills and experience. A resume must have at least 200 words. Provide constructive suggestions and recommendations as to how the resumes could be improved to fit the job requirements. Do not show anything other than these 4 sections: Strength, Weakness and Gaps, Suggestions. ## Output Format\\n        Strength:\\n        {List of strength points}\\n        {Line break}\\n        Weakness:\\n        {List of weakness points}\\n        {Line break}\\n        Gaps:\\n        {List of gap points}\\n        {Line break}\\n        Suggestions:\\n        {List of suggestion points}\\n        {Line break}\\n        Summary:\\n        {Text of summary}\\n        {Line break}        Score:\\n        {Score point}\\n        {Line break}";
             },
             { role = "user"; content = "Resume: " # resumeContent },
             {
@@ -57,7 +55,7 @@ module GptServices {
                     header_host = GlobalConstants.GPT_HOST;
                     header_user_agent = GlobalConstants.GPT_USER_AGENT;
                     header_content_type = GlobalConstants.GPT_CONTENT_TYPE;
-                    body = ?"";
+                    body = ?bodyAsBlob;
                     method = #post;
                 };
 
