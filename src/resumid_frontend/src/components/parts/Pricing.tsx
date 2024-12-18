@@ -107,13 +107,14 @@ function Pricing() {
   ]
 
   return (
-    <section id="pricing" className="responsive-container py-12 md:py-16 lg:pt-24 lg:pb-32">
+    <section id="pricing" className="responsive-container py-12 md:py-16 lg:pt-24 lg:pb-32 border-b border-neutral-200">
       <h2 className="text-balance font-outfit text-heading leading-tight text-3xl md:text-4xl text-center font-semibold mb-10 md:mb-14 px-4">
         Flexible Plans for Every Need
       </h2>
       <div className="mx-auto max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {planList.map((plan: Plan, index: number) => (
           <Plan
+            key={index}
             className={cn(index === 1 && "order-first lg:order-none")}
             title={plan.title}
             description={plan.description}
