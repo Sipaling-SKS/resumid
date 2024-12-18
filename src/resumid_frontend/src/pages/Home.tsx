@@ -6,7 +6,7 @@ import FAQ from "@/components/parts/FAQ";
 import Features from "@/components/parts/Features";
 import Hero from "@/components/parts/Hero";
 import Pricing from "@/components/parts/Pricing";
-import ResultCard from "@/components/parts/ResultCard";
+import ResultCard from "@/components/parts/ResumeCard";
 
 function Home() {
   const description = "Decentralized, Insightful, and Ready to Elevate Your Career."
