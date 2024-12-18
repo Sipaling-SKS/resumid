@@ -11,7 +11,7 @@ const root = document.getElementById('root');
 
 if (root) {
   ReactDOM.createRoot(root).render(
-    <React.StrictMode>
+    // <React.StrictMode>
       <AuthProvider>
         <DataProvider>
       <BrowserRouter>
@@ -21,7 +21,7 @@ if (root) {
         </DataProvider>
 
       </AuthProvider>
-    </React.StrictMode>,
+    // </React.StrictMode>,
   );
 } else {
   console.error("Root element with ID 'root' not found.");
