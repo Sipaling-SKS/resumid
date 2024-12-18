@@ -8,7 +8,7 @@ module {
     historyId : Text;
     fileName : Text;
     summary : Text;
-    score : Int;
+    score : Text;
     strengths : [Text];
     weaknesses : [Text];
     gaps : [Text];
@@ -19,7 +19,7 @@ module {
   public type AddHistoryInput = {
     fileName : Text;
     summary : Text;
-    score : Int;
+    score : Text;
     strengths : [Text];
     weaknesses : [Text];
     gaps : [Text];

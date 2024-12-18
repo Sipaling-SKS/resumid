@@ -12,6 +12,11 @@ actor Resumid {
   // Auth related method
 
   // Resume Analyzer related method
+  public shared func AnalyzeResume(resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
+      let analyzeResult = await GptServices.AnalyzeResume(resumeContent, jobTitle, jobDescription);
+      Debug.print(debug_show(analyzeResult));
+      analyzeResult;
+  };
 
   // Analyze History related method
   public shared (msg) func addHistory(input : HistoryTypes.AddHistoryInput) : async Result.Result<HistoryTypes.History, Text> {
