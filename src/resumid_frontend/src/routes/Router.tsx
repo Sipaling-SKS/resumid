@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router";
 import Home from "@/pages/Home";
 import Logout from "@/pages/Logout"; 
 import Login from "@/pages/Login";
+import ProtectedRoute from "./ProtectedRoute";
 
 
 
@@ -15,9 +16,10 @@ function Router() {
       <Route index element={<Home />} />
       
       {/* Additional routes */}
-      
-      <Route path="login" element={<Login />} />
-      <Route path="logout" element={<Logout />} />
+      <Route element={<ProtectedRoute redirectTo="/logout" />}>
+        <Route path="/login" element={<Login />} />
+      </Route>
+      <Route path="/logout" element={<Logout />} />
     </Routes>
   )
 }

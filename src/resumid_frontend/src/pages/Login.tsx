@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "./useAuthClient";
-import { useData } from "./DataContext"; 
+import { useAuth } from "@/hooks/AuthContext";
+import { useData } from "@/hooks/DataContext"; 
 
 const whoamiStyles: React.CSSProperties = {
   border: "1px solid #1a1a1a",
@@ -8,15 +8,15 @@ const whoamiStyles: React.CSSProperties = {
 };
 
 const Login: React.FC = () => {
-  const { principal, logout } = useAuth(); 
+  const { isAuthenticated, principal, logout } = useAuth(); 
   const { userData, fetchUserData } = useData(); 
   const [userDetails, setUserDetails] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (principal) {
-      fetchUserData(); 
-    }
-  }, [principal, fetchUserData]);
+  // useEffect(() => {
+  //   if (principal) {
+  //     fetchUserData(); 
+  //   }
+  // }, [principal, fetchUserData]);
 
   useEffect(() => {
     if (userData) {
@@ -29,7 +29,7 @@ const Login: React.FC = () => {
   return (
     <div className="container">
       <h1>Internet Identity Client</h1>
-      <h2>You are authenticated!</h2>
+      <h2>Auth Status: {JSON.stringify(isAuthenticated)}</h2>
       <p>To see how a canister views you, you can see your identity below.</p>
 
       <input

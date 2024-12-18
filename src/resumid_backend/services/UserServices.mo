@@ -1,9 +1,10 @@
-import UserTypes "../Types/UserTypes";
+import UserTypes "../types/UserTypes";
 import Time "mo:base/Time";
 import Principal "mo:base/Principal";
 import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import Int "mo:base/Int";
+import DateHelper "../helpers/DateHelper";
 
 module UserService {
     public func authenticateUser(
@@ -23,8 +24,9 @@ module UserService {
                 let uid = UUID.generateV4(entropy);  
                 let name = "user-" # uid; 
 
-                let timestamp = Time.now();  
-                let createdAt = await Utils.getHumanReadableTime();  
+                let timestamp = Time.now();
+                // let createdAt = await Utils.getHumanReadableTime();
+                let createdAt = DateHelper.formatTimestamp(timestamp);
 
                 let role = 1; 
 

@@ -1,6 +1,8 @@
 import { AuthClient } from "@dfinity/auth-client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { canisterId, createActor } from "../../../declarations/resumid_backend";
+import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declarations/internet_identity";
+import { canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid_backend";
 
 // Define types for the context state
 interface AuthContextType {
@@ -8,9 +10,10 @@ interface AuthContextType {
   login: () => void;
   logout: () => void;
   authClient: AuthClient | null;
-  identity: any | null; 
-  principal: any | null; 
-  whoamiActor: any | null; 
+  identity: any | null;
+  principal: any | null;
+  whoamiActor: any | null;
+  loading: boolean; // Added to handle async state
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,12 +21,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const getIdentityProvider = (): string | undefined => {
   let idpProvider;
   if (typeof window !== "undefined") {
-    const isLocal = import.meta.env.VITE_DFX_NETWORK !== "ic"; 
+    const isLocal = import.meta.env.VITE_DFX_NETWORK !== "ic";
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
     if (isLocal && isSafari) {
-      idpProvider = `http://localhost:4943/?canisterId=${import.meta.env.VITE_CANISTER_ID_INTERNET_IDENTITY}`; // Menggunakan variabel dari .env
+      idpProvider = `http://localhost:4943/?canisterId=${CANISTER_ID_INTERNET_IDENTITY}`;
     } else if (isLocal) {
-      idpProvider = `http://a4tbr-q4aaa-aaaaa-qaafq-cai.localhost:4943`; 
+      idpProvider = `http://${CANISTER_ID_INTERNET_IDENTITY}.localhost:4943`;
     }
   }
   return idpProvider;
@@ -43,18 +47,19 @@ export const defaultOptions = {
 export const useAuthClient = (options = defaultOptions) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
-  const [identity, setIdentity] = useState<any | null>(null); 
-  const [principal, setPrincipal] = useState<any | null>(null); 
+  const [identity, setIdentity] = useState<any | null>(null);
+  const [principal, setPrincipal] = useState<any | null>(null);
   const [whoamiActor, setWhoamiActor] = useState<any | null>(null);
+  const [loading, setLoading] = useState<boolean>(true); // Added loading state
 
   useEffect(() => {
     AuthClient.create(options.createOptions).then(async (client) => {
-      updateClient(client);
+      await updateClient(client); // Ensure async updates are awaited
     });
   }, []);
 
   const login = () => {
-    if (authClient) {  
+    if (authClient) {
       authClient.login({
         ...options.loginOptions,
         onSuccess: () => {
@@ -64,32 +69,39 @@ export const useAuthClient = (options = defaultOptions) => {
     }
   };
 
-  
-  async function updateClient(client: AuthClient) {
+  const updateClient = async (client: AuthClient) => {
     const isAuthenticated = await client.isAuthenticated();
     setIsAuthenticated(isAuthenticated);
 
-    const identity = client.getIdentity();
-    setIdentity(identity);
+    if (isAuthenticated) {
+      const identity = client.getIdentity();
+      setIdentity(identity);
 
-    const principal = identity.getPrincipal();
-    setPrincipal(principal);
+      const principal = identity.getPrincipal();
+      setPrincipal(principal);
+
+      const actor = createActor(canisterId, {
+        agentOptions: {
+          identity,
+        },
+      });
+
+      setWhoamiActor(actor);
+    } else {
+      // Reset states if not authenticated
+      setIdentity(null);
+      setPrincipal(null);
+      setWhoamiActor(null);
+    }
 
     setAuthClient(client);
+    setLoading(false); // Loading state is false after update
+  };
 
-    const actor = createActor(canisterId, {
-      agentOptions: {
-        identity,
-      },
-    });
-
-    setWhoamiActor(actor);
-  }
-
-  async function logout() {
+  const logout = async () => {
     await authClient?.logout();
-    await updateClient(authClient!); 
-  }
+    await updateClient(authClient!);
+  };
 
   return {
     isAuthenticated,
@@ -99,11 +111,12 @@ export const useAuthClient = (options = defaultOptions) => {
     identity,
     principal,
     whoamiActor,
+    loading, // Expose loading state
   };
 };
 
 interface AuthProviderProps {
-  children: React.ReactNode;  
+  children: React.ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
