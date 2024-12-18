@@ -1,83 +1,61 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../hooks/useAuthClient";
+import { useAuth } from "./useAuthClient";
+import { useData } from "./DataContext"; 
 
 const whoamiStyles: React.CSSProperties = {
   border: "1px solid #1a1a1a",
   marginBottom: "1rem",
 };
 
-// Fungsi replacer untuk mengonversi BigInt menjadi string
-const bigIntReplacer = (key: string, value: any) => {
-  if (typeof value === 'bigint') {
-    return value.toString(); // Mengonversi BigInt ke string
-  }
-  return value;
-};
-
-const LoggedIn: React.FC = () => {
-  const [result, setResult] = useState<string>(""); 
-  const { whoamiActor, logout, userData, fetchUserData } = useAuth(); // Mengambil whoamiActor dan logout dari useAuth
-  
-  // Menyimpan data yang akan dipetakan
+const Login: React.FC = () => {
+  const { principal, logout } = useAuth(); 
+  const { userData, fetchUserData } = useData(); 
   const [userDetails, setUserDetails] = useState<any[]>([]);
 
   useEffect(() => {
-    console.log("data : ", userData)
+    if (principal) {
+      fetchUserData(); 
+    }
+  }, [principal, fetchUserData]);
+
+  useEffect(() => {
     if (userData) {
-      const userInfo = Object.entries(userData).map(([key, value]) => ({
-        label: key,
-        value: JSON.stringify(value, bigIntReplacer), 
-      }));
-      
-      setUserDetails(userInfo); 
-      console.log("User data updated:", userData);
+      const formatedData = JSON.parse(JSON.stringify(userData));
+
+      setUserDetails(formatedData); 
     }
   }, [userData]);
-
-  const handleClick = async () => {
-    if (whoamiActor) {
-      await fetchUserData();
-      const whoami = await whoamiActor.whoami();
-      setResult(whoami);
-
-    }
-  };
 
   return (
     <div className="container">
       <h1>Internet Identity Client</h1>
       <h2>You are authenticated!</h2>
-      <p>To see how a canister views you, click this button!</p>
-      <button
-        type="button"
-        id="whoamiButton"
-        className="primary"
-        onClick={handleClick}
-      >
-        Who am I?
-      </button>
+      <p>To see how a canister views you, you can see your identity below.</p>
+
       <input
         type="text"
         readOnly
         id="whoami"
-        value={result}
-        placeholder="your Identity"
+        value={principal ? principal.toString() : "Loading..."} 
+        placeholder="Your Identity"
         style={whoamiStyles}
       />
       
-      {/* Menampilkan user data dalam bentuk array */}
       <div style={{ marginTop: "20px" }}>
         {userDetails.length > 0 ? (
           userDetails.map((item, index) => (
             <div key={index}>
-              <strong>{item.label}: </strong>
-              <span>{item.value}</span>
+              <p>ID: {item.id.__principal__}</p>
+              <p>Name: {item.name}</p>
+              <p>Created At: {item.createdAt}</p>
+              <p>Role: {item.role}</p>
             </div>
           ))
         ) : (
           <p>Loading user data...</p>
         )}
       </div>
+
 
       <br />
       <button id="logout" onClick={logout}>
@@ -87,4 +65,4 @@ const LoggedIn: React.FC = () => {
   );
 };
 
-export default LoggedIn;
+export default Login;

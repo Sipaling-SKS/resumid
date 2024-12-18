@@ -19,13 +19,12 @@ module UserService {
                 return ?existingUser;  
             };
             case null {
-              
                 let entropy = await Random.blob();  
                 let uid = UUID.generateV4(entropy);  
                 let name = "user-" # uid; 
 
                 let timestamp = Time.now();  
-                let createdAt = Int.toText(timestamp); 
+                let createdAt = await Utils.getHumanReadableTime();  
 
                 let role = 1; 
 
@@ -41,5 +40,4 @@ module UserService {
             };
         };
     };
-
 };

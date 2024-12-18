@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuth } from "../hooks/useAuthClient";
+import { useAuth } from "../hooks/AuthContext";
 
 const LoggedOut: React.FC = () => {
   const { login } = useAuth();

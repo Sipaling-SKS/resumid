@@ -11,7 +11,7 @@ import UserTypes "types/UserTypes";
 import UserServices "services/UserServices";
 
 actor Resumid {
- private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(
+  private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(
     10, Text.equal, Text.hash
   );
   private var users : HashMap.HashMap<Principal, UserTypes.UserData> = HashMap.HashMap(0, Principal.equal, Principal.hash);
@@ -58,12 +58,13 @@ actor Resumid {
     return msg.caller;
   };
 
-  public shared(msg) func authenticateUser() : async ?UserTypes.UserData {
-      let userId = await whoami(); 
-      return await UserServices.authenticateUser(users, userId); 
+  public shared(msg) func authenticateUser() : async UserTypes.UserData { // Convert Principal to Text
+    return await UserServices.authenticateUser(users, msg.caller); 
   };
 
-  public shared(msg) func getUserById(userId: Principal) : async ?UserTypes.UserData {
-      return users.get(userId); 
+  public shared(msg) func getUserById(userId : Principal) : async ?UserTypes.UserData {
+    return users.get(userId); 
   };
+
+  
 };
