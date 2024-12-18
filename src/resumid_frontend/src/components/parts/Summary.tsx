@@ -4,14 +4,14 @@ import CircularProgress from "@/components/parts/CircularScore";
 import { BadgeInfo } from "lucide-react";
 
 interface SummaryProps {
-  score: number
+  score: number;
 }
 
 function Summary({ score }: SummaryProps) {
   const [isExtend, setExtend] = useState(false);
 
   return (
-    <Card className="space-y-5 md:space-y-6 p-6 md:p-8">
+    <Card className="w-1/2 ml-4 space-y-5 md:space-y-6 p-6 md:p-8">
       <CardHeader className="space-y-1">
         <CardTitle className="font-outfit font-semibold text-heading text-xl">
           Resume Analysis Results
@@ -29,7 +29,13 @@ function Summary({ score }: SummaryProps) {
         <section className="text-paragraph font-inter space-y-1">
           <h2 className="font-semibold">Summary</h2>
           <p className="w-full text-sm">
-            The resume highlights diverse technical expertise, leadership, and mentoring skills, with achievements in backend, frontend, and mobile technologies. However, it lacks specificity in programming <span className="text-primary-500 text-nowrap cursor-pointer" onClick={() => setExtend(!isExtend)} >{`read ${!isExtend ? "more" : "less"}...`}</span>
+            The resume highlights diverse technical expertise, leadership, and mentoring skills, with achievements in backend, frontend, and mobile technologies. However, it lacks specificity in programming{" "}
+            <span
+              className="text-primary-500 text-nowrap cursor-pointer"
+              onClick={() => setExtend(!isExtend)}
+            >
+              {`read ${!isExtend ? "more" : "less"}...`}
+            </span>
           </p>
         </section>
         <div className="py-2">
@@ -37,7 +43,7 @@ function Summary({ score }: SummaryProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default Summary;
