@@ -60,21 +60,7 @@ function Result() {
       "The formatting of the resume is inconsistent, with spacing and alignment issues that may detract from professionalism.",
     ],
   };
-
-  if (!id) {
-    return (
-      <>
-        <Helmet>
-          <meta charSet="utf-8" />
-          <title>Error, result not found - Resumid</title>
-        </Helmet>
-        <main className="min-h-screen">
-          <h1>Error!</h1>
-        </main>
-      </>
-    )
-  }
-
+  
   return (
     <>
       <Helmet>
