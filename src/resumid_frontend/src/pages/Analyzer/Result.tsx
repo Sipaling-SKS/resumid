@@ -1,12 +1,14 @@
+import AnalysisDetail from "@/components/parts/AnalysisDetail";
 import ResultItemAccordion from "@/components/parts/ResultItemAccordion";
 import Summary from "@/components/parts/Summary";
 import { Accordion } from "@/components/ui/accordion";
-import { capitalize } from "@/lib/utils";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router";
 
-type Data = {
+export type ResultData = {
   id: number;
+  filename: string;
+  jobTitle: string;
   score: number;
   date: string;
   summary: string;
@@ -16,9 +18,9 @@ type Data = {
   weakness: string[] | null;
 };
 
-type DataKeys = "suggestions" | "strengths" | "gaps" | "weakness";
+export type DataKeys = "suggestions" | "strengths" | "gaps" | "weakness";
 
-function checkDefaultValue(data: Data, keys: DataKeys[]) {
+function checkDefaultValue(data: ResultData, keys: DataKeys[]) {
   for (const key of keys) {
     if (data[key] !== null && data[key] !== undefined && data[key].length > 0) {
       return [key];
@@ -30,14 +32,14 @@ function checkDefaultValue(data: Data, keys: DataKeys[]) {
 function Result() {
   const { id } = useParams();
 
-  const dataKeys: DataKeys[] = ["strengths", "weakness", "gaps", "suggestions"];
-
-  const data: Data = {
+  const data: ResultData = {
     id: 1,
     score: 79,
+    jobTitle: "Software Engineer",
+    filename: "Muhammad Fadil Hisyam CV 2024.pdf",
     date: "16 December 2024 - 6:28 PM",
     summary:
-      "The resume highlights diverse technical expertise, leadership, and mentoring skills, with achievements in backend, frontend, and mobile technologies. However, it lacks specificity in programming.",
+      "Results-driven Software Engineer with a Bachelor's degree in Informatics and a strong background in backend development (Java, .NET), frontend frameworks (React.js), and mobile app development (Kotlin). Demonstrates leadership through roles in organizational and cultural activities, alongside extensive experience in technical training and mentoring. Recognized for delivering impactful projects, including API development and Employee Self Service systems, with a focus on debugging, testing, and quality assurance. Holds a proven track record of achieving excellence through awards and scholarships. Actively seeking to leverage skills in cloud technologies, CI/CD, and DevOps practices to excel in senior engineering roles, with a commitment to fostering collaboration and innovation in team environments.",
     suggestions: [
       "Revise the resume to include specific examples of software development projects, highlighting the complexity and technologies used.",
       "Add a section detailing experience with software testing and debugging, including any relevant tools or methodologies.",
@@ -92,15 +94,16 @@ function Result() {
       </Helmet>
       <main className="bg-background-950 min-h-screen responsive-container py-6 md:py-8">
         <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-          <section className="w-full">
+          <section className="w-1/3">
             <Summary score={data.score} />
           </section>
-          <section className="w-full">
-            <Accordion type="multiple" className="space-y-4" defaultValue={checkDefaultValue(data, dataKeys)}>
+          <section className="w-2/3">
+            <AnalysisDetail data={data} />
+            {/* <Accordion type="multiple" className="space-y-4" defaultValue={checkDefaultValue(data, dataKeys)}>
               {dataKeys.map((key: DataKeys, index: number) => (
                 <ResultItemAccordion key={index} data={data[key]} title={key} />
               ))}
-            </Accordion>
+            </Accordion> */}
           </section>
         </div>
       </main>
