@@ -20,12 +20,10 @@ function Router() {
         <Route index element={<Home />} />
 
         {/* Additional routes */}
-        <Route element={<ProtectedRoute redirectTo="/logout" />}>
-          <Route path="/login" element={<Login />} />
+        <Route element={<ProtectedRoute redirectTo="/" />}>
+          <Route path="/resume-analyzer" element={<Analyzer />} />
+          <Route path="/history" element={<Result />} />
         </Route>
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/resume-analyzer" element={<Analyzer />} />
-        <Route path="/history" element={<Result />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
     </Routes>

@@ -13,33 +13,36 @@ import UserServices "services/UserServices";
 actor Resumid {
   // Analyze History type
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
+  private var users : HashMap.HashMap<Principal, UserTypes.UserData> = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
 
   // TODO: Change 'getUserId' to use II fetched from Front-End
   private func getUserId() : Text {
     return Principal.toText(Principal.fromActor(Resumid));
   };
 
-  public func addHistory(input : HistoryTypes.AddHistoryInput) : async HistoryTypes.History {
-    let userId = getUserId();
-    return await HistoryServices.addHistory(
-      histories,
-      userId,
-      input.summary,
-      input.score,
-      input.strengths,
-      input.weaknesses,
-      input.gaps,
-      input.suggestions
-    );
+  public shared (msg) func addHistory(input : HistoryTypes.AddHistoryInput) : async Result.Result<HistoryTypes.History, Text> {
+    let userId = Principal.toText(msg.caller);
+
+    let addHistoryInput = {
+      fileName = input.fileName;
+      summary = input.summary;
+      score = input.score;
+      strengths = input.strengths;
+      weaknesses = input.weaknesses;
+      gaps = input.gaps;
+      suggestions = input.suggestions;
+    };
+
+    await HistoryServices.addHistory(histories, userId, addHistoryInput);
   };
 
-  public query func getHistories() : async [HistoryTypes.History] {
-    let userId = getUserId();
+  public shared (msg) func getHistories() : async Result.Result<[HistoryTypes.History], Text> {
+    let userId = Principal.toText(msg.caller);
     HistoryServices.getHistories(histories, userId);
   };
 
-  public query func getHistoryById(input : HistoryTypes.HistoryIdInput) : async ?HistoryTypes.History {
-    let userId = getUserId();
+  public shared (msg) func getHistoryById(input : HistoryTypes.HistoryIdInput) : async Result.Result<HistoryTypes.History, Text> {
+    let userId = Principal.toText(msg.caller);
     HistoryServices.getHistoryById(histories, userId, input.historyId);
   };
 
@@ -47,7 +50,6 @@ actor Resumid {
     let userId = Principal.toText(msg.caller);
     HistoryServices.deleteHistory(histories, userId, input.historyId);
   };
-
 
   //user
   public shared(msg) func whoami() : async Principal {
