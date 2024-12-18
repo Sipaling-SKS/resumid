@@ -53,9 +53,11 @@ export const useAuthClient = (options = defaultOptions) => {
   const [loading, setLoading] = useState<boolean>(true); // Added loading state
 
   useEffect(() => {
-    AuthClient.create(options.createOptions).then(async (client) => {
-      await updateClient(client); // Ensure async updates are awaited
-    });
+    const initAuthClient = async () => {
+      const client = await AuthClient.create(options.createOptions);
+      await updateClient(client); // Ensure async updates
+    };
+    initAuthClient();
   }, []);
 
   const login = () => {
@@ -101,6 +103,7 @@ export const useAuthClient = (options = defaultOptions) => {
   const logout = async () => {
     await authClient?.logout();
     await updateClient(authClient!);
+    localStorage.removeItem("userData")
   };
 
   return {
