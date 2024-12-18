@@ -20,15 +20,6 @@ export type ResultData = {
 
 export type DataKeys = "suggestions" | "strengths" | "gaps" | "weakness";
 
-function checkDefaultValue(data: ResultData, keys: DataKeys[]) {
-  for (const key of keys) {
-    if (data[key] !== null && data[key] !== undefined && data[key].length > 0) {
-      return [key];
-    }
-  }
-  return [];
-}
-
 function Result() {
   const { id } = useParams();
 
@@ -99,11 +90,6 @@ function Result() {
           </section>
           <section className="w-2/3">
             <AnalysisDetail data={data} />
-            {/* <Accordion type="multiple" className="space-y-4" defaultValue={checkDefaultValue(data, dataKeys)}>
-              {dataKeys.map((key: DataKeys, index: number) => (
-                <ResultItemAccordion key={index} data={data[key]} title={key} />
-              ))}
-            </Accordion> */}
           </section>
         </div>
       </main>
