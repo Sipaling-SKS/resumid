@@ -1,7 +1,5 @@
 import AnalysisDetail from "@/components/parts/AnalysisDetail";
-import ResultItemAccordion from "@/components/parts/ResultItemAccordion";
 import Summary from "@/components/parts/Summary";
-import { Accordion } from "@/components/ui/accordion";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router";
 
