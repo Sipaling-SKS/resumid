@@ -12,7 +12,7 @@ function Router() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/resume-analyzer" element={<Analyzer />} />
-        <Route path="/result/:id" element={<Result />} />
+        <Route path="/history" element={<Result />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
     </Routes>
