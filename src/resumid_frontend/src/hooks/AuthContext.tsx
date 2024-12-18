@@ -64,14 +64,15 @@ export const useAuthClient = (options = defaultOptions) => {
     if (authClient) {
       authClient.login({
         ...options.loginOptions,
-        onSuccess: () => {
-          updateClient(authClient);
+        onSuccess: async () => {
+          await updateClient(authClient);
         },
       });
     }
   };
 
   const updateClient = async (client: AuthClient) => {
+    setLoading(true)
     const isAuthenticated = await client.isAuthenticated();
     setIsAuthenticated(isAuthenticated);
 
