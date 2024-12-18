@@ -4,6 +4,7 @@ import type { ResultData, DataKeys } from "@/pages/Analyzer/Result";
 import { Calendar1 } from "lucide-react";
 import CircularProgress from "@/components/parts/CircularScore";
 import { capitalize } from "@/lib/utils";
+import ParagraphExtendable from "../ui/paragraph-expandable";
 
 interface AnaylsisDetailProps {
   data: ResultData
@@ -48,7 +49,8 @@ function AnalysisDetail({ data }: AnaylsisDetailProps) {
         {data?.summary && (
           <section className="font-inter text-paragraph space-y-1">
             <h3 className="font-semibold">Summary</h3>
-            <p className="text-sm">{data?.summary}</p>
+            <ParagraphExtendable text={data?.summary} />
+            {/* <p className="text-sm">{data?.summary}</p> */}
           </section>
         )}
         <Accordion className="border-t border-neutral-200" type="multiple" defaultValue={checkDefaultValue(data, dataKeys)}>

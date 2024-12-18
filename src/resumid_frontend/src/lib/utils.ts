@@ -35,3 +35,7 @@ export function DefaultScrollToTop() {
 export function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function shorten(str: string, length: number): string {
+  return str && str.length > length ? str.slice(0,length).split(' ').slice(0, -1).join(' ') + "..." : str
+}
