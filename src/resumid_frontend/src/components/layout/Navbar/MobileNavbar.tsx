@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/AuthContext";
+import { useData } from "@/hooks/DataContext";
 import { cn, scrollToTop, scrollTo } from "@/lib/utils";
 import { Menu, X as Close, LogOut, User2 as ProfileIcon } from "lucide-react";
 import { NavLink, type NavLinkProps } from "react-router";
@@ -100,7 +101,7 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
           <div className="inline-flex gap-6 p-4 border-t border-b border-neutral-200 items-center justify-between">
             <div className="inline-flex gap-2 items-center">
               <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">ID</div>
-              <p className="text-paragraph font-medium">{String(principal)}</p>
+              <p className="text-paragraph font-medium">{String(principal).split("-")[0].toUpperCase()}</p>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

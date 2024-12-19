@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/AuthContext";
+import { useData } from "@/hooks/DataContext";
 
 
 function DesktopNavbar({navigate}: any) {
@@ -76,14 +77,14 @@ function DesktopNavbar({navigate}: any) {
         <div className="inline-flex gap-6 items-center">
           <div className="inline-flex gap-2 items-center">
             <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">ID</div>
-            <p className="text-paragraph font-medium">{String(principal)}</p>
+            <p className="text-paragraph font-medium">{String(principal).split("-")[0].toUpperCase()}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="cursor-pointer p-[2px] rounded-full bg-transparent hover:bg-primary-500 transition-colors">
                 <Avatar className="border-2 border-white w-11 h-11">
                   <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarFallback>US</AvatarFallback>
                 </Avatar>
               </div>
             </DropdownMenuTrigger>
