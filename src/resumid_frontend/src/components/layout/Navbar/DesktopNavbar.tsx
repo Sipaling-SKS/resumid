@@ -2,7 +2,7 @@ import Logo from "@/assets/logo-black.svg";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn, scrollTo, scrollToTop } from "@/lib/utils";
 import { NavLink } from "react-router";
-import { LogOut, User2 as ProfileIcon } from "lucide-react";
+import { LogIn, LogOut, User2 as ProfileIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -18,7 +18,7 @@ function DesktopNavbar({ isAuthenticated, navigate }: any) {
   return (
     <>
       <div className="inline-flex items-center gap-8 md:gap-10 xl:gap-12">
-        <img onClick={() => navigate("/")} className="pb-2" src={Logo} alt="Resumid Logo" />
+        <img onClick={() => navigate("/")} className="pb-1" src={Logo} alt="Resumid Logo" />
         <ul className="inline-flex items-center gap-4 md:gap-8 xl:gap-10">
           {!isAuthenticated ? (
             <>
@@ -29,14 +29,14 @@ function DesktopNavbar({ isAuthenticated, navigate }: any) {
                     scrollToTop()
                   }
                 }}
-                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
+                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-0", isActive && "underline")}
               >
                 Home
               </NavLink>
-              <Button onClick={() => scrollTo('features', 80)} variant="link" size="lg" className="p-2">
+              <Button onClick={() => scrollTo('features', 72)} variant="link" size="lg" className="p-0">
                 Features
               </Button>
-              <Button onClick={() => scrollTo('pricing', 80)} variant="link" size="lg" className="p-2">
+              <Button onClick={() => scrollTo('pricing', 72)} variant="link" size="lg" className="p-0">
                 Pricing
               </Button>
             </>
@@ -49,19 +49,19 @@ function DesktopNavbar({ isAuthenticated, navigate }: any) {
                     scrollToTop()
                   }
                 }}
-                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
+                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-0", isActive && "underline")}
               >
                 Home
               </NavLink>
               <NavLink
                 to="/history"
-                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
+                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-0", isActive && "underline")}
               >
                 History
               </NavLink>
               <NavLink
                 to="/resume-analyzer"
-                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
+                className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-0", isActive && "underline")}
               >
                 Resume Analyzer
               </NavLink>
@@ -71,7 +71,7 @@ function DesktopNavbar({ isAuthenticated, navigate }: any) {
       </div>
       {isAuthenticated ? (
         <div className="inline-flex gap-6 items-center">
-          <div className="inline-flex gap-2 items-center">
+          <div className="inline-flex gap-0 items-center">
             <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">ID</div>
             <p className="text-paragraph font-medium">1234567</p>
           </div>
@@ -99,8 +99,9 @@ function DesktopNavbar({ isAuthenticated, navigate }: any) {
           </DropdownMenu>
         </div>
       ) : (
-        <Button variant="gradient" size="lg">
+        <Button variant="gradient">
           Sign In
+          <LogIn strokeWidth={2.8} />
         </Button>
       )}
     </>
