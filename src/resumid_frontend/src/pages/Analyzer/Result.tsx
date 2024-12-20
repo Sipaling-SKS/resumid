@@ -2,6 +2,7 @@ import AnalysisDetail from "@/components/parts/AnalysisDetail";
 import Summary from "@/components/parts/Summary";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router";
+import useWindowSize from "@/hooks/useMediaQuery"
 
 export type ResultData = {
   id: number;
@@ -20,6 +21,7 @@ export type DataKeys = "suggestions" | "strengths" | "gaps" | "weakness";
 
 function Result() {
   const { id } = useParams();
+  const { isTablet, isMobile } = useWindowSize();
 
   const data: ResultData = {
     id: 1,
@@ -60,7 +62,7 @@ function Result() {
       "The formatting of the resume is inconsistent, with spacing and alignment issues that may detract from professionalism.",
     ],
   };
-  
+
   return (
     <>
       <Helmet>
@@ -69,12 +71,12 @@ function Result() {
       </Helmet>
       <main className="bg-background-950 min-h-screen responsive-container py-6 md:py-8">
         <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-          <section className="w-1/3">
+          <section className="w-full md:w-1/3">
             <Summary score={data.score} />
           </section>
-          <section className="w-2/3">
+          {!(isMobile) && (<section className="w-2/3">
             <AnalysisDetail data={data} />
-          </section>
+          </section>)}
         </div>
       </main>
     </>
