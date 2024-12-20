@@ -9,6 +9,7 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "module": "ESNext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
@@ -21,5 +22,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "public/pdf.worker.min.mjs"]
 }
