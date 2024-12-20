@@ -29,10 +29,43 @@ actor Resumid {
 
 
   // Resume Analyzer related method
-  public shared func AnalyzeResume(resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
-      let analyzeResult = await GptServices.AnalyzeResume(resumeContent, jobTitle, jobDescription);
-      Debug.print(debug_show(analyzeResult));
-      analyzeResult;
+  public shared (msg) func AnalyzeResume(fileName : Text, resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
+    let userId = Principal.toText(msg.caller);
+
+    let analyzeResult = await GptServices.AnalyzeResume(resumeContent, jobTitle, jobDescription);
+    Debug.print(debug_show (analyzeResult));
+
+    switch (analyzeResult) {
+      case (null) {
+        Debug.print("AnalyzeResult is null. Skipping HistoryServices processing.");
+      };
+      case (?result) {
+        let addHistoryInput = {
+          fileName = fileName;
+          summary = result.summary;
+          score = result.score;
+          strengths = result.strengths;
+          weaknesses = result.weakness;
+          gaps = result.gaps;
+          suggestions = result.suggestions;
+        };
+
+        let historyResult = await HistoryServices.addHistory(histories, userId, addHistoryInput);
+
+        switch (historyResult) {
+          case (#ok(res)) {
+            Debug.print(debug_show(res));
+            Debug.print("History added successfully.");
+          };
+          case (#err(errorMessage)) {
+            Debug.print("Failed to add history: " # errorMessage);
+            Debug.print(errorMessage);
+          };
+        };
+      };
+    };
+
+    analyzeResult;
   };
 
   // Analyze History related method
