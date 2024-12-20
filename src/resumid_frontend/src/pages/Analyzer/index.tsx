@@ -5,11 +5,13 @@ import { cleanExtractedText, extractPDFContent } from "@/lib/pdf2text";
 import { FormEvent, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { SubmitHandler } from "react-hook-form";
+import { resumid_backend } from "../../../../declarations/resumid_backend"
+import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
 
 export type Resume = {
   fullText: string
   filename: string
-  jobTitle?: string
+  jobTitle: string
   jobDescription?: string
 }
 
@@ -20,6 +22,7 @@ function Analyzer() {
   const [resume, setResume] = useState<Resume>({
     fullText: "",
     filename: "",
+    jobTitle: "",
   });
   const [file, setFile] = useState<File | null>(null);
 
@@ -33,16 +36,28 @@ function Analyzer() {
 
     try {
       const text = await extractPDFContent(file);
+
+      if (!text) {
+        toast({
+          title: "Uh oh! Something went wrong.",
+          description: "Failed to extract your resume.",
+          variant: "destructive",
+        })
+        return;
+      }
+
       const cleanedText = cleanExtractedText(text);
 
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       setResume({
-        fullText: cleanedText,
+        fullText: text,
         filename: file.name,
+        jobTitle: "",
       });
       setStep(1);
     } catch (error) {
+      console.error(error)
       toast({
         title: "Uh oh! Something went wrong.",
         description: "There was a problem with your request.",
@@ -54,7 +69,19 @@ function Analyzer() {
   }
 
   const analyzeResume: SubmitHandler<PreviewFormValues> = async (data) => {
-    console.log({...resume, ...data})
+    setLoading(true)
+    try {
+      const finalData: Resume = { ...resume, ...data };
+  
+      const { fullText, filename, jobTitle, jobDescription } = finalData
+  
+      const res: [] | [AnalyzeStructure] = await resumid_backend.AnalyzeResume(fullText, jobTitle, jobDescription || "")
+      
+      console.log(res)
+    } catch (error) {
+      console.log(error)
+    }
+    setLoading(false)
   }
 
   const MultiStepPage = () => {
@@ -71,6 +98,7 @@ function Analyzer() {
       case 1:
         return (
           <PreviewResume
+            isLoading={isLoading}
             onSubmit={analyzeResume}
             resume={resume}
             setResume={setResume}

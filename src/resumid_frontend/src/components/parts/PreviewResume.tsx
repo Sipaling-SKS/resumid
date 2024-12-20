@@ -3,7 +3,7 @@ import { Resume } from "@/pages/Analyzer";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CircleAlert } from "lucide-react";
+import { CircleAlert, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Resolver, SubmitHandler, useForm } from "react-hook-form";
 
@@ -37,13 +37,14 @@ const resolver: Resolver<PreviewFormValues> = async (values) => {
 };
 
 interface PreviewResumeProps {
+  isLoading?: boolean
   onSubmit: SubmitHandler<PreviewFormValues>
   resume: Resume;
   setResume: (value: Resume) => void;
   setStep: (value: number) => void;
 }
 
-function PreviewResume({ onSubmit, resume, setResume, setStep }: PreviewResumeProps) {
+function PreviewResume({ isLoading, onSubmit, resume, setResume, setStep }: PreviewResumeProps) {
   const { register, handleSubmit, setValue, formState: { errors }, } = useForm<PreviewFormValues>({ resolver });
 
   setValue("fullText", resume.fullText)
@@ -82,15 +83,18 @@ function PreviewResume({ onSubmit, resume, setResume, setStep }: PreviewResumePr
               type="text"
               placeholder="Ex: Software Engineer, Management Trainee, etc.."
             />
-            {errors?.jobTitle && <p className="text-sm text-red-500">{errors.jobTitle.message}</p>}          
+            {errors?.jobTitle && <p className="text-sm text-red-500">{errors.jobTitle.message}</p>}
           </Label>
           <Label htmlFor="job-description" className="space-y-2">
             <p className="text-paragraph">{"Job Description (Optional)"}</p>
-            <Textarea {...register("jobDescription")}  id="job-description" className="min-h-48 max-h-96 font-normal" placeholder="Paste the job description here" />
+            <Textarea {...register("jobDescription")} id="job-description" className="min-h-48 max-h-96 font-normal" placeholder="Paste the job description here" />
           </Label>
           <div className="pt-2 flex flex-col md:flex-row-reverse gap-2 md:gap-4">
-            <Button type="submit" className="w-full">Analyze Now</Button>
-            <Button className="w-full" variant="secondary" onClick={() => setStep(0)}>Go Back</Button>
+            <Button disabled={isLoading} type="submit" className="w-full">
+              {isLoading && <Loader2 className="animate-spin" />}
+              Analyze Now
+            </Button>
+            <Button disabled={isLoading} className="w-full" variant="secondary" onClick={() => setStep(0)}>Go Back</Button>
           </div>
         </form>
       </CardContent>

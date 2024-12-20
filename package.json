@@ -13,6 +13,7 @@
   },
   "type": "module",
   "workspaces": [
-    "src/resumid_frontend"
+    "src/resumid_frontend",
+    "src/resumid_api_service"
   ]
 }
