@@ -75,7 +75,7 @@ function Analyzer() {
   
       const { fullText, filename, jobTitle, jobDescription } = finalData
   
-      const res: [] | [AnalyzeStructure] = await resumid_backend.AnalyzeResume(fullText, jobTitle, jobDescription || "")
+      const res: [] | [AnalyzeStructure] = await resumid_backend.AnalyzeResume(filename, fullText, jobTitle, jobDescription || "")
       
       console.log(res)
     } catch (error) {
