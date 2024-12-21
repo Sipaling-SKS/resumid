@@ -13,10 +13,7 @@
   },
   "type": "module",
   "workspaces": [
-    "src/resumid_frontend"
-  ],
-  "dependencies": {
-    "@dfinity/auth-client": "^2.2.0",
-    "@dfinity/candid": "^2.2.0"
-  }
+    "src/resumid_frontend",
+    "src/resumid_api_service"
+  ]
 }

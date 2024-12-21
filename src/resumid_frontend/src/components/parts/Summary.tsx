@@ -1,43 +1,67 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
-import CircularProgress from "@/components/parts/CircularScore";
-import { BadgeInfo } from "lucide-react";
+import { Calendar1 } from "lucide-react";
 
 interface SummaryProps {
-  score: number
+  score: number;
 }
 
 function Summary({ score }: SummaryProps) {
-  const [isExtend, setExtend] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<number | null>(null);
+
+  const handleCardClick = (cardIndex: number) => {
+    setSelectedCard(cardIndex);
+  };
+
+  const cardData = [
+    { title: "Muhammad Fadil Hisyam CV 2025.pdf", role: "Software Engineer", date: "16 December 2024", time: "6:28 PM", score: 79 },
+    { title: "Muhammad Fadil Hisyam CV 2024.pdf", role: "Web Developer", date: "10 November 2024", time: "3:12 PM", score: 85 },
+    { title: "Muhammad Fadil Hisyam CV 2023.pdf", role: "Mobile Developer", date: "5 October 2024", time: "4:45 PM", score: 90 },
+    { title: "Muhammad Fadil Hisyam CV 2022.pdf", role: "Backend Engineer", date: "22 September 2024", time: "8:15 AM", score: 88 },
+  ];
 
   return (
-    <Card className="space-y-5 md:space-y-6 p-6 md:p-8">
-      <CardHeader className="space-y-1">
-        <CardTitle className="font-outfit font-semibold text-heading text-xl">
-          Resume Analysis Results
-        </CardTitle>
-        <CardDescription className="font-inter text-md text-paragraph pb-2">
-          Your resume insights and recommendations at a glance.
-        </CardDescription>
-        <div className="mt-3 inline-flex items-center w-fit gap-1 border border-accent-500 p-2 pr-3 rounded-lg text-[#333] font-medium font-inter text-xs bg-accent-950">
-          <BadgeInfo className="text-accent-500" size={18} />
-          Analyzed on 16 December 2024 - 6:28 PM
-        </div>
-      </CardHeader>
-      <hr className="h-[1px] w-full bg-neutral-200" />
-      <CardContent className="flex justify-between gap-4">
-        <section className="text-paragraph font-inter space-y-1">
-          <h2 className="font-semibold">Summary</h2>
-          <p className="w-full text-sm">
-            The resume highlights diverse technical expertise, leadership, and mentoring skills, with achievements in backend, frontend, and mobile technologies. However, it lacks specificity in programming <span className="text-primary-500 text-nowrap cursor-pointer" onClick={() => setExtend(!isExtend)} >{`read ${!isExtend ? "more" : "less"}...`}</span>
-          </p>
-        </section>
-        <div className="py-2">
-          <CircularProgress value={score} />
-        </div>
-      </CardContent>
-    </Card>
-  )
+    <div className="flex flex-col gap-4 md:gap-6">
+      {cardData.map((data, index) => (
+        <Card
+          key={index}
+          className={`space-y-4 md:space-y-5 p-6 md:p-8 cursor-pointer hover:outline hover:outline-2 hover:outline-primary-500 ${
+            selectedCard === index ? "outline outline-2 outline-primary-500" : "border border-neutral-300"
+          }`}
+          onClick={() => handleCardClick(index)}
+        >
+          <CardHeader className="">
+            <div className="inline-flex items-center justify-between">
+                <div className="flex flex-col gap-2">
+                  <CardTitle className="font-outfit font-semibold text-heading text-lg">
+                    {data.title}
+                  </CardTitle>
+                  <CardDescription className="font-inter text-sm font-semibold text-white text-left bg-primary-500 w-fit px-3 py-2 rounded-md mt-1">
+                    {data.role}
+                  </CardDescription>
+                </div>
+
+              <div className="font-inter text-primary-500 text-sm font-semibold leading-tight self-start pt-1 text-right">
+                  Score: {data.score}/100
+                </div>
+
+            </div>
+          </CardHeader>
+          <CardContent className="text-paragraph font-inter">
+            <p className="w-full text-sm">
+              The resume highlights diverse technical expertise, leadership, and mentoring skills, with achievements{" "}
+              <span className="text-primary-500 text-nowrap cursor-pointer">{`read more...`}</span>
+            </p>
+          </CardContent>
+          <hr className="h-[1px] w-full bg-neutral-200" />
+          <div className="mt-3 inline-flex items-center w-full gap-2 border border-accent-500 py-2 px-3 rounded-lg text-[#333] font-medium font-inter text-sm bg-accent-950">
+          <Calendar1 className="text-accent-500 flex-shrink-0" size={18} />
+            Analyzed on {data.date}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 export default Summary;
