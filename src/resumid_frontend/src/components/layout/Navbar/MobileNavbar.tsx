@@ -11,7 +11,7 @@ function MobileNavbar({ isAuthenticated, navigate, isOpen, setIsOpen }: any) {
   return (
     <>
       <div className={cn("fixed flex flex-col h-screen min-w-fit w-1/2 max-w-64 pb-[4vh] z-50 top-0 bottom-0 bg-white border-l border-neutral-200 transition-all duration-500 ease-in-out", isOpen ? "right-0" : "-right-full")}>
-        <div className="p-4 h-[73px] inline-flex justify-end w-full border-b border-neutral-200">
+        <div className="px-4 h-[70px] inline-flex items-center justify-end w-full border-b border-neutral-200">
           <Button onClick={() => setIsOpen(!isOpen)} variant="ghost" size="icon" className="">
             <Close size={48} />
           </Button>

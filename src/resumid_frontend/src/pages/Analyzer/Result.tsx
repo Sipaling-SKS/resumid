@@ -3,9 +3,11 @@ import Summary from "@/components/parts/Summary";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router";
 import useWindowSize from "@/hooks/useMediaQuery"
+import HistoryThumbnail from "@/components/parts/HistoryThumbnail";
+import { useState, useEffect } from "react";
 
 export type ResultData = {
-  id: number;
+  id: string;
   filename: string;
   jobTitle: string;
   score: number;
@@ -22,13 +24,14 @@ export type DataKeys = "suggestions" | "strengths" | "gaps" | "weakness";
 function Result() {
   const { id } = useParams();
   const { isTablet, isMobile } = useWindowSize();
+  const [selected, setSelected] = useState<string | null>(null)
 
-  const data: ResultData = {
-    id: 1,
+  const historyData: ResultData = {
+    id: "history-1",
     score: 79,
     jobTitle: "Software Engineer",
     filename: "Muhammad Fadil Hisyam CV 2024.pdf",
-    date: "16 December 2024 - 6:28 PM",
+    date: "2024-12-16T18:28:00.000Z",
     summary:
       "Results-driven Software Engineer with a Bachelor's degree in Informatics and a strong background in backend development (Java, .NET), frontend frameworks (React.js), and mobile app development (Kotlin). Demonstrates leadership through roles in organizational and cultural activities, alongside extensive experience in technical training and mentoring. Recognized for delivering impactful projects, including API development and Employee Self Service systems, with a focus on debugging, testing, and quality assurance. Holds a proven track record of achieving excellence through awards and scholarships. Actively seeking to leverage skills in cloud technologies, CI/CD, and DevOps practices to excel in senior engineering roles, with a commitment to fostering collaboration and innovation in team environments.",
     suggestions: [
@@ -63,20 +66,31 @@ function Result() {
     ],
   };
 
+  // DUMMY ARRAY DATAA
+  const datas = [historyData, historyData, historyData];
+
   return (
-    <>
+    <>  
       <Helmet>
         <meta charSet="utf-8" />
         <title>Resume Summary 15/12/2024 - Resumid</title>
       </Helmet>
       <main className="bg-background-950 min-h-screen responsive-container py-6 md:py-8">
-        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-          <section className="w-full md:w-1/3">
-            <Summary score={data.score} />
+        <div className="flex flex-col md:flex-row gap-6">
+          <section className="flex flex-col gap-4 md:gap-6 w-full max-w-md lg:w-1/3 xl:w-full xl:max-w-sm mx-auto">
+            {datas.map((data) => (
+              <HistoryThumbnail
+                isSelected={selected === data.id}
+                data={data}
+                onSelect={(val) => setSelected(val)}
+              />
+            ))}
           </section>
-          {!(isMobile) && (<section className="w-2/3">
-            <AnalysisDetail data={data} />
-          </section>)}
+          {!isTablet && !isMobile && (
+            <section className="lg:w-2/3 xl:w-full">
+              <AnalysisDetail data={historyData} />
+            </section>
+          )}
         </div>
       </main>
     </>

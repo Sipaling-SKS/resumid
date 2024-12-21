@@ -3,7 +3,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import type { ResultData, DataKeys } from "@/pages/Analyzer/Result";
 import { Calendar1 } from "lucide-react";
 import CircularProgress from "@/components/parts/CircularScore";
-import { capitalize } from "@/lib/utils";
+import { capitalize, formatISOToDate } from "@/lib/utils";
 import ParagraphExtendable from "../ui/paragraph-expandable";
 
 interface AnaylsisDetailProps {
@@ -36,7 +36,7 @@ function AnalysisDetail({ data }: AnaylsisDetailProps) {
             </p>
             <div className="inline-flex items-center w-fit gap-2 border border-accent-500 py-2 px-3 rounded-lg text-[#333] font-medium font-inter text-sm bg-accent-950">
               <Calendar1 className="text-accent-500 flex-shrink-0" size={18} />
-              Analyzed on 16 December 2024 - 6:28 PM
+              {formatISOToDate(data.date, true)}
             </div>
           </CardDescription>
         </section>

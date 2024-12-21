@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
-import { BadgeInfo } from "lucide-react";
+import { Calendar1 } from "lucide-react";
 
 interface SummaryProps {
   score: number;
@@ -21,12 +21,12 @@ function Summary({ score }: SummaryProps) {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 md:gap-6">
       {cardData.map((data, index) => (
         <Card
           key={index}
-          className={`space-y-3 md:space-y-6 p-4 md:p-6 cursor-pointer ${
-            selectedCard === index ? "border-2 border-blue-500" : "border border-neutral-300"
+          className={`space-y-4 md:space-y-5 p-6 md:p-8 cursor-pointer hover:outline hover:outline-2 hover:outline-primary-500 ${
+            selectedCard === index ? "outline outline-2 outline-primary-500" : "border border-neutral-300"
           }`}
           onClick={() => handleCardClick(index)}
         >
@@ -34,15 +34,14 @@ function Summary({ score }: SummaryProps) {
             <div className="inline-flex items-center justify-between">
                 <div className="flex flex-col gap-2">
                   <CardTitle className="font-outfit font-semibold text-heading text-lg">
-                    {data.title} {/* Full file name in CardTitle */}
+                    {data.title}
                   </CardTitle>
-                  <CardDescription className="font-inter text-xs font-semibold text-white text-left bg-primary-500 w-fit px-3 py-1 rounded-md mt-1">
+                  <CardDescription className="font-inter text-sm font-semibold text-white text-left bg-primary-500 w-fit px-3 py-2 rounded-md mt-1">
                     {data.role}
-                    </CardDescription>
+                  </CardDescription>
                 </div>
 
-              <div className="text-primary-500 text-sm leading-tight self-start pt-2 text-right">
-                  {/* Score displayed next to the name with leading-tight */}
+              <div className="font-inter text-primary-500 text-sm font-semibold leading-tight self-start pt-1 text-right">
                   Score: {data.score}/100
                 </div>
 
@@ -55,9 +54,9 @@ function Summary({ score }: SummaryProps) {
             </p>
           </CardContent>
           <hr className="h-[1px] w-full bg-neutral-200" />
-          <div className="mt-3 inline-flex items-center w-full gap-1 border border-accent-500 p-2 pr-3 rounded-lg text-[#333] font-medium font-inter text-[11px] bg-accent-950">
-            <BadgeInfo className="text-accent-500" size={18} />
-            Analyzed on {data.date} - {data.time}
+          <div className="mt-3 inline-flex items-center w-full gap-2 border border-accent-500 py-2 px-3 rounded-lg text-[#333] font-medium font-inter text-sm bg-accent-950">
+          <Calendar1 className="text-accent-500 flex-shrink-0" size={18} />
+            Analyzed on {data.date}
           </div>
         </Card>
       ))}
