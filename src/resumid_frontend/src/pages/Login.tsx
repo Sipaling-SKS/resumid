@@ -9,7 +9,7 @@ const whoamiStyles: React.CSSProperties = {
 
 const Login: React.FC = () => {
   const { isAuthenticated, principal, logout } = useAuth(); 
-  const { userData, fetchUserData } = useData(); 
+  const { userData } = useData(); 
   const [userDetails, setUserDetails] = useState<any[]>([]);
 
   // useEffect(() => {
@@ -25,7 +25,7 @@ const Login: React.FC = () => {
       setUserDetails(formatedData); 
     }
   }, [userData]);
-
+  console.log("data:", userDetails)
   return (
     <div className="container">
       <h1>Internet Identity Client</h1>
@@ -41,7 +41,7 @@ const Login: React.FC = () => {
         style={whoamiStyles}
       />
       
-      <div style={{ marginTop: "20px" }}>
+      {/* <div style={{ marginTop: "20px" }}>
         {userDetails.length > 0 ? (
           userDetails.map((item, index) => (
             <div key={index}>
@@ -54,7 +54,8 @@ const Login: React.FC = () => {
         ) : (
           <p>Loading user data...</p>
         )}
-      </div>
+      </div> */}
+      <p>{JSON.stringify(userData)}</p>
 
 
       <br />

@@ -10,6 +10,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import Analyzer from "@/pages/Analyzer";
 import Result from "@/pages/Analyzer/Result";
 import Layout from "@/components/layout";
+import { LogOut } from "lucide-react";
 
 function Router() {
   return (
@@ -19,7 +20,7 @@ function Router() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
 
-        {/* Additional routes */}
+        {/* Additional routes nanti ini benerin lagi */}
         <Route element={<ProtectedRoute redirectTo="/" />}>
           <Route path="/resume-analyzer" element={<Analyzer />} />
           <Route path="/history" element={<Result />} />

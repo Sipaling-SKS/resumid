@@ -13,7 +13,9 @@ import UserServices "services/UserServices";
 actor Resumid {
   // Analyze History type
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
-  private var users : HashMap.HashMap<Principal, UserTypes.UserData> = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
+  private var users : UserTypes.User = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
+
+  // private var users : HashMap.HashMap<Principal, UserTypes.UserData> = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
 
   // TODO: Change 'getUserId' to use II fetched from Front-End
   private func getUserId() : Text {
@@ -57,13 +59,24 @@ actor Resumid {
     return msg.caller;
   };
 
-  public shared(msg) func authenticateUser() : async ?UserTypes.UserData { // Convert Principal to Text
-    return await UserServices.authenticateUser(users, msg.caller); 
+  public shared(msg) func authenticateUser(userId : Principal) : async Result.Result<UserTypes.UserData, Text> { 
+    return await UserServices.authenticateUser(users, userId); 
   };
 
-  public shared(msg) func getUserById(userId : Principal) : async ?UserTypes.UserData {
-    return users.get(userId); 
+  // public shared(msg) func getUserById(userId : Principal) : async Result.Result<UserTypes.UserData, Text> {
+  //   return users.get(userId); 
+  // };
+  public shared(msg) func getUserById(userId: Principal): async Result.Result<UserTypes.UserData, Text> {
+    switch (users.get(userId)) {
+        case (?userData) {
+            return #ok(userData);  
+        };
+        case null {
+            return #err("User not found");  
+        };
+    };
   };
+
 
   
   

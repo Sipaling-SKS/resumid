@@ -3,6 +3,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { canisterId, createActor } from "../../../declarations/resumid_backend";
 import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declarations/internet_identity";
 import { canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid_backend";
+import { HttpAgent } from "@dfinity/agent";
+
 
 // Define types for the context state
 interface AuthContextType {
@@ -12,9 +14,10 @@ interface AuthContextType {
   authClient: AuthClient | null;
   identity: any | null;
   principal: any | null;
-  whoamiActor: any | null;
+  resumidActor: any | null;
   loading: boolean; // Added to handle async state
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -49,13 +52,13 @@ export const useAuthClient = (options = defaultOptions) => {
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [identity, setIdentity] = useState<any | null>(null);
   const [principal, setPrincipal] = useState<any | null>(null);
-  const [whoamiActor, setWhoamiActor] = useState<any | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // Added loading state
+  const [resumidActor, setResumidActor] = useState<any | null>(null);
+  const [loading, setLoading] = useState<boolean>(true); 
 
   useEffect(() => {
     const initAuthClient = async () => {
       const client = await AuthClient.create(options.createOptions);
-      await updateClient(client); // Ensure async updates
+      await updateClient(client); 
     };
     initAuthClient();
   }, []);
@@ -67,7 +70,8 @@ export const useAuthClient = (options = defaultOptions) => {
         onSuccess: async () => {
           await updateClient(authClient);
         },
-      });
+      }
+    );
     }
   };
 
@@ -83,18 +87,34 @@ export const useAuthClient = (options = defaultOptions) => {
       const principal = identity.getPrincipal();
       setPrincipal(principal);
 
-      const actor = createActor(canisterId, {
+
+      const actor = createActor(CANISTER_ID_BACKEND, {
         agentOptions: {
           identity,
         },
       });
 
-      setWhoamiActor(actor);
+
+      // console.log("Actor created:", actor);
+      // console.log("Actor identity:", String(identity)); 
+      // console.log("Actor principal:", String(principal)); 
+
+      // // Test if the actor can call a simple method on the backend
+      // try {
+      //   const auth = await actor.authenticateUser(principal); 
+      //   const result = await actor.getUserById(principal); 
+      //   console.log("Backend response auth:", auth);
+      //   console.log("Backend response get data:", result); 
+      // } catch (error) {
+      //   console.error("Error calling backend method:", error); // Error handling if calling backend fails
+      // }
+
+      setResumidActor(actor);
     } else {
       // Reset states if not authenticated
       setIdentity(null);
       setPrincipal(null);
-      setWhoamiActor(null);
+      setResumidActor(null);
     }
 
     setAuthClient(client);
@@ -105,6 +125,7 @@ export const useAuthClient = (options = defaultOptions) => {
     await authClient?.logout();
     await updateClient(authClient!);
     localStorage.removeItem("userData")
+
   };
 
   return {
@@ -114,7 +135,7 @@ export const useAuthClient = (options = defaultOptions) => {
     authClient,
     identity,
     principal,
-    whoamiActor,
+    resumidActor,
     loading, // Expose loading state
   };
 };
@@ -135,3 +156,5 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+

@@ -6,7 +6,6 @@ import { canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid
 
 interface DataContextType {
   userData: any | null;
-  fetchUserData: () => void;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -17,22 +16,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUserData = async () => {
     if (!principal || !authClient) return;
-
-    const whoamiActor = createActor(CANISTER_ID_BACKEND, {
+    const resumidActor = createActor(CANISTER_ID_BACKEND, {
       agentOptions: { identity: authClient.getIdentity() },
     });
+    await resumidActor.authenticateUser(principal);
 
     try {
-      const authenticateUser = await whoamiActor.authenticateUser();
-
-      console.log(authenticateUser)
-
       console.log("__START_FETCHING_DATA__")
-      const userId = await whoamiActor.whoami();
-      console.log("Fetched user ID:", userId);
+      console.log("Fetched user ID:", String(principal));
 
-      const data = await whoamiActor.getUserById(userId);
-      console.log("Fetched user data:", data);
+      const data = await resumidActor.getUserById(principal);
+      // console.log("Fetched user data:", data);
 
       if (!data || Object.keys(data).length === 0) {
         console.error("No user data found");
@@ -61,31 +55,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (loading) return;
 
-    const storedUserData = localStorage.getItem("userData");
+    // const storedUserData = localStorage.getItem("userData");
 
-    if (storedUserData) {
-      try {
-        const parsedData = JSON.parse(storedUserData);
-        setUserData(parsedData);
-      } catch (error) {
-        console.error("Error parsing stored user data:", error);
-      }
-      return;
-    }
+    // if (storedUserData) {
+    //   try {
+    //     const parsedData = JSON.parse(storedUserData);
+    //     setUserData(parsedData);
+    //   } catch (error) {
+    //     console.error("Error parsing stored user data:", error);
+    //   }
+    //   return;
+    // }
 
     if (principal) {
       fetchUserData();
     }
 
-    if (principal) {
-      console.log("__FETCHING_FROM_PRINCIPAL__")
-      fetchUserData();
-      return;
-    }
+
   }, [principal]);
 
+  
+
   return (
-    <DataContext.Provider value={{ userData, fetchUserData }}>
+    <DataContext.Provider value={{ userData }}>
       {children}
     </DataContext.Provider>
   );

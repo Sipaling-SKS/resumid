@@ -16,6 +16,7 @@
     "src/resumid_frontend"
   ],
   "dependencies": {
-    "@dfinity/auth-client": "^2.2.0"
+    "@dfinity/auth-client": "^2.2.0",
+    "@dfinity/candid": "^2.2.0"
   }
 }

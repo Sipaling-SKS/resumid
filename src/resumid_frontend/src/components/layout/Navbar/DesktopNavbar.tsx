@@ -14,10 +14,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/AuthContext";
 import { useData } from "@/hooks/DataContext";
+import { useEffect, useState } from "react";
 
 
 function DesktopNavbar({navigate}: any) {
   const { isAuthenticated, login, logout, loading, principal } = useAuth()
+  const {userData} = useData()
+  console.log("user data: ", userData)
 
   return (
     <>
@@ -73,11 +76,15 @@ function DesktopNavbar({navigate}: any) {
           )}
         </ul>
       </div>
-      {isAuthenticated ? (
+      {isAuthenticated? (
         <div className="inline-flex gap-6 items-center">
           <div className="inline-flex gap-2 items-center">
             <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">ID</div>
-            <p className="text-paragraph font-medium">{String(principal).split("-")[0].toUpperCase()}</p>
+            {/* <p className="text-paragraph font-medium">{String(principal).split("-")[0].toUpperCase()}</p> */}
+            {/* <p className="text-paragraph font-medium">{String(principal)}</p> */}
+
+            <p className="text-paragraph font-medium">{userData?.ok?.name}</p>
+
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
