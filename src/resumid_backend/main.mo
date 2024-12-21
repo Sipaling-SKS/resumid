@@ -7,26 +7,33 @@ import HistoryServices "services/HistoryServices";
 import UserTypes "types/UserTypes";
 import UserServices "services/UserServices";
 
-
 actor Resumid {
   // Analyze History type
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
-  private var users : HashMap.HashMap<Principal, UserTypes.UserData> = HashMap.HashMap(0, Principal.equal, Principal.hash);
+  private var users : UserTypes.User = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
+
+  // private var users : HashMap.HashMap<Principal, UserTypes.UserData> = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
 
   // Auth related method
-  public shared(msg) func whoami() : async Principal {
-    Debug.print("Caller Principal: " # Principal.toText(msg.caller));  
+  public shared (msg) func whoami() : async Principal {
+    Debug.print("Caller Principal: " # Principal.toText(msg.caller));
     return msg.caller;
   };
 
-  public shared(msg) func authenticateUser() : async ?UserTypes.UserData { 
-    return await UserServices.authenticateUser(users, msg.caller); 
+  public shared (msg) func authenticateUser(userId : Principal) : async Result.Result<UserTypes.UserData, Text> {
+    return await UserServices.authenticateUser(users, userId);
   };
 
-  public shared(msg) func getUserById() : async ?UserTypes.UserData {
-    return users.get(msg.caller); 
+  public shared (msg) func getUserById(userId : Principal) : async Result.Result<UserTypes.UserData, Text> {
+    switch (users.get(userId)) {
+      case (?userData) {
+        return #ok(userData);
+      };
+      case null {
+        return #err("User not found");
+      };
+    };
   };
-
 
   // Resume Analyzer related method
   public shared (msg) func AnalyzeResume(fileName : Text, resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
@@ -54,7 +61,7 @@ actor Resumid {
 
         switch (historyResult) {
           case (#ok(res)) {
-            Debug.print(debug_show(res));
+            Debug.print(debug_show (res));
             Debug.print("History added successfully.");
           };
           case (#err(errorMessage)) {
@@ -99,5 +106,4 @@ actor Resumid {
     let userId = Principal.toText(msg.caller);
     HistoryServices.deleteHistory(histories, userId, input.historyId);
   };
-
 };
