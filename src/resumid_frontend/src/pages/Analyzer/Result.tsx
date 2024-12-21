@@ -28,12 +28,14 @@ function Result() {
   const { isTablet, isMobile } = useWindowSize();
 
   const [histories, setHistories] = useState<ResultData[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [selectedData, setSelectedData] = useState<ResultData | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedData, setSelectedIdData] = useState<ResultData | null>(null);
+  const [loadingHistories, setLoadingHistories] = useState<boolean>(true);
+  const [loadingDetails, setLoadingDetails] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchHistories() {
+      setLoadingHistories(true);
       try {
         const response = await resumid_backend.getHistories();
         if ("ok" in response) {
@@ -50,26 +52,28 @@ function Result() {
             weakness: history.weaknesses.length ? history.weaknesses : null,
           }));
           setHistories(backendHistories);
-          setSelected(backendHistories[0]?.id || null);
+          setSelectedId(backendHistories[0]?.id || null);
         } else {
           console.error("Failed to fetch histories:", response.err);
         }
       } catch (error) {
         console.error("Error fetching histories:", error);
+      } finally {
+        setLoadingHistories(false);
       }
     }
     fetchHistories();
   }, []);
 
   useEffect(() => {
-    if (selected) {
-      setLoading(true)
+    if (selectedId) {
+      setLoadingDetails(true);
       async function fetchHistoryDetails() {
         try {
-          const response = await resumid_backend.getHistoryById({ historyId: selected! });
+          const response = await resumid_backend.getHistoryById({ historyId: selectedId! });
           if ("ok" in response) {
             const history = response.ok;
-            setSelectedData({
+            setSelectedIdData({
               id: history.historyId,
               filename: history.fileName,
               jobTitle: "",
@@ -87,12 +91,12 @@ function Result() {
         } catch (error) {
           console.error("Error fetching history details:", error);
         } finally {
-          setLoading(false);
+          setLoadingDetails(false);
         }
       }
       fetchHistoryDetails();
     }
-  }, [selected]);
+  }, [selectedId]);
 
   return (
     <>
@@ -103,29 +107,42 @@ function Result() {
       <main className="bg-background-950 min-h-screen responsive-container py-6 md:py-8">
         <div className="flex flex-col md:flex-row gap-6">
           <section className="flex flex-col gap-4 md:gap-6 w-full max-w-md lg:w-1/3 xl:w-full xl:max-w-sm mx-auto">
-            {histories.map((history) => (
-              <HistoryThumbnail
-                key={history.id}
-                isSelected={selected === history.id}
-                data={history}
-                onSelect={(val) => {
-                  if (selected !== val) {
-                    setSelected(val);
-                  }
-                }}
-              />
-            ))}
+            {loadingHistories ? (
+              <div className="flex items-center justify-center min-h-[200px]">
+                <p>Sabar lee lagi Loading...</p>
+              </div>
+            ) : histories.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-[200px]">
+                <p>Infokan keberadaan History dari hasil Analyze</p>
+                <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
+                  Klik
+                </button>
+              </div>
+            ) : (
+              histories.map((history) => (
+                <HistoryThumbnail
+                  key={history.id}
+                  isSelected={selectedId === history.id}
+                  data={history}
+                  onSelect={(val) => {
+                    if (selectedId !== val) {
+                      setSelectedId(val);
+                    }
+                  }}
+                />
+              ))
+            )}
           </section>
           {!isTablet && !isMobile && selectedData && (
             <section className="lg:w-2/3 xl:w-full">
-            {loading ? (
-              <div className="flex items-center justify-center min-h-[200px]">
-                <p>Bisa diganti loading indicatornya pls..</p>
-              </div>
-            ) : (
-              selectedData && <AnalysisDetail data={selectedData} />
-            )}
-          </section>
+              {loadingDetails ? (
+                <div className="flex items-center justify-center min-h-[200px]">
+                  <p>Bisa diganti loading indicatornya pls..</p>
+                </div>
+              ) : (
+                selectedData && <AnalysisDetail data={selectedData} />
+              )}
+            </section>
           )}
         </div>
       </main>
