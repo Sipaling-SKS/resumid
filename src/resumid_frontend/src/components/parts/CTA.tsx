@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "lucide-react";
+import { Button } from "../ui/button";
 
 function CTA() {
   return (
@@ -10,17 +11,17 @@ function CTA() {
             shadow-md">
         </div>
 
-        <div className="flex justify-between items-center h-full lg:mt-8 mt-2"> 
+        <div className="flex flex-col md:flex-row justify-start md:justify-between items-center h-full lg:mt-8 mt-2"> 
         
           <h2 className="sm:text-xl md:text-2xl font-semibold text-left font-inter">
             Ready to Level Up Your Resume?
           </h2>
 
           <div className="z-10 lg:mt-0 mt-6">
-            <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-inter rounded-md bg-white text-primary-500 text-xs sm:text-sm md:text-base px-4 sm:px-6 py-2 font-medium hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+            <Button className="bg-white" variant="secondary" size="lg">
               Get Started
               <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
