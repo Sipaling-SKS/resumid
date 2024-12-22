@@ -20,11 +20,17 @@ actor Resumid {
     return msg.caller;
   };
 
-  public shared (msg) func authenticateUser(userId : Principal) : async Result.Result<UserTypes.UserData, Text> {
+  public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
+    let userId = msg.caller;
+
+    Debug.print("Caller Principal for auth: " # Principal.toText(userId));
     return await UserServices.authenticateUser(users, userId);
   };
 
-  public shared (msg) func getUserById(userId : Principal) : async Result.Result<UserTypes.UserData, Text> {
+  public shared (msg) func getUserById() : async Result.Result<UserTypes.UserData, Text> {
+        let userId = msg.caller;
+            Debug.print("Caller Principal for getuserid: " # Principal.toText(userId));
+
     switch (users.get(userId)) {
       case (?userData) {
         return #ok(userData);
@@ -34,6 +40,10 @@ actor Resumid {
       };
     };
   };
+  
+
+
+  
 
   // Resume Analyzer related method
   public shared (msg) func AnalyzeResume(fileName : Text, resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
