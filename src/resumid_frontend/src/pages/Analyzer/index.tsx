@@ -5,11 +5,14 @@ import { cleanExtractedText, extractPDFContent } from "@/lib/pdf2text";
 import { FormEvent, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { SubmitHandler } from "react-hook-form";
+import { resumid_backend } from "../../../../declarations/resumid_backend"
+import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
+import { useNavigate } from "react-router";
 
 export type Resume = {
   fullText: string
   filename: string
-  jobTitle?: string
+  jobTitle: string
   jobDescription?: string
 }
 
@@ -20,8 +23,11 @@ function Analyzer() {
   const [resume, setResume] = useState<Resume>({
     fullText: "",
     filename: "",
+    jobTitle: "",
   });
   const [file, setFile] = useState<File | null>(null);
+
+  const navigate = useNavigate()
 
   const processFile = async (file: File) => {
     if (resume.fullText !== "" && resume.filename === file?.name) {
@@ -33,16 +39,24 @@ function Analyzer() {
 
     try {
       const text = await extractPDFContent(file);
-      const cleanedText = cleanExtractedText(text);
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+      if (!text) {
+        toast({
+          title: "Uh oh! Resume extraction went wrong.",
+          description: "There was a problem when trying to extract your resume.",
+          variant: "destructive",
+        })
+        return;
+      }
+      
       setResume({
-        fullText: cleanedText,
+        fullText: text,
         filename: file.name,
+        jobTitle: "",
       });
       setStep(1);
     } catch (error) {
+      console.error(error)
       toast({
         title: "Uh oh! Something went wrong.",
         description: "There was a problem with your request.",
@@ -54,7 +68,32 @@ function Analyzer() {
   }
 
   const analyzeResume: SubmitHandler<PreviewFormValues> = async (data) => {
-    console.log({...resume, ...data})
+    setLoading(true)
+    try {
+      const finalData: Resume = { ...resume, ...data };
+  
+      const { fullText, filename, jobTitle, jobDescription } = finalData
+  
+      const res: [] | [AnalyzeStructure] = await resumid_backend.AnalyzeResume(filename, fullText, jobTitle, jobDescription || "")
+      
+      if (!(res && res.length > 0)) {
+        toast({
+          title: "Uh oh! Analzying went wrong.",
+          description: "There was a problem when analyzing your resume.",
+          variant: "destructive",
+        })
+      } else {
+        navigate("/history", { replace: true });
+      }
+    } catch (error) {
+      console.log(error)
+      toast({
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem with your request.",
+        variant: "destructive",
+      })
+    }
+    setLoading(false)
   }
 
   const MultiStepPage = () => {
@@ -71,6 +110,7 @@ function Analyzer() {
       case 1:
         return (
           <PreviewResume
+            isLoading={isLoading}
             onSubmit={analyzeResume}
             resume={resume}
             setResume={setResume}

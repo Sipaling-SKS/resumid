@@ -1,12 +1,24 @@
-import ResultItemAccordion from "@/components/parts/ResultItemAccordion";
-import Summary from "@/components/parts/Summary";
-import { Accordion } from "@/components/ui/accordion";
-import { capitalize } from "@/lib/utils";
+import AnalysisDetail from "@/components/parts/AnalysisDetail";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+} from "@/components/ui/dialog"
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router";
+import useWindowSize from "@/hooks/useMediaQuery"
+import HistoryThumbnail from "@/components/parts/HistoryThumbnail";
+import { useState, useEffect } from "react";
+import { resumid_backend } from "../../../../declarations/resumid_backend";
+import { History } from "../../../../declarations/resumid_backend/resumid_backend.did";
+import { X } from "lucide-react";
+import SkeletonHistoryThumbnail from "@/components/parts/SkeletonHistoryThumbnail";
+import SkeletonAnalysisDetail from "@/components/parts/SkeletonAnalysisDetail";
 
-type Data = {
-  id: number;
+export type ResultData = {
+  id: string;
+  filename: string;
+  jobTitle: string;
   score: number;
   date: string;
   summary: string;
@@ -16,72 +28,70 @@ type Data = {
   weakness: string[] | null;
 };
 
-type DataKeys = "suggestions" | "strengths" | "gaps" | "weakness";
-
-function checkDefaultValue(data: Data, keys: DataKeys[]) {
-  for (const key of keys) {
-    if (data[key] !== null && data[key] !== undefined && data[key].length > 0) {
-      return [key];
-    }
-  }
-  return [];
-}
+export type DataKeys = "suggestions" | "strengths" | "gaps" | "weakness";
 
 function Result() {
   const { id } = useParams();
+  const { isTablet, isMobile } = useWindowSize();
 
-  const dataKeys: DataKeys[] = ["strengths", "weakness", "gaps", "suggestions"];
+  const [histories, setHistories] = useState<ResultData[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedData, setSelectedIdData] = useState<ResultData | null>(null);
+  const [loadingHistories, setLoadingHistories] = useState<boolean>(true);
+  const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
 
-  const data: Data = {
-    id: 1,
-    score: 79,
-    date: "16 December 2024 - 6:28 PM",
-    summary:
-      "The resume highlights diverse technical expertise, leadership, and mentoring skills, with achievements in backend, frontend, and mobile technologies. However, it lacks specificity in programming.",
-    suggestions: [
-      "Revise the resume to include specific examples of software development projects, highlighting the complexity and technologies used.",
-      "Add a section detailing experience with software testing and debugging, including any relevant tools or methodologies.",
-      "Include any experience with cloud technologies, even if it was part of a project or training, to align with job requirements.",
-      "Emphasize collaborative experiences with cross-functional teams and provide examples of successful teamwork.",
-      "Highlight any mentoring or leadership roles taken in previous positions to demonstrate readiness for a senior role.",
-      "Improve the formatting of the resume for better readability and professionalism, ensuring consistent spacing and alignment throughout.",
-      "Consider adding a summary statement at the top of the resume that encapsulates key skills and experiences relevant to the Senior Software Engineer role.",
-    ],
-    strengths: [
-      "Educational background in Informatics, which is relevant to the field of software engineering.",
-      "Experience as a Technical Consultant and Counselor, indicating a strong foundation in technical training and mentoring.",
-      "Proficiency in backend technologies (Java, .NET) and frontend technologies (React Js), aligning with the job's programming language requirements.",
-      "Experience in providing technical support and developing APIs, showcasing practical software development skills.",
-      "Strong communication skills demonstrated through tutoring roles, which is essential for collaboration in a team environment.",
-      "Involvement in various projects and internships, indicating a breadth of experience in different aspects of software development.",
-    ],
-    gaps: [
-      "No clear evidence of experience in developing complex software applications, which is a primary requirement for the role.",
-      "Absence of specific achievements or metrics that demonstrate the impact of previous work, such as performance improvements or successful project completions.",
-      "Lack of information on familiarity with software development methodologies and tools, which is essential for the position.",
-      "No mention of participation in process improvements or innovative solutions, which are emphasized in the job description.",
-    ],
-    weakness: [
-      "Lack of specific experience in software testing and debugging techniques, which is a key requirement for the role.",
-      "No mention of experience with cloud technologies (AWS or Azure), which is a preferred qualification for the position.",
-      "Limited details on collaborative work with cross-functional teams, which is crucial for the role.",
-      "The resume does not highlight any experience in conducting code reviews or mentoring junior engineers, which are important responsibilities for a Senior Software Engineer.",
-      "The formatting of the resume is inconsistent, with spacing and alignment issues that may detract from professionalism.",
-    ],
-  };
+  useEffect(() => {
+    async function fetchHistories() {
+      setLoadingHistories(true);
 
-  if (!id) {
-    return (
-      <>
-        <Helmet>
-          <meta charSet="utf-8" />
-          <title>Error, result not found - Resumid</title>
-        </Helmet>
-        <main className="min-h-screen">
-          <h1>Error!</h1>
-        </main>
-      </>
-    )
+      try {
+        const response = await resumid_backend.getHistories();
+
+        if ("ok" in response) {
+          const backendHistories = response.ok.map((history: History) => ({
+            id: history.historyId,
+            filename: history.fileName,
+            jobTitle: history.jobTitle,
+            score: parseFloat(history.score),
+            date: new Date(history.createdAt).toISOString(),
+            summary: history.summary,
+            suggestions: history.suggestions.length ? history.suggestions : null,
+            strengths: history.strengths.length ? history.strengths : null,
+            gaps: history.gaps.length ? history.gaps : null,
+            weakness: history.weaknesses.length ? history.weaknesses : null,
+          }));
+
+          setHistories(backendHistories);
+          const initialId = backendHistories[0]?.id || null;
+
+          setSelectedId(initialId);
+          if (initialId) {
+            setSelectedIdData(backendHistories.find((item) => item.id === initialId) || null);
+          }
+        } else {
+          console.error("Failed to fetch histories:", response.err);
+        }
+      } catch (error) {
+        console.error("Error fetching histories:", error);
+      } finally {
+        setLoadingHistories(false);
+      }
+    }
+    fetchHistories();
+  }, []);
+
+  const handleSelectHistory = (val: string) => {
+    if (selectedId !== val) {
+      setSelectedId(val)
+      setSelectedIdData(histories.find((item) => item.id === val) || null)
+    }
+
+    console.log("INTERACTING WITH HISTORY")
+
+    if (isTablet || isMobile) {
+      console.log("INTERACTING WITH DIALOG")
+      setDialogOpen(true)
+    }
   }
 
   return (
@@ -91,17 +101,55 @@ function Result() {
         <title>Resume Summary 15/12/2024 - Resumid</title>
       </Helmet>
       <main className="bg-background-950 min-h-screen responsive-container py-6 md:py-8">
-        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-          <section className="w-full">
-            <Summary score={data.score} />
+        <div className="flex flex-col md:flex-row gap-6">
+          <section className="flex flex-col gap-4 md:gap-6 w-full max-w-md lg:w-1/3 xl:w-full xl:max-w-sm mx-auto lg:mx-0">
+            {loadingHistories ? (
+              <>
+                <SkeletonHistoryThumbnail />
+                <SkeletonHistoryThumbnail />
+              </>
+            ) : histories.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-[200px]">
+                <p>Infokan keberadaan History dari hasil Analyze</p>
+                <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
+                  Klik
+                </button>
+              </div>
+            ) : (
+              histories.map((history) => (
+                <HistoryThumbnail
+                  key={history.id}
+                  isSelected={selectedId === history.id}
+                  data={history}
+                  onSelect={handleSelectHistory}
+                />
+              ))
+            )}
           </section>
-          <section className="w-full">
-            <Accordion type="multiple" className="space-y-4" defaultValue={checkDefaultValue(data, dataKeys)}>
-              {dataKeys.map((key: DataKeys, index: number) => (
-                <ResultItemAccordion key={index} data={data[key]} title={key} />
-              ))}
-            </Accordion>
-          </section>
+          {!isTablet && !isMobile ? (
+            <section className="lg:w-2/3 xl:w-full">
+              {!loadingHistories ? selectedData && (
+                <AnalysisDetail data={selectedData}/>
+              ) : (
+                <SkeletonAnalysisDetail />
+              )}
+            </section>
+          ) : (
+            <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+              <DialogClose />
+              <DialogContent className="">
+                {selectedData && (
+                  <div className="relative">
+                    <AnalysisDetail data={selectedData} />
+                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-neutral-100 data-[state=open]:text-neutral-500 dark:ring-offset-neutral-950 dark:focus:ring-neutral-300 dark:data-[state=open]:bg-neutral-800 dark:data-[state=open]:text-neutral-400">
+                      <X className="h-5 w-5" />
+                      <span className="sr-only">Close</span>
+                    </DialogClose>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </main>
     </>

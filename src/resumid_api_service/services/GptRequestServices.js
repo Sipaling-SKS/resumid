@@ -1,4 +1,5 @@
-const dotenv = require("dotenv");
+const path = require("path")
+const dotenv = require("dotenv").config({ path: path.resolve(__dirname, "../../../.env") });
 const axios = require("axios");
 
 const TrGptRequestLog = require("../models/TrGptRequestLog");
@@ -8,6 +9,7 @@ const { API_IDEMPOTENCY_KEY } = require("../constants/global");
 const AnalyzeResume = async (req) => {
   const route = "/chat/completions";
   console.log(req.body);
+  console.log(process.env.API_KEY)
   const cleanedContent = req.body.messages[0].content.replaceAll(
     "<ACK0006>",
     "\n"

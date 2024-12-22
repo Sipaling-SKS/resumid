@@ -7,24 +7,26 @@ export async function extractPDFContent(file: File): Promise<string> {
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
+    const content = await page.getTextContent({
+      disableNormalization: true,
+    });
 
     const lines: string[] = [];
     let lastY: number | null = null;
     
     content.items.forEach((item: any) => {
       if (lastY !== null && Math.abs(item.transform[5] - lastY) > 10) {
-        lines.push('\n');
+        lines.push(' ');
       }
       lines.push(item.str);
       lastY = item.transform[5];
     });
 
-    fullText += lines.join(' ') + '\n\n';
+    fullText += lines.join(' ')
   }
 
   fullText = fullText
-    .replace(/[^\x00-\x7F]\s*/g, '') // Remove non-ASCII characters
+    .replace(/[^\x00-\x7F]\s*/g, ' ') // Remove non-ASCII characters
     .replace(/ {2,}/g, ' ')          // Replace multiple spaces with a single space
     .replace(/\n{3,}/g, '\n\n')      // Reduce excessive new lines (keep at most 2 consecutive)
     .trimEnd();                      // Remove only trailing spaces or new lines at the end

@@ -85,8 +85,8 @@ function Features() {
   ];
 
   return (
-    <section id="features" className="responsive-container py-16 border-b border-neutral-200 ">
-      <h2 className="text-balance font-outfit text-heading text-4xl text-left font-semibold md:mb-2 text-center md:text-left">
+    <section id="features" className="responsive-container py-16 border-b border-neutral-200">
+      <h2 className="text-balance font-outfit text-heading text-4xl text-left font-semibold md:mb-2">
         Why Resumid is the Best Resume Analyzer Platform to Date
       </h2>
       <p className="font-inter text-[18px] text-paragraph mt-4 mb-4 md:mb-8 text-center md:text-left">
