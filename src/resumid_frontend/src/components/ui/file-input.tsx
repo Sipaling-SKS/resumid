@@ -67,9 +67,9 @@ function FileInput({ onFileSelected, file, setFile }: FileInputProps) {
       ) : (
         <>
           <FileCheck className="text-primary-500" size={64} strokeWidth={1.5} />
-          <div className="inline-flex gap-1">
+          <div className="inline-flex items-center gap-1">
             <Check className="text-green-500" />
-            <p className="font-inter text-paragraph">{file.name}</p>
+            <p className="font-inter text-paragraph text-center w-fit">{file.name}</p>
           </div>
         </>
       )}

@@ -25,7 +25,7 @@ function AnalysisDetail({ data }: AnaylsisDetailProps) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row gap-2 w-full justify-between">
+      <CardHeader className="flex flex-row gap-4 w-full justify-between items-center lg:items-start">
         <section>
           <CardTitle className="font-outfit text-2xl text-heading">
             {data.filename}

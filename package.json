@@ -5,14 +5,16 @@
   },
   "name": "resumid",
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "prebuild": "npm run prebuild --workspaces --if-present",
-    "pretest": "npm run prebuild --workspaces --if-present",
-    "start": "npm start --workspaces --if-present",
-    "test": "npm test --workspaces --if-present"
+    "build": "npm run build --workspace=src/resumid_frontend --if-present",
+    "prebuild": "npm run prebuild --workspace=src/resumid_frontend --if-present",
+    "pretest": "npm run prebuild --workspace=src/resumid_frontend --if-present",
+    "start": "npm start --workspace=src/resumid_frontend --if-present",
+    "test": "npm test --workspace=src/resumid_frontend --if-present",
+    "workspace:start:api": "npm start --workspace=src/resumid_api_service --if-present"
   },
   "type": "module",
   "workspaces": [
-    "src/resumid_frontend"
+    "src/resumid_frontend",
+    "src/resumid_api_service"
   ]
 }
