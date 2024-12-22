@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/AuthContext";
+import { toast } from "@/hooks/use-toast";
 import { Navigate, Outlet } from "react-router";
 
 interface ProtectedRouteProps {
@@ -8,13 +9,21 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = "/",
 }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  if (loading) {
-    return <div>Loading...</div>; // Display a loading indicator
+  if (!isAuthenticated) {
+    toast({
+      title: "Error, Not Authorized",
+      description: "You need to sign in first.",
+      variant: "destructive"
+    })
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to={redirectTo} replace />;
+  return isAuthenticated ? (
+    <Outlet />
+  ) : (
+    <Navigate to={redirectTo} replace />
+  );
 };
 
 export default ProtectedRoute;

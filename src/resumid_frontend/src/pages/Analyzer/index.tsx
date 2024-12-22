@@ -7,6 +7,7 @@ import { Helmet } from "react-helmet";
 import { SubmitHandler } from "react-hook-form";
 import { resumid_backend } from "../../../../declarations/resumid_backend"
 import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
+import { useNavigate } from "react-router";
 
 export type Resume = {
   fullText: string
@@ -26,6 +27,8 @@ function Analyzer() {
   });
   const [file, setFile] = useState<File | null>(null);
 
+  const navigate = useNavigate()
+
   const processFile = async (file: File) => {
     if (resume.fullText !== "" && resume.filename === file?.name) {
       setStep(1);
@@ -39,17 +42,13 @@ function Analyzer() {
 
       if (!text) {
         toast({
-          title: "Uh oh! Something went wrong.",
-          description: "Failed to extract your resume.",
+          title: "Uh oh! Resume extraction went wrong.",
+          description: "There was a problem when trying to extract your resume.",
           variant: "destructive",
         })
         return;
       }
-
-      const cleanedText = cleanExtractedText(text);
-
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+      
       setResume({
         fullText: text,
         filename: file.name,
@@ -77,9 +76,22 @@ function Analyzer() {
   
       const res: [] | [AnalyzeStructure] = await resumid_backend.AnalyzeResume(fullText, jobTitle, jobDescription || "")
       
-      console.log(res)
+      if (!(res && res.length > 0)) {
+        toast({
+          title: "Uh oh! Analzying went wrong.",
+          description: "There was a problem when analyzing your resume.",
+          variant: "destructive",
+        })
+      } else {
+        navigate("/history", { replace: true });
+      }
     } catch (error) {
       console.log(error)
+      toast({
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem with your request.",
+        variant: "destructive",
+      })
     }
     setLoading(false)
   }

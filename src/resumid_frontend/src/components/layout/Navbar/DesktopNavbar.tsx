@@ -1,6 +1,6 @@
 import Logo from "@/assets/logo-black.svg";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { cn, scrollTo, scrollToTop } from "@/lib/utils";
+import { capitalize, cn, scrollTo, scrollToTop } from "@/lib/utils";
 import { NavLink } from "react-router";
 import { LogIn, LogOut, User2 as ProfileIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,18 +15,17 @@ import {
 
 import { useAuth } from "@/hooks/AuthContext";
 import { useData } from "@/hooks/DataContext";
-import { useEffect, useState } from "react";
 
 function DesktopNavbar({ navigate }: any) {
   const { isAuthenticated, login, logout, loading, principal } = useAuth();
   const { userData } = useData();
-  console.log("user data: ", userData);
+
   return (
     <>
       <div className="inline-flex items-center gap-8 md:gap-10 xl:gap-12">
         <img
           onClick={() => navigate("/")}
-          className="pb-1"
+          className="pb-1 cursor-pointer"
           src={Logo}
           alt="Resumid Logo"
         />
@@ -115,15 +114,14 @@ function DesktopNavbar({ navigate }: any) {
         </ul>
       </div>
       {isAuthenticated ? (
-        <div className="inline-flex gap-6 items-center">
-          <div className="inline-flex gap-0 items-center">
+        <div className="inline-flex gap-4 items-center">
+          <div className="inline-flex gap-2 items-center">
             <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">
               ID
             </div>
-            {/* <p className="text-paragraph font-medium">{String(principal).split("-")[0].toUpperCase()}</p> */}
-            {/* <p className="text-paragraph font-medium">{String(principal)}</p> */}
-
-            <p className="text-paragraph font-medium">{userData?.ok?.name}</p>
+            <p className="text-paragraph font-medium">
+              {String(userData?.ok?.name).split("-").splice(0, 2).join("-")}
+            </p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

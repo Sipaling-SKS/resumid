@@ -24,7 +24,7 @@ function HistoryThumbnail({
 }: HistoryThumbnailProps) {
   return (
     <Card
-      className={`space-y-4 md:space-y-5 p-6 cursor-pointer hover:outline hover:outline-2 hover:outline-primary-500 -outline-offset-2 ${isSelected ? "outline outline-2 outline-primary-500" : "border border-neutral-300"}`}
+      className={`space-y-4 md:space-y-5 p-6 cursor-pointer hover:outline hover:outline-2 hover:outline-primary-500 -outline-offset-2 border border-neutral-300 ${isSelected && "lg:outline outline-2 outline-primary-500"}`}
       onClick={() => onSelect(data.id)}
     >
       <CardHeader className="">
@@ -39,7 +39,7 @@ function HistoryThumbnail({
           </div>
 
           <div className="font-inter text-primary-500 text-sm font-semibold leading-tight self-start pt-1 text-right">
-            Score: {data.score}/100
+            Score:<br/>{data.score}/100
           </div>
 
         </div>

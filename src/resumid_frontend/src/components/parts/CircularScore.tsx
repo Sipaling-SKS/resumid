@@ -37,9 +37,9 @@ function CircularProgress({ value, duration = 1000 }: CircularProgressProps) {
   }, [value]);
 
   return (
-    <div className="relative flex flex-col justify-center items-center font-semibold font-outfit h-28 aspect-square">
-      <h3 className="text-paragraph text-lg leading-none">Score</h3>
-      <p className="text-primary-500 text-[32px] leading-none">{Math.floor(animatedScore)}<span className="font-bold text-2xl">%</span></p>
+    <div className="relative flex flex-col justify-center items-center font-semibold font-outfit h-20 lg:h-28 aspect-square">
+      <h3 className="text-paragraph text-base lg:text-lg leading-none">Score</h3>
+      <p className="text-primary-500 text-xl lg:text-[32px] leading-none">{Math.floor(animatedScore)}<span className="font-bold text-lg lg:text-2xl">%</span></p>
       <svg className="absolute top-0 left-0 w-full h-full text-primary-500" viewBox="0 0 36 36">
         <path
           fill="none"
