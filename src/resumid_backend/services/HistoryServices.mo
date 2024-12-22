@@ -24,6 +24,7 @@ module {
       userId = userId;
       historyId = historyId;
       fileName = input.fileName;
+      jobTitle = input.jobTitle;
       summary = input.summary;
       score = input.score;
       strengths = input.strengths;
