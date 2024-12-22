@@ -59,6 +59,7 @@ actor Resumid {
       case (?result) {
         let addHistoryInput = {
           fileName = fileName;
+          jobTitle = jobTitle;
           summary = result.summary;
           score = result.score;
           strengths = result.strengths;
@@ -93,6 +94,7 @@ actor Resumid {
       fileName = input.fileName;
       summary = input.summary;
       score = input.score;
+      jobTitle = input.jobTitle;
       strengths = input.strengths;
       weaknesses = input.weaknesses;
       gaps = input.gaps;
