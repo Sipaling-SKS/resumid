@@ -9,6 +9,7 @@ module {
     fileName : Text;
     summary : Text;
     score : Text;
+    jobTitle: Text;
     strengths : [Text];
     weaknesses : [Text];
     gaps : [Text];
@@ -20,6 +21,7 @@ module {
     fileName : Text;
     summary : Text;
     score : Text;
+    jobTitle: Text;
     strengths : [Text];
     weaknesses : [Text];
     gaps : [Text];
