@@ -58,42 +58,6 @@ module HttpHelper {
 
     let httpResponse : HttpTypes.HttpResponse = await IC.http_request(HttpRequest);
 
-    // Debug.print("Masuk");
-
-    // Debug.print("URL: " # http_request.url);
-    // Debug.print("Method: " # debug_show (http_request.method));
-    // Debug.print("Headers: " # debug_show (http_request.headers));
-
-    // let bodyText = switch (http_request.body) {
-    //   case (?blob) { debug_show (blob) };
-    //   case (null) { "null" };
-    // };
-    // Debug.print("Body: " # bodyText);
-
-    // let maxResponseBytesText = switch (http_request.max_response_bytes) {
-    //   case (?bytes) { debug_show (bytes) };
-    //   case (null) { "null" };
-    // };
-    // Debug.print("Max Response Bytes: " # maxResponseBytesText);
-
-    // let transformText = switch (http_request.transform) {
-    //   case (?transform) { "Transform function present" };
-    //   case (null) { "null" };
-    // };
-    // Debug.print("Transform: " # transformText);
-
-    // // Debug.trap(http_request);
-    // Debug.print(debug_show (http_response));
-
-    // let decodedText : Text = switch (Text.decodeUtf8(httpResponse.body)) {
-    //   case (null) { null };
-    //   case (?y) { y };
-    // };
-
-    // if (decodedText != null) {
-    //   Serde(decodedText);
-    // }
-
     httpResponse;
   };
 };

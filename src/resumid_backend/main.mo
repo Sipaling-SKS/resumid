@@ -53,6 +53,8 @@ actor Resumid {
   public shared (msg) func AnalyzeResume(fileName : Text, resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
     let userId = Principal.toText(msg.caller);
 
+    Debug.print("Caller Principal: " # userId);
+
     let analyzeResult = await GptServices.AnalyzeResume(resumeContent, jobTitle, jobDescription);
     Debug.print(debug_show (analyzeResult));
 
@@ -110,6 +112,9 @@ actor Resumid {
 
   public shared (msg) func getHistories() : async Result.Result<[HistoryTypes.History], Text> {
     let userId = Principal.toText(msg.caller);
+
+    Debug.print("Caller Principal: " # userId);
+
     HistoryServices.getHistories(histories, userId);
   };
 
