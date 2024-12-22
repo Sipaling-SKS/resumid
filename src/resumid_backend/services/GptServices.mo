@@ -49,7 +49,7 @@ module GptServices {
                 Debug.print(debug_show (jsonBody));
 
                 let bodyAsBlob = Text.encodeUtf8(jsonBody);
-                Debug.print(debug_show (bodyAsBlob));
+                // Debug.print(debug_show (bodyAsBlob));
                 // Construct HttpRequest Data
                 let request : HttpTypes.HttpRequest = {
                     url = GPTConstants.GPT_BASE_URL # route;
@@ -97,8 +97,8 @@ module GptServices {
                                             var score : Text = "";
                                             var summary : Text = "";
 
-                                            Debug.print("============================");
-                                            Debug.print(content);
+                                            // Debug.print("============================");
+                                            // Debug.print(content);
                                             for (item in sections) {
                                                 // Get Key
                                                 let strengthKey = GlobalConstants.STRENGTH_KEY;
