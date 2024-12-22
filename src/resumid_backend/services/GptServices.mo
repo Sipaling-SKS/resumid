@@ -4,6 +4,7 @@ import Array "mo:base/Array";
 import { JSON } = "mo:serde";
 
 import GlobalConstants "../constants/Global";
+import GPTConstacts "../constants/GPT";
 
 import HttpTypes "../types/HttpTypes";
 import GptTypes "../types/GptTypes";
@@ -53,9 +54,9 @@ module GptServices {
                 let request : HttpTypes.HttpRequest = {
                     url = GlobalConstants.GPT_BASE_URL # route;
                     max_response_bytes = null;
-                    header_host = GlobalConstants.GPT_HOST;
-                    header_user_agent = GlobalConstants.GPT_USER_AGENT;
-                    header_content_type = GlobalConstants.GPT_CONTENT_TYPE;
+                    header_host = GPTConstacts.GPT_HOST;
+                    header_user_agent = GPTConstacts.GPT_USER_AGENT;
+                    header_content_type = GPTConstacts.GPT_CONTENT_TYPE;
                     body = ?bodyAsBlob;
                     method = #post;
                 };
