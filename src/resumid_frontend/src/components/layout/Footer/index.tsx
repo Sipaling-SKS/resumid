@@ -8,7 +8,7 @@ function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-6 w-full">
           
           {/* Logo dan Deskripsi */}
-          <div className="lg:text-center md:text-left md:col-span-3 ">
+          <div className="md:text-left md:col-span-3 ">
             <img
               className="pb-2 mx-auto md:mx-0"
               src={LogoWhite}
