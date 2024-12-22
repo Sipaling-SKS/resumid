@@ -51,7 +51,7 @@ function Result() {
           const backendHistories = response.ok.map((history: History) => ({
             id: history.historyId,
             filename: history.fileName,
-            jobTitle: "",
+            jobTitle: history.jobTitle,
             score: parseFloat(history.score),
             date: new Date(history.createdAt).toISOString(),
             summary: history.summary,
