@@ -2,8 +2,11 @@ import Highlight from "@/components/highlight";
 import { Button } from "@/components/ui/button";
 import { ArrowRightIcon, ChevronsDown } from "lucide-react";
 import HeroIllustration from "@/assets/hero-illustration.svg";
+import { useNavigate } from "react-router";
 
 function Hero() {
+  const navigate = useNavigate();
+
   return (
     <header className="relative responsive-container overflow-clip flex flex-col md:flex-row justify-center md:justify-between items-center md:py-16 border-b border-neutral-200 min-h-[calc(100vh-73px)] md:min-h-[70vh]">
       <div className="w-full md:w-3/5 pb-[12vh] md:pb-0">
@@ -11,7 +14,7 @@ function Hero() {
           Unleash Your Resume’s Potential with <Highlight>AI-Powered</Highlight> Analysis
         </h1>
         <p className="w-4/5 font-inter text-[18px] text-paragraph mt-4">Decentralized, Insightful, and Ready to Elevate Your Career.</p>
-        <Button className="mt-10 pr-5 w-full sm:w-fit" variant="gradient" size="lg">
+        <Button onClick={() => navigate("/resume-analyzer")} className="mt-10 pr-5 w-full sm:w-fit" variant="gradient" size="lg">
           Analyze Your Resume
         <ArrowRightIcon />
         </Button>

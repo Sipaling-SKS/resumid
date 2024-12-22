@@ -121,8 +121,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const actor = createActor(CANISTER_ID_BACKEND, {
               agentOptions: { identity },
             });
+
+            await actor.whoami();
+            await actor.authenticateUser();
+
             setResumidActor(actor);
-            
 
             // Call getPrincipalFromBackend after successful login and actor initialization
             // getPrincipalFromBackend(actor); // <-- Menambahkan pemanggilan di sini
@@ -138,8 +141,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
       });
     }
-    await resumidActor.whoami();
-    await resumidActor.authenticateUser();
     
   };
 

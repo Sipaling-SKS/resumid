@@ -83,7 +83,7 @@ const NoticeCard = React.forwardRef<
   <Card
     ref={ref}
     className={cn(
-      "border-[#8C3DDB] bg-[#F2E9FB] text-black", 
+      "border-accent-500 bg-[#F2E9FB] text-[#333]", 
       className
     )}
     {...props}

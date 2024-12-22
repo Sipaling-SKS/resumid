@@ -8,10 +8,10 @@ import ParagraphExtendable from "../ui/paragraph-expandable";
 
 interface AnaylsisDetailProps {
   data: ResultData
+  dataKeys: DataKeys[]
 }
 
-function AnalysisDetail({ data }: AnaylsisDetailProps) {
-  const dataKeys: DataKeys[] = ["strengths", "weakness", "gaps", "suggestions"];
+function AnalysisDetail({ data, dataKeys }: AnaylsisDetailProps) {
 
   function checkDefaultValue(data: ResultData, keys: DataKeys[]) {
     for (const key of keys) {
@@ -40,9 +40,9 @@ function AnalysisDetail({ data }: AnaylsisDetailProps) {
             </div>
           </CardDescription>
         </section>
-        <div className="">
+        {!isNaN(data.score) && <div className="">
           <CircularProgress value={data.score} />
-        </div>
+        </div>}
       </CardHeader>
       <hr className="h-[1px] w-full bg-neutral-200" />
       <CardContent className="space-y-6">

@@ -12,20 +12,20 @@ import GptTypes "../types/GptTypes";
 import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
-    public func AnalyzeResume(resumeContent : Text, jobTitle: Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
-        // let route : Text = "/gpt-service";
-        let route : Text = "/gpt-mockup";
+    public func AnalyzeResume(resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
+        let route : Text = "/gpt-service";
+        // let route : Text = "/gpt-mockup";
 
         // Construct Request Body
         let messages : [GptTypes.GptRequestMessage] = [
             {
                 role = "system";
-                content = "I want you to act as a resume reviewer. I will provide you with my current resume and the job requirements. You will review the resume for any errors or areas for improvement based on the job requirements. Include a complete breakdown of the resume in form of strengths, weaknesses, gaps, and suggestions. Mention as many points as possible in each section. A good resume must have all the requirements mentioned in the job requirements. A good resume must not have any errors. A resume must have a description of the candidate's skills and experience. A resume must have at least 200 words. Provide constructive suggestions and recommendations as to how the resumes could be improved to fit the job requirements. Do not show anything other than these 4 sections: Strength, Weakness and Gaps, Suggestions. ## Output Format<ACK0006>        Strength:<ACK0006>        {List of strength points}<ACK0006>        {Line break}<ACK0006>        Weakness:<ACK0006>        {List of weakness points}<ACK0006>        {Line break}<ACK0006>        Gaps:<ACK0006>        {List of gap points}<ACK0006>        {Line break}<ACK0006>        Suggestions:<ACK0006>        {List of suggestion points}<ACK0006>        {Line break}<ACK0006>        Summary:<ACK0006>        {Text of summary}<ACK0006>        {Line break}        Score:<ACK0006>        {Score point}<ACK0006>        {Line break}";
+                content = "I want you to act as a resume reviewer. I will provide you with my current resume and the job requirements. You will review the resume for any errors or areas for improvement based on the job requirements. Include a complete breakdown of the resume in form of strengths, weaknesses, gaps, and suggestions. Mention as many points as possible in each section. A good resume must have all the requirements mentioned in the job requirements. A good resume must not have any errors. A resume must have a description of the candidate's skills and experience. A resume must have at least 200 words. Provide constructive suggestions and recommendations as to how the resumes could be improved to fit the job requirements. Do not show anything other than these 4 sections: Strength, Weakness and Gaps, Suggestions. ## Output Format<ACK0006>        Strengths:<ACK0006>        {List of strength points without pointer character}<ACK0006>        {Line break}<ACK0006>        Weakness:<ACK0006>        {List of weakness points without pointer character}<ACK0006>        {Line break}<ACK0006>        Gaps:<ACK0006>        {List of gap points without pointer character}<ACK0006>        {Line break}<ACK0006>        Suggestions:<ACK0006>        {List of suggestion points without pointer character}<ACK0006>        {Line break}<ACK0006>        Summary:<ACK0006>        {Text of summary}<ACK0006>        {Line break}        Score:<ACK0006>        {Score point 1-100}<ACK0006>        {Line break}";
             },
             { role = "user"; content = "Resume: " # resumeContent },
             {
                 role = "user";
-                content = "Job Description: " # "Job Title: " # jobTitle # "Job Description: " # jobDescription;
+                content = "Job Description: " # "Job Title: " # jobTitle # " Job Description: " # jobDescription;
             },
         ];
 
@@ -109,20 +109,40 @@ module GptServices {
                                                 let scoreKey = GlobalConstants.SCORE_KEY;
 
                                                 if (Text.startsWith(item, #text strengthKey)) {
+                                                    var skipFirst = true;
                                                     for (subitem in Text.split(item, #text "\n")) {
-                                                        strengths := Array.append<Text>(strengths, [subitem]);
+                                                        if (not skipFirst) {
+                                                            strengths := Array.append<Text>(strengths, [subitem]);
+                                                        };
+                                                        
+                                                        skipFirst := false;
                                                     };
                                                 } else if (Text.startsWith(item, #text weaknessesKey)) {
+                                                    var skipFirst = true;
                                                     for (subitem in Text.split(item, #text "\n")) {
-                                                        weakness := Array.append<Text>(weakness, [subitem]);
+                                                        if (not skipFirst) {
+                                                            weakness := Array.append<Text>(weakness, [subitem]);
+                                                        };
+
+                                                        skipFirst := false;
                                                     };
                                                 } else if (Text.startsWith(item, #text gapsKey)) {
+                                                    var skipFirst = true;
                                                     for (subitem in Text.split(item, #text "\n")) {
-                                                        gaps := Array.append<Text>(gaps, [subitem]);
+                                                        if (not skipFirst) {
+                                                            gaps := Array.append<Text>(gaps, [subitem]);
+                                                        };
+                                                        
+                                                        skipFirst := false;
                                                     };
                                                 } else if (Text.startsWith(item, #text sugesstionsKey)) {
+                                                    var skipFirst = true;
                                                     for (subitem in Text.split(item, #text "\n")) {
-                                                        suggestions := Array.append<Text>(suggestions, [subitem]);
+                                                        if (not skipFirst) {
+                                                            suggestions := Array.append<Text>(suggestions, [subitem]);
+                                                        };
+                                                        
+                                                        skipFirst := false;
                                                     };
                                                 } else if (Text.startsWith(item, #text summaryKey)) {
                                                     for (subitem in Text.split(item, #text "\n")) {

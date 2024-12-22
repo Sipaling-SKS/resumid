@@ -9,12 +9,10 @@
     "prebuild": "npm run prebuild --workspace=src/resumid_frontend --if-present",
     "pretest": "npm run prebuild --workspace=src/resumid_frontend --if-present",
     "start": "npm start --workspace=src/resumid_frontend --if-present",
-    "test": "npm test --workspace=src/resumid_frontend --if-present",
-    "workspace:start:api": "npm start --workspace=src/resumid_api_service --if-present"
+    "test": "npm test --workspace=src/resumid_frontend --if-present"
   },
   "type": "module",
   "workspaces": [
-    "src/resumid_frontend",
-    "src/resumid_api_service"
+    "src/resumid_frontend"
   ]
 }
