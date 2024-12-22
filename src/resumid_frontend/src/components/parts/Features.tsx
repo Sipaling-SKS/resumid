@@ -31,7 +31,7 @@ function FeatureCard({
   };
 
   return (
-    <Card className={cn("flex flex-col items-center p-6 space-y-6 bg-white rounded-lg shadow-md mt-10 mb-10", className)}>
+    <Card className={cn("flex flex-col items-center p-6 space-y-6 bg-white rounded-lg shadow-md  lg:mt-10 lg:mb-10 mt-2 mb-2", className)}>
       <img src={imageUrl} alt={title} className="w-auto h-32 object-contain" />
       <CardHeader className="space-y-4">
         <CardTitle className="font-outfit font-semibold text-heading">{title}</CardTitle>
@@ -92,7 +92,7 @@ function Features() {
       <p className="font-inter text-[18px] text-paragraph mt-4 md:mb-8">
         Here are key features to help you decide using our product:
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="mx-auto max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {featureList.map((feature, index) => (
           <FeatureCard
             key={index}
