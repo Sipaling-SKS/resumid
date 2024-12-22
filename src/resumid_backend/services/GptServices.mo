@@ -12,9 +12,9 @@ import GptTypes "../types/GptTypes";
 import HttpHelper "../helpers/HttpHelper";
 
 module GptServices {
-    public func AnalyzeResume(resumeContent : Text, jobTitle: Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
-        // let route : Text = "/gpt-service";
-        let route : Text = "/gpt-mockup";
+    public func AnalyzeResume(resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
+        let route : Text = "/gpt-service";
+        // let route : Text = "/gpt-mockup";
 
         // Construct Request Body
         let messages : [GptTypes.GptRequestMessage] = [
@@ -25,7 +25,7 @@ module GptServices {
             { role = "user"; content = "Resume: " # resumeContent },
             {
                 role = "user";
-                content = "Job Description: " # "Job Title: " # jobTitle # "Job Description: " # jobDescription;
+                content = "Job Description: " # "Job Title: " # jobTitle # " Job Description: " # jobDescription;
             },
         ];
 
@@ -109,20 +109,40 @@ module GptServices {
                                                 let scoreKey = GlobalConstants.SCORE_KEY;
 
                                                 if (Text.startsWith(item, #text strengthKey)) {
+                                                    var skipFirst = true;
                                                     for (subitem in Text.split(item, #text "\n")) {
-                                                        strengths := Array.append<Text>(strengths, [subitem]);
+                                                        if (not skipFirst) {
+                                                            strengths := Array.append<Text>(strengths, [subitem]);
+                                                        };
+                                                        
+                                                        skipFirst := false;
                                                     };
                                                 } else if (Text.startsWith(item, #text weaknessesKey)) {
+                                                    var skipFirst = true;
                                                     for (subitem in Text.split(item, #text "\n")) {
-                                                        weakness := Array.append<Text>(weakness, [subitem]);
+                                                        if (not skipFirst) {
+                                                            weakness := Array.append<Text>(weakness, [subitem]);
+                                                        };
+
+                                                        skipFirst := false;
                                                     };
                                                 } else if (Text.startsWith(item, #text gapsKey)) {
+                                                    var skipFirst = true;
                                                     for (subitem in Text.split(item, #text "\n")) {
-                                                        gaps := Array.append<Text>(gaps, [subitem]);
+                                                        if (not skipFirst) {
+                                                            gaps := Array.append<Text>(gaps, [subitem]);
+                                                        };
+                                                        
+                                                        skipFirst := false;
                                                     };
                                                 } else if (Text.startsWith(item, #text sugesstionsKey)) {
+                                                    var skipFirst = true;
                                                     for (subitem in Text.split(item, #text "\n")) {
-                                                        suggestions := Array.append<Text>(suggestions, [subitem]);
+                                                        if (not skipFirst) {
+                                                            suggestions := Array.append<Text>(suggestions, [subitem]);
+                                                        };
+                                                        
+                                                        skipFirst := false;
                                                     };
                                                 } else if (Text.startsWith(item, #text summaryKey)) {
                                                     for (subitem in Text.split(item, #text "\n")) {

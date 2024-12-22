@@ -27,11 +27,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const resumidActor = createActor(CANISTER_ID_BACKEND, {
       agentOptions: { identity: authClient.getIdentity() },
     });
-    // Ambil Principal dari whoami() tanpa perlu mengirimkan principal secara manual
-    
+    // Ambil Principal dari whoami() tanpa perlu mengirimkan principal secara manual    
+
+    // await resumidActor.whoami();
+    // await resumidActor.authenticateUser();
 
     try {
-      // console.log("__START_FETCHING_DATA__");
+      console.log("__START_FETCHING_DATA__");
       // Menggunakan currentPrincipal untuk mengambil data pengguna
       const data = await resumidActor.getUserById();
 
@@ -48,7 +50,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         )
       );
 
-      // console.log("Serialized user data:", serializedData);
+      console.log("Serialized user data:", serializedData);
 
       setUserData(serializedData);
       localStorage.setItem("userData", JSON.stringify(serializedData));

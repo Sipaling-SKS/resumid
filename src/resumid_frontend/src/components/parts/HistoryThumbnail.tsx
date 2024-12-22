@@ -38,9 +38,9 @@ function HistoryThumbnail({
             </CardDescription>
           </div>
 
-          <div className="font-inter text-primary-500 text-sm font-semibold leading-tight self-start pt-1 text-right">
+          {!isNaN(data.score) && <div className="font-inter text-primary-500 text-sm font-semibold leading-tight self-start pt-1 text-right">
             Score:<br/>{data.score}/100
-          </div>
+          </div>}
 
         </div>
       </CardHeader>

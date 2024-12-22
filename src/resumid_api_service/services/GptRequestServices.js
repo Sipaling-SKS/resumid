@@ -10,11 +10,21 @@ const AnalyzeResume = async (req) => {
   const route = "/chat/completions";
   console.log(req.body);
   console.log(process.env.EXPRESS_API_KEY)
-  const cleanedContent = req.body.messages[0].content.replaceAll(
+  
+  const cleanedContentHeader = req.body.messages[0].content.replaceAll(
     "<ACK0006>",
-    "\n"
+    "\n",
   );
-  req.body.messages[0].content = cleanedContent;
+  req.body.messages[0].content = cleanedContentHeader;
+
+  const cleanedContentBody = req.body.messages[1].content.replaceAll(
+    "<ACK0007>",
+    "\'",
+  );
+  req.body.messages[1].content = cleanedContentBody;
+
+  console.log(cleanedContentBody)
+
   try {
     const response = await axios.post(
       process.env.EXPRESS_GPT_BASE_URL + route,
@@ -28,6 +38,8 @@ const AnalyzeResume = async (req) => {
     );
 
     console.log(response.data);
+
+    console.log(response.data.choices[0].message)
 
     const now = new Date();
     const expired_date = new Date(now.getTime() + 2 * 60 * 1000);

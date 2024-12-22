@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/AuthContext";
 import { useData } from "@/hooks/DataContext";
 
 function DesktopNavbar({ navigate }: any) {
-  const { isAuthenticated, login, logout, loading, principal } = useAuth();
+  const { isAuthenticated, login, logout } = useAuth();
   const { userData } = useData();
 
   return (

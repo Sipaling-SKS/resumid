@@ -16,7 +16,7 @@ actor Resumid {
 
   // Auth related method
   public shared (msg) func whoami() : async Principal {
-    Debug.print("Caller Principal: " # Principal.toText(msg.caller));
+    Debug.print("Caller Principal WHOAMI: " # Principal.toText(msg.caller));
     return msg.caller;
   };
 
@@ -49,7 +49,7 @@ actor Resumid {
   public shared (msg) func AnalyzeResume(fileName : Text, resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
     let userId = Principal.toText(msg.caller);
 
-    Debug.print("Caller Principal: " # userId);
+    Debug.print("Caller Principal Analyze: " # userId);
 
     let analyzeResult = await GptServices.AnalyzeResume(resumeContent, jobTitle, jobDescription);
     Debug.print(debug_show (analyzeResult));
@@ -109,7 +109,7 @@ actor Resumid {
   public shared (msg) func getHistories() : async Result.Result<[HistoryTypes.History], Text> {
     let userId = Principal.toText(msg.caller);
 
-    Debug.print("Caller Principal: " # userId);
+    Debug.print("Caller Principal Get Histories: " # userId);
 
     HistoryServices.getHistories(histories, userId);
   };

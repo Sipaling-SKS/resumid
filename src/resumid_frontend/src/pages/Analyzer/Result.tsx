@@ -5,7 +5,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog"
 import { Helmet } from "react-helmet";
-import { useNavigate, useParams } from "react-router";
+import { data, useNavigate, useParams } from "react-router";
 import useWindowSize from "@/hooks/useMediaQuery"
 import HistoryThumbnail from "@/components/parts/HistoryThumbnail";
 import { useState, useEffect } from "react";
@@ -15,6 +15,7 @@ import { X } from "lucide-react";
 import SkeletonHistoryThumbnail from "@/components/parts/SkeletonHistoryThumbnail";
 import SkeletonAnalysisDetail from "@/components/parts/SkeletonAnalysisDetail";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/AuthContext";
 
 export type ResultData = {
   id: string;
@@ -32,6 +33,8 @@ export type ResultData = {
 export type DataKeys = "suggestions" | "strengths" | "gaps" | "weakness";
 
 function Result() {
+  const dataKeys: DataKeys[] = ["strengths", "weakness", "gaps", "suggestions"];
+
   const { id } = useParams();
   const { isTablet, isMobile } = useWindowSize();
 
@@ -42,16 +45,36 @@ function Result() {
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
 
   const navigate = useNavigate();
+  const { resumidActor } = useAuth()
+  
+  const cleanDetailResult = (arr: string[]): string[] => {
+    const str: string[] = [];
+
+    arr.forEach((item: string, index: number) => {
+      if (index === 0) {
+        const check: any = item.trim().replaceAll(":", "").toLowerCase()
+        if (dataKeys.includes(check)) {
+          return;
+        }
+      }
+
+      const cleanedStr = item.replace(/^- /, '').trim();
+      str.push(cleanedStr)
+    })
+
+    return str;
+  }
 
   useEffect(() => {
     async function fetchHistories() {
       setLoadingHistories(true);
 
       try {
-        const response = await resumid_backend.getHistories();
+        const res = await resumidActor.getHistories()
+        // const response = await resumid_backend.getHistories();
 
-        if ("ok" in response) {
-          const backendHistories = response.ok.map((history: History) => ({
+        if ("ok" in res) {
+          const backendHistories = res.ok.map((history: History) => ({
             id: history.historyId,
             filename: history.fileName,
             jobTitle: history.jobTitle,
@@ -67,12 +90,14 @@ function Result() {
           setHistories(backendHistories);
           const initialId = backendHistories[0]?.id || null;
 
+          console.log("DEBUG RESULT: ", backendHistories[0]?.userId)
+
           setSelectedId(initialId);
           if (initialId) {
-            setSelectedIdData(backendHistories.find((item) => item.id === initialId) || null);
+            setSelectedIdData(backendHistories.find((item: any) => item.id === initialId) || null);
           }
         } else {
-          console.error("Failed to fetch histories:", response.err);
+          console.error("Failed to fetch histories:", res.err);
         }
       } catch (error) {
         console.error("Error fetching histories:", error);
@@ -102,8 +127,8 @@ function Result() {
       </Helmet>
       <main className="bg-background-950 min-h-screen responsive-container py-6 md:py-8">
         {!loadingHistories && histories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center mx-auto gap-2">
-            <h2 className="font-outfit text-heading text-xl font-semibold">You haven't analyzed your resume yet</h2>
+          <div className="flex flex-col items-center justify-center mx-auto gap-4 py-8">
+            <h2 className="font-inter text-heading text-lg font-medium">You haven't analyzed your resume yet</h2>
             <Button onClick={() => navigate("/resume-analyzer")} variant="gradient" size="lg">
               Analyze Resume Now
             </Button>
@@ -130,7 +155,7 @@ function Result() {
             {!isTablet && !isMobile ? (
               <section className="lg:w-2/3 xl:w-full">
                 {!loadingHistories ? selectedData && (
-                  <AnalysisDetail data={selectedData}/>
+                  <AnalysisDetail dataKeys={dataKeys} data={selectedData}/>
                 ) : (
                   <SkeletonAnalysisDetail />
                 )}
@@ -141,7 +166,7 @@ function Result() {
                 <DialogContent className="">
                   {selectedData && (
                     <div className="relative">
-                      <AnalysisDetail data={selectedData} />
+                      <AnalysisDetail dataKeys={dataKeys} data={selectedData} />
                       <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-neutral-100 data-[state=open]:text-neutral-500 dark:ring-offset-neutral-950 dark:focus:ring-neutral-300 dark:data-[state=open]:bg-neutral-800 dark:data-[state=open]:text-neutral-400">
                         <X className="h-5 w-5" />
                         <span className="sr-only">Close</span>

@@ -27,6 +27,7 @@ export async function extractPDFContent(file: File): Promise<string> {
 
   fullText = fullText
     .replace(/[^\x00-\x7F]\s*/g, ' ') // Remove non-ASCII characters
+    .replace(/[^\x20-\x7E]/g, '')
     .replace(/ {2,}/g, ' ')          // Replace multiple spaces with a single space
     .replace(/\n{3,}/g, '\n\n')      // Reduce excessive new lines (keep at most 2 consecutive)
     .trimEnd();                      // Remove only trailing spaces or new lines at the end
