@@ -10,7 +10,7 @@ function Footer() {
           {/* Logo dan Deskripsi */}
           <div className="md:text-left md:col-span-3 ">
             <img
-              className="pb-2 mx-auto md:mx-0"
+              className="pb-2"
               src={LogoWhite}
               alt="Resumid Logo"
             />
