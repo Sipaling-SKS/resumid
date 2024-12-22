@@ -17,7 +17,7 @@ const validateApiKey = (req, res, next) => {
   if(!apiKey) {
     return res.status(401).json({ message: "API key is missing" });
   }
-  if(apiKey != process.env.API_KEY) {
+  if(apiKey != process.env.EXPRESS_API_KEY) {
     return res.status(403).json({ message: "Invalid API key" });
   }
 
@@ -49,13 +49,13 @@ app.use(validateApiKey);
 app.use(attachIdempotencyKeys);
 app.use("/api", router);
 
-const PORT = process.env.PORT || 5000;
+const port = process.env.EXPRESS_PORT || 5000;
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.EXPRESS_MONGODB_URI)
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running in http://localhost:${PORT}`);
+    app.listen(port, () => {
+      console.log(`Server running in http://localhost:${port}`);
     });
   })
   .catch((err) => {

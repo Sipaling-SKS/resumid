@@ -9,7 +9,7 @@ const { API_IDEMPOTENCY_KEY } = require("../constants/global");
 const AnalyzeResume = async (req) => {
   const route = "/chat/completions";
   console.log(req.body);
-  console.log(process.env.API_KEY)
+  console.log(process.env.EXPRESS_API_KEY)
   const cleanedContent = req.body.messages[0].content.replaceAll(
     "<ACK0006>",
     "\n"
@@ -17,11 +17,11 @@ const AnalyzeResume = async (req) => {
   req.body.messages[0].content = cleanedContent;
   try {
     const response = await axios.post(
-      process.env.GPT_BASE_URL + route,
+      process.env.EXPRESS_GPT_BASE_URL + route,
       req.body,
       {
         headers: {
-          Authorization: `Bearer ${process.env.GPT_API_KEY}`,
+          Authorization: `Bearer ${process.env.EXPRESS_GPT_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
