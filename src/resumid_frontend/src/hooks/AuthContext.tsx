@@ -75,9 +75,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         setResumidActor(actor);
 
-        // Call getPrincipalFromBackend after successful login and actor initialization
-        // getPrincipalFromBackend(actor);
-
       } else {
         setIdentity(null);
         setPrincipal(null);
@@ -89,19 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initAuthClient();
   }, []);
-
-  // Function to fetch Principal from Backend
-  // const getPrincipalFromBackend = async (actor: any) => {
-  //   if (actor) {
-  //     try {
-  //       const principalFromBackend = await actor.whoami();
-  //       // console.log("Principal from Backend:", principalFromBackend.toText());
-  //     } catch (error) {
-  //       console.error("Error calling whoami:", error);
-  //     }
-  //   }
-  // };
-
+  
   const login = async () => {
     if (authClient) {
       authClient.login({
@@ -124,11 +109,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             await actor.whoami();
             await actor.authenticateUser();
-
-            setResumidActor(actor);
-
-            // Call getPrincipalFromBackend after successful login and actor initialization
-            // getPrincipalFromBackend(actor); // <-- Menambahkan pemanggilan di sini
 
             toast({
               title: "Signed in Successfully",
