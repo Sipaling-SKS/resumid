@@ -46,10 +46,11 @@ module GptServices {
             };
             case (#ok(jsonBody)) {
 
+                // Debug json body
                 Debug.print(debug_show (jsonBody));
 
                 let bodyAsBlob = Text.encodeUtf8(jsonBody);
-                // Debug.print(debug_show (bodyAsBlob));
+
                 // Construct HttpRequest Data
                 let request : HttpTypes.HttpRequest = {
                     url = GPTConstants.GPT_BASE_URL # route;
@@ -97,8 +98,10 @@ module GptServices {
                                             var score : Text = "";
                                             var summary : Text = "";
 
+                                            // Debug retreived response content
                                             // Debug.print("============================");
                                             // Debug.print(content);
+
                                             for (item in sections) {
                                                 // Get Key
                                                 let strengthKey = GlobalConstants.STRENGTH_KEY;
@@ -165,7 +168,7 @@ module GptServices {
                                             };
                                         } else {
                                             Debug.print("Content is null or empty");
-                                            null; // Explicitly return `null` for the optional type
+                                            null;
                                         };
 
                                     };
