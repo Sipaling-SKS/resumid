@@ -48,9 +48,6 @@ const AccordionSection = () => {
   );
 };
 
-
-
-// FAQ Komponen utama ing jgn lupa
 function FAQ() {
   return (
     <section className="responsive-container flex flex-col md:flex-row justify-center md:justify-between items-start py-12 md:py-16 border-b border-neutral-200 md:gap-16 gap-8"> 
