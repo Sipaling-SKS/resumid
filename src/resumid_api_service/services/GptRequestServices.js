@@ -8,8 +8,6 @@ const { API_IDEMPOTENCY_KEY } = require("../constants/global");
 
 const AnalyzeResume = async (req) => {
   const route = "/chat/completions";
-  console.log(req.body);
-  console.log(process.env.EXPRESS_API_KEY)
   
   const cleanedContentHeader = req.body.messages[0].content.replaceAll(
     "<ACK0006>",
@@ -23,8 +21,6 @@ const AnalyzeResume = async (req) => {
   );
   req.body.messages[1].content = cleanedContentBody;
 
-  console.log(cleanedContentBody)
-
   try {
     const response = await axios.post(
       process.env.EXPRESS_GPT_BASE_URL + route,
@@ -37,8 +33,8 @@ const AnalyzeResume = async (req) => {
       }
     );
 
+    // Debug response data from Open AI endpoint
     console.log(response.data);
-
     console.log(response.data.choices[0].message)
 
     const now = new Date();
@@ -56,7 +52,7 @@ const AnalyzeResume = async (req) => {
     await newData.save();
     return response;
   } catch (err) {
-    // console.log(err);
+    // Debug error message
     console.log(err.message);
     console.log(err.response.data);
     console.log(err.response.data.message);
@@ -65,7 +61,6 @@ const AnalyzeResume = async (req) => {
 };
 
 const AnalyzeMockupResume = async (req) => {
-  console.log("ini mockup");
   const mockupData = {
     id: "chatcmpl-AfWUupU1vXniH9GQNI047b33YDwMa",
     object: "chat.completion",
@@ -123,7 +118,7 @@ const AnalyzeMockupResume = async (req) => {
     await newData.save();
     return response;
   } catch (err) {
-    // console.log(err);
+    // Debug error message
     console.log(err.message);
     console.log(err.response.data);
     console.log(err.response.data.message);
