@@ -21,15 +21,6 @@ module HttpHelper {
     return idempotency_key;
   };
 
-  // public func _transform({
-  //   context : Blob;
-  //   response : IC.http_request_result;
-  // }) : async IC.http_request_result {
-  //   {
-  //     response with headers = [];
-  //   };
-  // };
-
   public func sendPostHttpRequest(req : HttpTypes.HttpRequest) : async HttpTypes.HttpResponse {
 
     // Prepare Idempotency Key

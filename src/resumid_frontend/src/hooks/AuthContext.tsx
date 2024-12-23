@@ -109,6 +109,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             await actor.whoami();
             await actor.authenticateUser();
+            
+            setResumidActor(actor);
 
             toast({
               title: "Signed in Successfully",
