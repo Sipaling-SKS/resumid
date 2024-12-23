@@ -1,4 +1,4 @@
-# `resumid`
+# `Resumid`
 
 ![Resumid Banner](https://raw.githubusercontent.com/Sipaling-SKS/resumid/env-development-backup/src/resumid_frontend/src/assets/banner.png)
 
