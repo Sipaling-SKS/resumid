@@ -13,7 +13,7 @@ function Footer() {
           Unleash Your Resume’s Potential with AI-Powered <br /> Analysis
         </p>
         <p className="font-inter text-sm font-light text-white/80 lg:pt-10 pt-2 pb-6">
-          © {new Date().getFullYear()} Resumid. All rights reserved.
+          &copy; {new Date().getFullYear()} Resumid. All rights reserved.
         </p>
       </div>
 
