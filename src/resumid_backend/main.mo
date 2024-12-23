@@ -29,8 +29,9 @@ actor Resumid {
   };
 
   public shared (msg) func getUserById() : async Result.Result<UserTypes.UserData, Text> {
-        let userId = msg.caller;
-            Debug.print("Caller Principal for getuserid: " # Principal.toText(userId));
+    let userId = msg.caller;
+
+    Debug.print("Caller Principal for getUserById: " # Principal.toText(userId));
 
     switch (users.get(userId)) {
       case (?userData) {
@@ -49,7 +50,7 @@ actor Resumid {
   public shared (msg) func AnalyzeResume(fileName : Text, resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
     let userId = Principal.toText(msg.caller);
 
-    Debug.print("Caller Principal Analyze: " # userId);
+    Debug.print("Caller Principal for AnalyzeResume: " # userId);
 
     let analyzeResult = await GptServices.AnalyzeResume(resumeContent, jobTitle, jobDescription);
     Debug.print(debug_show (analyzeResult));
@@ -72,6 +73,8 @@ actor Resumid {
 
         let historyResult = await HistoryServices.addHistory(histories, userId, addHistoryInput);
 
+
+        // Create logging for history result process
         switch (historyResult) {
           case (#ok(res)) {
             Debug.print(debug_show (res));

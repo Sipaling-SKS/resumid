@@ -11,7 +11,7 @@ module UserService {
     public func authenticateUser(
         users: UserTypes.User,
         userId: Principal,
-    ) : async Result.Result<UserTypes.UserData, Text> { // Menggunakan Result.Result
+    ) : async Result.Result<UserTypes.UserData, Text> {
         if (Principal.isAnonymous(userId)) {
             return #err("Anonymous users are not allowed to authenticate.");
         };
@@ -37,8 +37,10 @@ module UserService {
                     createdAt = createdAt;
                 };
 
-                users.put(userId, newUser); // Tambahkan pengguna baru
-                return #ok(newUser); // Berhasil: kembalikan data pengguna baru
+                // Create new user data
+                users.put(userId, newUser);
+
+                return #ok(newUser);
             };
         };
     };
