@@ -1,59 +1,111 @@
-# `resumid`
+![Resumid Banner]()
 
-Welcome to your new `resumid` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+# `Resumid`
 
-To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
+Resumid is a decentralized Web-based application designed to help users analyze resumes in depth by leveraging AI technology. This platform provides a match score between the resume and the job position applied for, while providing a comprehensive summary of the quality of the user's resume.
 
-To learn more before you start working with `resumid`, see the following documentation available online:
+---
 
-- [Quick Start](https://internetcomputer.org/docs/current/developer-docs/setup/deploy-locally)
-- [SDK Developer Tools](https://internetcomputer.org/docs/current/developer-docs/setup/install)
-- [Motoko Programming Language Guide](https://internetcomputer.org/docs/current/motoko/main/motoko)
-- [Motoko Language Quick Reference](https://internetcomputer.org/docs/current/motoko/main/language-manual)
+## 🧑‍💻 Team
 
-If you want to start working on your project right away, you might want to try the following commands:
+| **Name** | **Role** |
+|---|---|
+| Muhammad Fadil Hisyam | Lead, UI/UX Designer, Frontend Developer |
+| Agustina Puspita Sari | UI/UX Designer, Frontend Developer |
+| Calvin Danyalson | Backend Developer |
+| Muhammad Rafli Rayhan K. | Backend Developer |
+| Tiara Puspita | Backend Developer |
 
+---
+
+## 🚀 Features
+
+- **Internet Identity Authentication:** provides personalized access to users keeping their data private and secure using Internet Identity.
+- **Resume Analyzer:** performs in-depth resume analysis with AI technology, provides a match score, outlines resume strengths and weaknesses, and provides personalized recommendations to improve the resume according to the position applied for.
+- **History:** all analyzes performed are saved in history so users can easily track the development of their resume over time.
+
+---
+
+## 💻 Technologies Used
+
+#### Backend:
+- Programming Language: Motoko 
+#### Frontend:
+- Framework & Libraries: React.js, Typescript, React Router, TailwindCSS, Shadcn, PDF.js, DFinity.
+#### External Service:
+- Runtime & Framework: Node.js, Express.js, MongoDB
+#### Web3 Development Environment: 
+- Internet Computer SDK (DFX)
+#### Tools:
+- Visual Studio Code, Postman, Candid UI, Figma
+
+---
+
+## 🔧 Prerequisites
+
+- Linux or Windows with **WSL (Windows Subsystem for Linux)** enabled.
+- **IC SDK (DFX) v0.24.3** - [Installation Guide](https://internetcomputer.org/docs/current/developer-docs/getting-started/install)
+- **Node.js v22.12.0** - [Download](https://nodejs.org/)
+- **Mops Package Manager** - [Installation Guide](https://docs.mops.one/quick-start)
+
+---
+
+## ⚙️ Setup & Installation
+
+Before doing so, make sure the **prerequisites** mentioned above are complete.
+
+#### Clone the project to your machine
 ```bash
-cd resumid/
-dfx help
-dfx canister --help
+git clone https://github.com/Sipaling-SKS/resumid/
+cd resumid
 ```
 
-## Running the project locally
-
-If you want to test your project locally, you can use the following commands:
-
+#### Install project dependencies (Frontend)
 ```bash
-# Starts the replica, running in the background
-dfx start --background
+npm install
+```
 
-# Deploys your canisters to the replica and generates your candid interface
+#### Install motoko dependencies (Backend)
+```bash
+mops install
+```
+
+#### Start Internet Computer Environment
+```bash
+dfx start --background
+```
+
+#### Deploy Internet Computer Environment App
+```bash
 dfx deploy
 ```
 
-Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
-
-If you have made changes to your backend canister, you can generate a new candid interface with
-
-```bash
-npm run generate
+#### Insert Express Environment to root .env (below are examples)
+```env
+# START EXPRESS ENVIRONMENT VARIABLES
+EXPRESS_MONGODB_URI='mongodb+srv://<user>:<password>@cluster0.afxyv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+EXPRESS_GPT_BASE_URL = 'https://api.openai.com/v1'
+EXPRESS_API_KEY = 'EXPRESS_API_KEY'
+EXPRESS_GPT_API_KEY = 'GPT_API_KEY'
+EXPRESS_PORT = 5000
+# END EXPRESS ENVIRONMENT VARIABLES
 ```
 
-at any time. This is recommended before starting the frontend development server, and will be run automatically any time you run `dfx deploy`.
-
-If you are making frontend changes, you can start a development server with
-
+#### Install and Start Resumid Api Service
 ```bash
+cd src/resumid_api_service
+npm install
+
+# Start Resumid Api Service
 npm start
 ```
 
-Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
+Once the setup & installation, your application will be available at `http://{canister_id}.localhost:4943/`.
 
-### Note on frontend environment variables
+---
 
-If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:
-
-- set`DFX_NETWORK` to `ic` if you are using Webpack
-- use your own preferred method to replace `process.env.DFX_NETWORK` in the autogenerated declarations
-  - Setting `canisters -> {asset_canister_id} -> declarations -> env_override to a string` in `dfx.json` will replace `process.env.DFX_NETWORK` with the string in the autogenerated declarations
-- Write your own `createActor` constructor
+## Future Plans
+- **Business Processes and Monetization:** Integrate the platform with Web 2 technology for a seamless user experience, broader adoption, and sustainable monetization opportunities.
+- **Web 3 Payment Integration:** Explore Web 3-based payment features, including ICP top-up, for enhanced transaction ease and user flexibility.
+- **Exclusive Access to Premium Resume Templates:** Provide professional resume templates exclusively for subscribers, ensuring premium features for members only.
+- **Blockchain Job Portal:** A blockchain-based job portal connecting users with companies and enabling automated matching between user resumes and company needs.
