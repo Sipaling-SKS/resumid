@@ -27,14 +27,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const resumidActor = createActor(CANISTER_ID_BACKEND, {
       agentOptions: { identity: authClient.getIdentity() },
     });
-    // Ambil Principal dari whoami() tanpa perlu mengirimkan principal secara manual    
-
-    // await resumidActor.whoami();
-    // await resumidActor.authenticateUser();
 
     try {
-      console.log("__START_FETCHING_DATA__");
-      // Menggunakan currentPrincipal untuk mengambil data pengguna
       const data = await resumidActor.getUserById();
 
       if (!data || Object.keys(data).length === 0) {
