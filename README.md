@@ -29,7 +29,7 @@ Resumid is a decentralized Web-based application designed to help users analyze 
 ## 💻 Technologies Used
 
 #### Backend:
-- Programming Language: Motoko 
+- Programming Language: Motoko, Serde, Idempotency-Keys
 #### Frontend:
 - Framework & Libraries: React.js, Typescript, React Router, TailwindCSS, Shadcn, PDF.js, DFinity.
 #### External Service:
