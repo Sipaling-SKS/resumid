@@ -1,3 +1,5 @@
+// Unused file
+
 const path = require("path");
 const dotenv = require("dotenv").config({ path: path.resolve(__dirname, "../../../.env") });
 const {API_HEADERS_KEY} = require("../constants/global");
