@@ -12,13 +12,14 @@ import UserTypes "types/UserTypes";
 import UserServices "services/UserServices";
 
 actor Resumid {
-  // Analyze History type
-  private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
+  // Storage for user data and analysis histories
   private var users : UserTypes.User = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
+  private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
 
-  // private var users : HashMap.HashMap<Principal, UserTypes.UserData> = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
+  // ==============================
+  // Authentication and User Methods
+  // ==============================
 
-  // Auth related method
   public shared (msg) func whoami() : async Principal {
     Debug.print("Caller Principal WHOAMI: " # Principal.toText(msg.caller));
     return msg.caller;
@@ -44,12 +45,11 @@ actor Resumid {
       };
     };
   };
-  
 
+  // ==============================
+  // Resume Analysis Methods
+  // ==============================
 
-  
-
-  // Resume Analyzer related method
   public shared (msg) func AnalyzeResume(fileName : Text, resumeContent : Text, jobTitle : Text, jobDescription : Text) : async ?GptTypes.AnalyzeStructure {
     let userId = Principal.toText(msg.caller);
 
@@ -92,7 +92,10 @@ actor Resumid {
     analyzeResult;
   };
 
-  // Analyze History related method
+  // ==============================
+  // History Management Methods
+  // ==============================
+  
   public shared (msg) func addHistory(input : HistoryTypes.AddHistoryInput) : async Result.Result<HistoryTypes.History, Text> {
     let userId = Principal.toText(msg.caller);
 
