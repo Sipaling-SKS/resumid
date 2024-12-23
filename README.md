@@ -3,6 +3,8 @@
 # `Resumid`
 
 Resumid is a decentralized Web-based application designed to help users analyze resumes in depth by leveraging AI technology. This platform provides a match score between the resume and the job position applied for, while providing a comprehensive summary of the quality of the user's resume. 
+
+## 📺 Resumid Demo
 Demo Video: [Youtube](https://youtu.be/HEiYWsDFzQ8)
 
 ---
