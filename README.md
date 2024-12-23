@@ -1,4 +1,4 @@
-![Resumid Banner]()
+![Resumid Banner](https://imgur.com/QY2W9Jn)
 
 # `Resumid`
 
