@@ -10,7 +10,6 @@ import ProtectedRoute from "./ProtectedRoute";
 import Analyzer from "@/pages/Analyzer";
 import Result from "@/pages/Analyzer/Result";
 import Layout from "@/components/layout";
-import ResumeList from "@/components/parts/Summary";
 
 function Router() {
   return (

@@ -8,6 +8,7 @@ import { SubmitHandler } from "react-hook-form";
 import { resumid_backend } from "../../../../declarations/resumid_backend"
 import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
 import { useNavigate } from "react-router";
+import { useAuth } from "@/hooks/AuthContext";
 
 export type Resume = {
   fullText: string
@@ -27,6 +28,7 @@ function Analyzer() {
   });
   const [file, setFile] = useState<File | null>(null);
 
+  const { resumidActor } = useAuth();
   const navigate = useNavigate()
 
   const processFile = async (file: File) => {
@@ -40,7 +42,9 @@ function Analyzer() {
     try {
       const text = await extractPDFContent(file);
 
-      if (!text) {
+      const cleanedText = cleanExtractedText(text);
+
+      if (!cleanedText) {
         toast({
           title: "Uh oh! Resume extraction went wrong.",
           description: "There was a problem when trying to extract your resume.",
@@ -50,7 +54,7 @@ function Analyzer() {
       }
       
       setResume({
-        fullText: text,
+        fullText: cleanedText,
         filename: file.name,
         jobTitle: "",
       });
@@ -73,8 +77,11 @@ function Analyzer() {
       const finalData: Resume = { ...resume, ...data };
   
       const { fullText, filename, jobTitle, jobDescription } = finalData
-  
-      const res: [] | [AnalyzeStructure] = await resumid_backend.AnalyzeResume(fullText, jobTitle, jobDescription || "")
+      
+      const cleanedJobDescription = jobDescription ? jobDescription.replaceAll("\n", " ") : undefined
+      const cleanedFullText = fullText.replaceAll("\"", "<ACK0007>")
+
+      const res: [] | [AnalyzeStructure] = await resumidActor.AnalyzeResume(filename, cleanedFullText, jobTitle, cleanedJobDescription || "")
       
       if (!(res && res.length > 0)) {
         toast({
