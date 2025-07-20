@@ -11,10 +11,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import HistoryResultAnalyze from "@/components/parts/HistoryResultAnalyze";
+import SectionAnalysis from "@/components/parts/SectionAnalysis";
 
 // Import the dummy data
 import summaryExample from "./summary_example.json";
-import HistoryResultAnalyze from "@/components/parts/HistoryResultAnalyze";
 
 // Enhanced types for the new structure
 export type CategoryScore = {
@@ -22,7 +23,7 @@ export type CategoryScore = {
   label: string;
 };
 
-export type SectionAnalysis = {
+export type SectionAnalysisData = {
   strengths: string[];
   weaknesses: string[];
   pointers: string[];
@@ -41,7 +42,7 @@ export type HistoryDetailData = {
       description: string;
     };
     categories: Record<string, CategoryScore>;
-    sections: Record<string, SectionAnalysis>;
+    sections: Record<string, SectionAnalysisData>;
   };
 };
 
@@ -54,99 +55,6 @@ function transformDataForThumbnail(data: HistoryDetailData) {
     date: data.date,
     summary: data.summary.overall.description // Extract the description string
   };
-}
-
-// Result Analyze Header component
-function ResultAnalyzeHeader({ categories }: { categories: Record<string, CategoryScore> }) {
-  const categoryEntries = Object.entries(categories);
-  
-  return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="font-outfit text-xl font-semibold text-heading mb-6">Result Analyze</CardTitle>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {categoryEntries.map(([key, category]) => (
-            <div key={key} className="text-center">
-              <div className="relative w-16 h-16 mx-auto mb-2">
-                <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="35"
-                    stroke="#e5e7eb"
-                    strokeWidth="6"
-                    fill="none"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="35"
-                    stroke={category.score >= 80 ? "#10b981" : category.score >= 60 ? "#f59e0b" : "#ef4444"}
-                    strokeWidth="6"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 35}`}
-                    strokeDashoffset={`${2 * Math.PI * 35 * (1 - category.score / 100)}`}
-                    className="transition-all duration-300"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold text-heading">{category.score}%</span>
-                </div>
-              </div>
-              <p className="text-xs text-paragraph font-medium">{category.label}</p>
-            </div>
-          ))}
-        </div>
-      </CardHeader>
-    </Card>
-  );
-}
-
-// Section Analysis Container component
-function SectionAnalysisContainer({ 
-  title, 
-  analysis 
-}: { 
-  title: string; 
-  analysis: SectionAnalysis; 
-}) {
-  const sections = [
-    { key: 'strengths', label: 'Strengths', color: 'bg-green-50 border-green-200', textColor: 'text-green-800', icon: '✓' },
-    { key: 'weaknesses', label: 'Weaknesses', color: 'bg-red-50 border-red-200', textColor: 'text-red-800', icon: '✗' },
-    { key: 'pointers', label: 'Pointers for Improvement', color: 'bg-yellow-50 border-yellow-200', textColor: 'text-yellow-800', icon: '→' },
-    { key: 'feedback', label: 'Feedback', color: 'bg-blue-50 border-blue-200', textColor: 'text-blue-800', icon: '💬' }
-  ];
-
-  return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="font-outfit text-lg font-semibold text-heading capitalize">
-          {title.replace('_', ' ')}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sections.map((section) => (
-            <div key={section.key} className={`rounded-lg border p-4 ${section.color}`}>
-              <h4 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${section.textColor}`}>
-                <span>{section.icon}</span>
-                {section.label}
-              </h4>
-              <ul className="space-y-2">
-                {analysis[section.key as keyof SectionAnalysis].map((item, index) => (
-                  <li key={index} className={`text-sm leading-relaxed ${section.textColor}`}>
-                    • {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 function HistoryDetail() {
@@ -190,13 +98,12 @@ function HistoryDetail() {
             </div>
             <div className="lg:col-span-8">
               <HistoryResultAnalyze categories={data.summary.categories} />
-              
-              {/* Section Analysis Containers */}
               {sectionEntries.map(([sectionKey, sectionAnalysis]) => (
-                <SectionAnalysisContainer
+                <SectionAnalysis
                   key={sectionKey}
                   title={sectionKey}
                   analysis={sectionAnalysis}
+                  score={data.summary.categories[sectionKey].score}
                 />
               ))}
             </div>
@@ -216,13 +123,12 @@ function HistoryDetail() {
                 </DialogClose>
               </div>
               
-              <ResultAnalyzeHeader categories={data.summary.categories} />
-              
               {sectionEntries.map(([sectionKey, sectionAnalysis]) => (
-                <SectionAnalysisContainer
+                <SectionAnalysis
                   key={sectionKey}
                   title={sectionKey}
                   analysis={sectionAnalysis}
+                  score={data.summary.categories[sectionKey].score} // You can replace this with actual section scores
                 />
               ))}
             </DialogContent>
