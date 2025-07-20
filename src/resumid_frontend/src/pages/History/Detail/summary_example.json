@@ -2,44 +2,44 @@
   "id": "debug-history-001",
   "filename": "CV Calvin Dannyalson Mantap Beut.pdf",
   "jobTitle": "Mobil Engineer",
-  "score": 84,
+  "score": 96,
   "date": "2024-12-16",
   "summary": {
     "overall": {
-      "score": 84,
+      "score": 90,
       "description": "The resume showcases a strong blend of technical versatility and leadership qualities, demonstrating proficiency in both frontend and backend development. It reflects the candidate's ability to manage complex projects and mentor teams, making them well-suited for collaborative and fast-paced environments."
     },
     "categories": {
       "profile": {
-        "score": 92,
+        "score": 85,
         "label": "Profile"
       },
       "experience": {
-        "score": 88,
+        "score": 78,
         "label": "Profesional Experiences"
       },
       "education": {
-        "score": 75,
+        "score": 68,
         "label": "Education"
       },
       "projects": {
-        "score": 90,
+        "score": 58,
         "label": "Projects"
       },
       "communication": {
-        "score": 78,
+        "score": 48,
         "label": "Communication"
       },
       "speed": {
-        "score": 78,
+        "score": 38,
         "label": "Speed"
       },
       "crit_rate": {
-        "score": 10,
+        "score": 28,
         "label": "Crit Rate"
       },
       "crit_dmg": {
-        "score": 20,
+        "score": 18,
         "label": "Crit Damage"
       }
     },

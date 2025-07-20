@@ -85,9 +85,9 @@ function HistoryResultAnalyze({ categories }: HistoryResultAnalyzeProps) {
   };
   
   return (
-    <Card className="mb-6">
+    <Card className="mb-6 p-0">
       <CardHeader>
-        <CardTitle className="font-outfit text-xl font-semibold text-heading mb-6">
+        <CardTitle className="font-outfit text-xl font-semibold text-heading mt-8 mb-4 mx-8">
           Result Analyze
         </CardTitle>
 
@@ -107,22 +107,34 @@ function HistoryResultAnalyze({ categories }: HistoryResultAnalyzeProps) {
             onMouseMove={handleMouseMove}
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            <div className="flex gap-8 min-w-max px-1">
-              {categoryEntries.map(([key, category]) => (
-                <div key={key} className="text-center flex-shrink-0 w-28">
-                  <div className="mb-3 lg:mb-0 flex justify-center">
-                    <CircularProgress 
-                      value={category.score} 
-                      duration={1000}
-                      className="h-20 w-20"
-                      showScoreText={false}
-                    />
+            <div className="flex gap-8 min-w-max">
+              {categoryEntries.map(([key, category], index) => {
+                const isFirst = index === 0;
+                const isLast = index === categoryEntries.length - 1;
+                
+                return (
+                  <div 
+                    key={key} 
+                    className={`text-center flex-shrink-0 w-28 ${
+                      isFirst ? 'ml-8' : ''
+                    } ${
+                      isLast ? 'mr-9' : ''
+                    }`}
+                  >
+                    <div className="mb-3 lg:mb-0 flex justify-center">
+                      <CircularProgress 
+                        value={category.score} 
+                        duration={1000}
+                        className="h-20 w-20"
+                        showScoreText={false}
+                      />
+                    </div>
+                    <p className="text-sm text-paragraph font-medium text-center break-words leading-tight">
+                      {category.label}
+                    </p>
                   </div>
-                  <p className="text-sm text-paragraph font-medium text-center break-words leading-tight">
-                    {category.label}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

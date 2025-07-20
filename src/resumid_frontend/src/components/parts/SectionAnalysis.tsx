@@ -54,7 +54,7 @@ function SectionAnalysis({
           <AccordionTrigger className="hover:no-underline px-6 py-4 [&>svg]:hidden group">
             <div className="flex justify-between items-center w-full">
               <div className="flex items-center gap-3">
-                <ChevronDown className="h-5 w-5 shrink-0 transition-transform duration-300 ease-in-out group-data-[state=open]:rotate-180" />
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-300 ease-in-out group-data-[state=open]:rotate-180" />
                 <CardTitle className="font-outfit text-lg font-semibold text-heading capitalize text-left">
                   {title.replace('_', ' ')}
                 </CardTitle>
