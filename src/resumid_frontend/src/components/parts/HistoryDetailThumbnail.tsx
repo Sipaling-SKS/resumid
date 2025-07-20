@@ -29,7 +29,7 @@ function HistoryDetailThumbnail({ data }: HistoryDetailThumbnailProps) {
   return (
     <Card className="h-fit border-2 border-primary-500 bg-white shadow-lg">
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex flex-col gap-1 flex-1">
             <CardTitle className="font-outfit font-semibold text-heading text-lg leading-tight">
               {data.filename}
@@ -41,11 +41,12 @@ function HistoryDetailThumbnail({ data }: HistoryDetailThumbnailProps) {
               </p>
             </div>
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex justify-center sm:justify-end flex-shrink-0">
             <CircularProgress 
-              value={data.score} 
-              duration={1000}
-            />
+                value={data.score} 
+                duration={1000}
+                className="h-28 w-28"
+              />
           </div>
         </div>
       </CardHeader>

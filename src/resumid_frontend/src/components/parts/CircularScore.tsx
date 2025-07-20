@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
 const easeInOutCubic = (t: number): number => {
@@ -7,11 +8,18 @@ const easeInOutCubic = (t: number): number => {
 };
 
 interface CircularProgressProps {
-  value: number,
-  duration?: number,
+  value: number;
+  duration?: number;
+  className?: string;
+  showScoreText?: boolean;
 }
 
-function CircularProgress({ value, duration = 1000 }: CircularProgressProps) {
+function CircularProgress({ 
+  value, 
+  duration = 1000, 
+  className,
+  showScoreText = true 
+}: CircularProgressProps) {
   const [animatedScore, setAnimatedScore] = useState<number>(0);
 
   useEffect(() => {
@@ -37,9 +45,17 @@ function CircularProgress({ value, duration = 1000 }: CircularProgressProps) {
   }, [value]);
 
   return (
-    <div className="relative flex flex-col justify-center items-center font-semibold font-outfit h-20 lg:h-28 aspect-square">
-      <h3 className="text-paragraph text-base lg:text-lg leading-none">Score</h3>
-      <p className="text-primary-500 text-xl lg:text-[32px] leading-none">{Math.floor(animatedScore)}<span className="font-bold text-lg lg:text-2xl">%</span></p>
+    <div className={cn(
+      "relative flex flex-col justify-center items-center font-semibold font-outfit h-20 lg:h-28 aspect-square",
+      className
+    )}>
+      {showScoreText && (
+        <h3 className="text-paragraph leading-none" style={{ fontSize: 'clamp(0.75rem, 6vw, 1rem)' }}>Score</h3>
+      )}
+      <p className="text-primary-500 leading-none" style={{ fontSize: 'clamp(1rem, 6vw, 1.75rem)' }}>
+        {Math.floor(animatedScore)}
+        <span className="font-bold" style={{ fontSize: 'clamp(0.625rem, 5vw, 1.25rem)' }}>%</span>
+      </p>
       <svg className="absolute top-0 left-0 w-full h-full text-primary-500" viewBox="0 0 36 36">
         <path
           fill="none"

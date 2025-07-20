@@ -14,6 +14,7 @@ import { X } from "lucide-react";
 
 // Import the dummy data
 import summaryExample from "./summary_example.json";
+import HistoryResultAnalyze from "@/components/parts/HistoryResultAnalyze";
 
 // Enhanced types for the new structure
 export type CategoryScore = {
@@ -184,15 +185,11 @@ function HistoryDetail() {
       <div className="min-h-screen bg-gray-50">
         <div className="responsive-container py-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Panel - Enhanced History Thumbnail */}
             <div className="lg:col-span-4">
               <HistoryDetailThumbnail data={thumbnailData} />
             </div>
-
-            {/* Right Panel - Analysis Details */}
             <div className="lg:col-span-8">
-              {/* Result Analyze Header */}
-              <ResultAnalyzeHeader categories={data.summary.categories} />
+              <HistoryResultAnalyze categories={data.summary.categories} />
               
               {/* Section Analysis Containers */}
               {sectionEntries.map(([sectionKey, sectionAnalysis]) => (

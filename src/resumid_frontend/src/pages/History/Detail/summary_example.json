@@ -10,13 +10,13 @@
       "description": "The resume showcases a strong blend of technical versatility and leadership qualities, demonstrating proficiency in both frontend and backend development. It reflects the candidate's ability to manage complex projects and mentor teams, making them well-suited for collaborative and fast-paced environments."
     },
     "categories": {
-      "technical_skills": {
+      "profile": {
         "score": 92,
-        "label": "Technical Skills"
+        "label": "Profile"
       },
       "experience": {
         "score": 88,
-        "label": "Experience"
+        "label": "Profesional Experiences"
       },
       "education": {
         "score": 75,
@@ -29,6 +29,18 @@
       "communication": {
         "score": 78,
         "label": "Communication"
+      },
+      "speed": {
+        "score": 78,
+        "label": "Speed"
+      },
+      "crit_rate": {
+        "score": 10,
+        "label": "Crit Rate"
+      },
+      "crit_dmg": {
+        "score": 20,
+        "label": "Crit Damage"
       }
     },
     "sections": {
