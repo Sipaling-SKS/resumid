@@ -15,7 +15,7 @@ import { X } from "lucide-react";
 import SkeletonHistoryThumbnail from "@/components/parts/SkeletonHistoryThumbnail";
 import SkeletonAnalysisDetail from "@/components/parts/SkeletonAnalysisDetail";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type ResultData = {
   id: string;

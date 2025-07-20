@@ -4,7 +4,7 @@ import { formatISOToDate, shorten } from "@/lib/utils";
 
 interface HistoryThumbnailProps {
   onSelect: (val: string) => void;
-  isSelected: boolean;
+  isSelected?: boolean;
   data: History;
 }
 

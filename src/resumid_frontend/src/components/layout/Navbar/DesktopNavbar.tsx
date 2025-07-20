@@ -13,8 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useAuth } from "@/hooks/AuthContext";
-import { useData } from "@/hooks/DataContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useData } from "@/contexts/DataContext";
 
 function DesktopNavbar({ navigate }: any) {
   const { isAuthenticated, login, logout } = useAuth();

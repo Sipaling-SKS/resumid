@@ -1,5 +1,5 @@
-import { useAuth } from "@/hooks/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/useToast";
 import { Navigate, Outlet } from "react-router";
 
 interface ProtectedRouteProps {
