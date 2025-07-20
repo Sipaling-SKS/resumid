@@ -1,0 +1,73 @@
+{
+  "id": "debug-history-001",
+  "filename": "CV Calvin Dannyalson Mantap Beut.pdf",
+  "jobTitle": "Mobil Engineer",
+  "score": 84,
+  "date": "2024-12-16",
+  "summary": {
+    "overall": {
+      "score": 84,
+      "description": "The resume showcases a strong blend of technical versatility and leadership qualities, demonstrating proficiency in both frontend and backend development. It reflects the candidate's ability to manage complex projects and mentor teams, making them well-suited for collaborative and fast-paced environments."
+    },
+    "categories": {
+      "technical_skills": {
+        "score": 92,
+        "label": "Technical Skills"
+      },
+      "experience": {
+        "score": 88,
+        "label": "Experience"
+      },
+      "education": {
+        "score": 75,
+        "label": "Education"
+      },
+      "projects": {
+        "score": 90,
+        "label": "Projects"
+      },
+      "communication": {
+        "score": 78,
+        "label": "Communication"
+      }
+    },
+    "sections": {
+      "profile": {
+        "strengths": [
+          "Full stack name is robust",
+          "Professional job description is immediately displayed under the name, which is very effective for communicating the target role"
+        ],
+        "weaknesses": [
+          "There are no significant weaknesses for this section as it effectively fulfills its purpose of displaying the name and job title."
+        ],
+        "pointers": [
+          "There are no crucial pointers for improvement for this specific section."
+        ],
+        "feedback": [
+          "Ensure consistency between the job title you're aiming on this CV and the job title you are targeting or that is listed relevant to your application.",
+          "Showing your name and job title is a very basic but is a best practice for a professional CV."
+        ]
+      },
+      "professional_experience": {
+        "strengths": [
+          "Proficient in Process Improvement, Mobile Dev, Cloud Computing, and IT Support.",
+          "Significant leadership by leading key projects like Change Control Phase 2 and CMA process optimization.",
+          "Strong track record in system between IT Support (Jan 2022 - Sept 2023) and Mobile Developer & Cloud Computing (Feb 2023 - Jan 2024) could not clarification.",
+          "Consistency in innovations within, with some points being oriented, while others focus on technical skills."
+        ],
+        "weaknesses": [
+          "A slight concern in dates between IT Support (Jan 2022 - Sept 2023) and Mobile Developer & Cloud Computing (Feb 2023 - Jan 2024) could not clarification.",
+          "Consistency in innovations within, with some points being oriented, while others focus on technical tasks."
+        ],
+        "pointers": [
+          "Clarify overlapping dates for any overlaps, or add more for concurrent roles.",
+          "Seek additional opportunities to quantify impact beyond tasks."
+        ],
+        "feedback": [
+          "For IT Support and Bengali Academy, clarify if roles were simultaneous (e.g., Part-time during studies).",
+          "For IT Support and Bengali Academy, clarify if roles were simultaneous (e.g., Part-time during studies)."
+        ]
+      }
+    }
+  }
+}
