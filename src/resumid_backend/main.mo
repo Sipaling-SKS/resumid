@@ -10,6 +10,8 @@ import HistoryTypes "types/HistoryTypes";
 import HistoryServices "services/HistoryServices";
 import UserTypes "types/UserTypes";
 import UserServices "services/UserServices";
+import GeminiServices "services/GeminiServices";
+import GeminiTypes "types/GeminiTypes";
 
 actor Resumid {
   // Storage for user data and analysis histories
@@ -91,6 +93,50 @@ actor Resumid {
         };
       };
     };
+
+    analyzeResult;
+  };
+
+  public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
+    let userId = Principal.toText(msg.caller);
+
+    Debug.print("Caller Principal for AnalyzeResume: " # userId);
+
+    let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
+    Debug.print(debug_show (analyzeResult));
+
+    // switch (analyzeResult) {
+    //   case (null) {
+    //     Debug.print("AnalyzeResult is null. Skipping HistoryServices processing.");
+    //   };
+    //   case (?result) {
+    //     let addHistoryInput = {
+    //       fileName = fileName;
+    //       jobTitle = jobTitle;
+    //       summary = result.summary;
+    //       score = result.score;
+    //       strengths = result.strengths;
+    //       weaknesses = result.weakness;
+    //       gaps = result.gaps;
+    //       suggestions = result.suggestions;
+    //     };
+
+    //     let historyResult = await HistoryServices.addHistory(histories, userId, addHistoryInput);
+
+
+    //     // Create logging for history result process
+    //     switch (historyResult) {
+    //       case (#ok(res)) {
+    //         Debug.print(debug_show (res));
+    //         Debug.print("History added successfully.");
+    //       };
+    //       case (#err(errorMessage)) {
+    //         Debug.print("Failed to add history: " # errorMessage);
+    //         Debug.print(errorMessage);
+    //       };
+    //     };
+    //   };
+    // };
 
     analyzeResult;
   };

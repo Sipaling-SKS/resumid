@@ -1,0 +1,185 @@
+[
+  {
+    "conclusion": {
+      "career_recomendation": [
+        "Fullstack Developer (Junior/Mid-Level) focusing on JavaScript/Node.js/React or .NET/Go stacks.",
+        "Backend Engineer roles, given strong Node.js, Express.js, .NET Core, Golang, and database skills.",
+        "Cloud Developer positions, leveraging Google Cloud Platform certification and experience."
+      ],
+      "keyword_matching": [
+        "Job Titles: Fullstack Developer, Backend Engineer, Software Engineer, Web Developer, Cloud Developer, Junior Developer, Mid-Level Developer.",
+        "Tech Stacks: JavaScript, React.js, Next.js, Node.js, Express.js, .NET Core, Golang, Laravel, PHP, SQL, MongoDB, Firebase, Git, Azure DevOps, Google Cloud Platform (GCP), Internet Information Services (IIS).",
+        "Methodologies: Agile, Waterfall, Microservices Architecture.",
+        "Skills: Web Development, API Development, Clean Code, Performance Optimization, Database Design, UI/UX Implementation, Mentoring, Problem Solving, Teamwork."
+      ],
+      "section_to_add": [
+        "A dedicated 'Certifications' section to highlight industry-recognized achievements prominently.",
+        "A 'Leadership & Activities' section to better showcase the 'Chairman of Confucian Student Activity Unit' and any other extracurriculars that demonstrate soft skills like organization and leadership.",
+        "A 'Key Projects' or 'Portfolio Highlights' section if the current project descriptions are too brief and there's space for more detailed case studies."
+      ],
+      "section_to_remove": [
+        "The generic 'Additional Informations' section header; instead, break it down into more specific and impactful sections like 'Soft Skills', 'Languages', 'Certifications', and 'Leadership & Activities'."
+      ]
+    },
+    "content": [
+      {
+        "title": "Header",
+        "value": {
+          "feedback": [
+            "Your header effectively provides all necessary contact information, including a strong LinkedIn profile link.",
+            "Consider simplifying your address to 'Depok, Indonesia' instead of including the full postal code, as recruiters primarily care about the city and country for location context."
+          ],
+          "pointer": [
+            "Streamline address detail for conciseness."
+          ],
+          "score": 9,
+          "strength": "Comprehensive contact information and a professional LinkedIn profile link.",
+          "weaknesess": "The full address with postal code adds unnecessary detail and can be simplified."
+        }
+      },
+      {
+        "title": "Summary/Profile",
+        "value": {
+          "feedback": [
+            "The current summary is descriptive but lacks a compelling hook or quantifiable achievements. It reads more like a general statement of capabilities.",
+            "Rephrase to highlight your most impressive skills, specific technical expertise, and career aspirations, while incorporating metrics or achievements to demonstrate impact."     
+          ],
+          "pointer": [
+            "Transform into a powerful, achievement-oriented professional summary."
+          ],
+          "score": 6,
+          "strength": "Outlines key skills and adaptability (individual/team work, active learning).",
+          "weaknesess": "Generic language, does not highlight specific accomplishments or a clear career focus. Lacks quantifiable impact."
+        }
+      },
+      {
+        "title": "Working Experience - Taldio (Engineer Internship)",
+        "value": {
+          "feedback": [
+            "While the technologies listed are impressive, the bullet points largely describe responsibilities rather than achievements.",
+            "Quantify your contributions whenever possible (e.g., 'improved performance by X%', 'reduced Y errors'). Focus on the 'how' and the 'impact' of your work.",
+            "Rephrase 'Participating in supporting' to a more active verb like 'Developed', 'Contributed to', or 'Engineered'."
+          ],
+          "pointer": [
+            "Quantify achievements and rephrase responsibilities into impactful contributions with measurable results."
+          ],
+          "score": 7,
+          "strength": "Exposure to a diverse and modern tech stack (React.js, .NET Core, Golang, Next.js, Laravel), experience with microservices and Azure DevOps, and implementation of Agile methodology.",
+          "weaknesess": "Bullet points are descriptive and lack quantifiable achievements or specific impacts of the work performed."
+        }
+      },
+      {
+        "title": "Working Experience - Coding.ID (Assistance Coach Internship)",
+        "value": {
+          "feedback": [
+            "Highlight the scale or success of your coaching, e.g., 'Guided X number of participants to successful project completion'.",
+            "Be more specific about the impact of your deployment work.",
+            "Consider combining similar responsibilities to avoid repetition."
+          ],
+          "pointer": [
+            "Emphasize the impact of your coaching and deployment tasks with specific numbers or outcomes."
+          ],
+          "score": 7,
+          "strength": "Demonstrates strong teaching, mentoring, and full-stack technical guidance abilities, including deployment experience.",
+          "weaknesess": "Lacks specific metrics for the number of students guided or the success rate of projects, and the impact of application deployments."
+        }
+      },
+      {
+        "title": "Working Experience - Gunadarma University (Laboratory Assistance)",
+        "value": {
+          "feedback": [
+            "While not directly a web development role, frame these responsibilities to highlight transferable skills like problem-solving, technical support, and communication.",
+            "Consider reducing the space this section takes if more relevant experience becomes available, or consolidate it if necessary."
+          ],
+          "pointer": [
+            "Frame non-direct experience to emphasize transferable skills (e.g., technical support, problem-solving, instruction) and their impact."
+          ],
+          "score": 6,
+          "strength": "Shows initiative, technical troubleshooting, and experience in conducting educational workshops, demonstrating communication and organizational skills.",
+          "weaknesess": "Less directly relevant to core web development roles compared to other experiences, and descriptions are task-oriented rather than achievement-focused."
+        }
+      },
+      {
+        "title": "Education",
+        "value": {
+          "feedback": [
+            "Given its relevance and the associated certification, consider listing 'Bangkit Academy' before 'Gunadarma University' to immediately highlight your cloud and backend expertise.",
+            "Ensure consistency in formatting dates."
+          ],
+          "pointer": [
+            "Reorder education entries to prioritize the most recent and relevant certifications/programs."
+          ],
+          "score": 8,
+          "strength": "Strong academic performance (high GPA), relevant degree in Informatics Engineering, and valuable practical experience/certification from Bangkit Academy's Cloud Computing path.",
+          "weaknesess": "The order could be optimized to highlight the industry-relevant Bangkit Academy experience and Google Cloud certification more immediately."
+        }
+      },
+      {
+        "title": "Skills",
+        "value": {
+          "feedback": [
+            "Categorize your skills (e.g., Programming Languages, Frameworks, Databases, Cloud Platforms, Tools) to improve readability and allow recruiters to quickly identify relevant expertise.",
+            "Correct 'JavaScripts' to 'JavaScript'."
+          ],
+          "pointer": [
+            "Categorize skills into logical groups for enhanced readability and quick assessment."
+          ],
+          "score": 8,
+          "strength": "Comprehensive list of relevant and in-demand technical skills, showcasing versatility across various programming languages, frameworks, databases, and cloud platforms.",
+          "weaknesess": "The skills are presented as a single, long list, which can be hard to scan quickly. Also, there's a minor typo ('JavaScripts' instead of 'JavaScript')."
+        }
+      },
+      {
+        "title": "Projects",
+        "value": {
+          "feedback": [
+            "For each project, apply the STAR method (Situation, Task, Action, Result) to describe your contributions and the impact of the project.",
+            "Instead of 'dummy web application' or 'Job Desk on Project', focus on the problem solved, the technical challenges overcome, and the specific outcomes or features you implemented.",
+            "The dates for 'Wedding Organizer' (June 2024-June 2024) are too short and might imply a trivial project; if it was a course project, specify that context or expand on its depth."
+          ],
+          "pointer": [
+            "For each project, reframe descriptions to highlight problem-solving, specific technical contributions, and quantifiable outcomes or impacts."
+          ],
+          "score": 7,
+          "strength": "Demonstrates practical application of skills through multiple diverse projects with varying tech stacks (PHP Native, React, Node.js), and shows teamwork experience.", 
+          "weaknesess": "Project descriptions are largely task-oriented and lack specific, measurable results or the challenges overcome. Some project names or descriptions could be more professional."
+        }
+      },
+      {
+        "title": "Portfolios",
+        "value": {
+          "feedback": [
+            "Briefly describe what your portfolio contains or highlights (e.g., 'Showcasing full-stack web applications and UI/UX implementations'). This adds context and entices recruiters to click."
+          ],
+          "pointer": [
+            "Add a brief, compelling description of your portfolio's content to encourage clicks."
+          ],
+          "score": 7,
+          "strength": "Provides a direct link to an online portfolio, allowing recruiters to see live examples of work.",
+          "weaknesess": "The entry is too brief and doesn't provide any context or highlight what makes the portfolio worth viewing."
+        }
+      },
+      {
+        "title": "Additional Informations",
+        "value": {
+          "feedback": [
+            "Break this section down into more specific, titled subsections like 'Certifications', 'Soft Skills', 'Languages', and 'Leadership & Activities'.",
+            "For soft skills, try to integrate them into your work experience or project descriptions where they were demonstrated, rather than just listing them.",
+            "For 'Other activities' as 'Chairman', quantify your impact or responsibilities (e.g., 'Led X members and organized Y events').",
+            "List achievements and certifications clearly with dates if available."
+          ],
+          "pointer": [
+            "Reorganize and rename this section into distinct, impactful categories, and integrate soft skills demonstrations into experience/project descriptions."
+          ],
+          "score": 8,
+          "strength": "Includes valuable soft skills, language proficiency, significant certifications (especially Google Cloud), and demonstrates leadership through extracurricular activities.",
+          "weaknesess": "The section is broadly titled 'Additional Informations', which could be better organized into more specific, impactful categories. Soft skills are listed but not demonstrated within experience."
+        }
+      }
+    ],
+    "summary": {
+      "score": 7.3,
+      "value": "Calvin's CV presents a strong foundation for a web developer, showcasing a broad technical skill set and relevant internship experiences. The strongest sections are 'Skills' and 'Education', which clearly demonstrate his technical capabilities and commitment to learning, especially with the Google Cloud certification. The 'Projects' section, while extensive, and 'Working Experience' are solid but are the weakest in terms of impact articulation, lacking quantifiable achievements and stronger action verbs. The 'Summary/Profile' also needs significant refinement to be more compelling and targeted. Overall, the CV is well-structured and informative, but could benefit significantly from a more accomplishment-driven narrative and strategic keyword optimization."
+    }
+  }
+]
