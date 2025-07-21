@@ -2,6 +2,10 @@ import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
 import Result "mo:base/Result";
 import Text "mo:base/Text";
+import Debug "mo:base/Debug";
+
+import GptTypes "types/GptTypes";
+import GptServices "services/GptServices";
 import HistoryTypes "types/HistoryTypes";
 import HistoryServices "services/HistoryServices";
 import UserTypes "types/UserTypes";
