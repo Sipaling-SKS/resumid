@@ -13,10 +13,8 @@ import { X } from "lucide-react";
 import HistoryResultAnalyze from "@/components/parts/HistoryResultAnalyze";
 import SectionAnalysis from "@/components/parts/SectionAnalysis";
 
-// Import the dummy data
 import summaryExample from "./summary_example.json";
 
-// Enhanced types for the new structure
 export type CategoryScore = {
   score: number;
   label: string;
@@ -26,7 +24,24 @@ export type SectionAnalysisData = {
   strengths: string[];
   weaknesses: string[];
   pointers: string[];
-  feedback: string[];
+  feedback: {
+    message: string;
+    example?: string;
+  }[];
+};
+
+export type ContentSection = {
+  title: string;
+  value: {
+    score: number;
+    strength: string;
+    weaknesess: string;
+    pointer: string[];
+    feedback: {
+      feedback_message: string;
+      revision_example: string;
+    }[];
+  };
 };
 
 export type HistoryDetailData = {
@@ -36,14 +51,48 @@ export type HistoryDetailData = {
   score: number;
   date: string;
   summary: {
-    overall: {
+    content: ContentSection[];
+    summary: {
       score: number;
-      description: string;
+      value: string;
     };
-    categories: Record<string, CategoryScore>;
-    sections: Record<string, SectionAnalysisData>;
+    conclusion: {
+      career_recomendation: string[];
+      keyword_matching: string[];
+      section_to_add: string[];
+      section_to_remove: string[];
+    };
   };
 };
+
+// Function to transform data for components
+function transformDataForComponents(data: HistoryDetailData) {
+  const categories: Record<string, CategoryScore> = {};
+  const sections: Record<string, SectionAnalysisData> = {};
+  
+  data.summary.content.forEach((section) => {
+    const key = section.title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    
+    // Transform for categories (scores)
+    categories[key] = {
+      score: section.value.score * 10, // Convert 0-10 scale to 0-100
+      label: section.title
+    };
+    
+    // Transform for sections (analysis data)
+    sections[key] = {
+      strengths: section.value.strength ? [section.value.strength] : [],
+      weaknesses: section.value.weaknesess ? [section.value.weaknesess] : [], // Note: keeping original typo
+      pointers: section.value.pointer || [],
+      feedback: section.value.feedback?.map(f => ({
+        message: f.feedback_message,
+        example: f.revision_example
+      })) || []
+    };
+  });
+
+  return { categories, sections };
+}
 
 function transformDataForThumbnail(data: HistoryDetailData) {
   return {
@@ -52,23 +101,49 @@ function transformDataForThumbnail(data: HistoryDetailData) {
     jobTitle: data.jobTitle,
     score: data.score,
     date: data.date,
-    summary: data.summary.overall.description // Extract the description string
+    summary: data.summary.summary.value // Extract the summary description
   };
 }
 
 function HistoryDetail() {
   const { id } = useParams();
   const { isTablet, isMobile } = useWindowSize();
-  const [data, setData] = useState<HistoryDetailData | null>(null);
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [data, setData] = useState<HistoryDetailData | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setData(summaryExample as HistoryDetailData);
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Simulate loading delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const summaryArray = summaryExample as HistoryDetailData[];
+        
+        if (!summaryArray || summaryArray.length === 0) {
+          throw new Error('No history data available');
+        }
+        
+        // Use first item from array as sample data
+        setData(summaryArray[0]);
+      } catch (err) {
+        console.error('Error loading history detail:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      loadData();
+    }
   }, [id]);
 
-  const thumbnailData = transformDataForThumbnail(summaryExample);
-
-  if (!data) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -79,7 +154,20 @@ function HistoryDetail() {
     );
   }
 
-  const sectionEntries = Object.entries(data.summary.sections);
+  if (error || !data) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Error loading history details</p>
+          <p className="text-paragraph">{error || 'Please try again later'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { categories, sections } = transformDataForComponents(data);
+  const thumbnailData = transformDataForThumbnail(data);
+  const sectionEntries = Object.entries(sections);
 
   return (
     <>
@@ -96,15 +184,18 @@ function HistoryDetail() {
               <HistoryDetailThumbnail data={thumbnailData} />
             </div>
             <div className="lg:col-span-8">
-              <HistoryResultAnalyze categories={data.summary.categories} />
-              {sectionEntries.map(([sectionKey, sectionAnalysis]) => (
-                <SectionAnalysis
-                  key={sectionKey}
-                  title={sectionKey}
-                  analysis={sectionAnalysis}
-                  score={data.summary.categories[sectionKey].score}
-                />
-              ))}
+              <HistoryResultAnalyze categories={categories} />
+              {sectionEntries.map(([sectionKey, sectionAnalysis]) => {
+                const score = categories[sectionKey]?.score || 0;
+                return (
+                  <SectionAnalysis
+                    key={sectionKey}
+                    title={sectionKey}
+                    analysis={sectionAnalysis}
+                    score={score}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>
@@ -122,14 +213,17 @@ function HistoryDetail() {
                 </DialogClose>
               </div>
               
-              {sectionEntries.map(([sectionKey, sectionAnalysis]) => (
-                <SectionAnalysis
-                  key={sectionKey}
-                  title={sectionKey}
-                  analysis={sectionAnalysis}
-                  score={data.summary.categories[sectionKey].score} // You can replace this with actual section scores
-                />
-              ))}
+              {sectionEntries.map(([sectionKey, sectionAnalysis]) => {
+                const score = categories[sectionKey]?.score || 0;
+                return (
+                  <SectionAnalysis
+                    key={sectionKey}
+                    title={sectionKey}
+                    analysis={sectionAnalysis}
+                    score={score}
+                  />
+                );
+              })}
             </DialogContent>
           </Dialog>
         )}

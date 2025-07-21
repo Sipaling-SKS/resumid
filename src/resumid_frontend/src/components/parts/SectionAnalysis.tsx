@@ -1,7 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { SectionAnalysisData } from "@/pages/History/Detail/HistoryDetail";
 import { ChevronDown } from "lucide-react";
+
+interface SectionAnalysisData {
+  strengths: string[];
+  weaknesses: string[];
+  pointers: string[];
+  feedback: {
+    message: string;
+    example?: string;
+  }[];
+}
 
 interface SectionAnalysisProps {
   title: string;
@@ -83,12 +92,33 @@ function SectionAnalysis({
                       </h4>
                     </div>
                     <div className="ml-3">
-                      {sectionData.map((item, index) => (
-                        <div key={index} className="flex items-start gap-2 mb-2 last:mb-0">
-                          <span className="leading-relaxed mt-0 flex-shrink-0">•</span>
-                          <span className="leading-relaxed">{item}</span>
-                        </div>
-                      ))}
+                      {section.key === 'feedback' ? (
+                        (sectionData as { message: string; example?: string; }[]).map((item, index) => (
+                          <div key={index} className="mb-4 last:mb-0">
+                            <div className="flex items-start gap-2 mb-2">
+                              <span className="leading-relaxed mt-0 flex-shrink-0">•</span>
+                              <span className="leading-relaxed">{item.message}</span>
+                            </div>
+                            {item.example && (
+                              <div className="ml-4 mt-3">
+                                <blockquote className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                                  <p className="text-gray-700 italic leading-relaxed">
+                                    {item.example}
+                                  </p>
+                                </blockquote>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        // Regular handling for other sections
+                        (sectionData as string[]).map((item, index) => (
+                          <div key={index} className="flex items-start gap-2 mb-2 last:mb-0">
+                            <span className="leading-relaxed mt-0 flex-shrink-0">•</span>
+                            <span className="leading-relaxed">{item}</span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 );
