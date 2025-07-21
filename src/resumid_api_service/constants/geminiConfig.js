@@ -69,7 +69,7 @@ const GeminiConfig = {
         - Strengths
         - Weaknesses
         - Point of Revision
-        - Feedback Example
+        - Feedback (Feedback Message & Revision Example)
         - Score (1-10));
 
         [summary]: - (Recap of all findings. List of strongest and weakest sections. Overall CV quality.);
@@ -110,7 +110,14 @@ const GeminiConfig = {
                   },
                   feedback: {
                     type: Type.ARRAY,
-                    items: { type: Type.STRING },
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        feedback_message: { type: Type.STRING },
+                        revision_example: { type: Type.STRING },
+                      },
+                      required: ["feedback_message", "revision_example"],
+                    },
                   },
                 },
                 required: [
@@ -254,7 +261,6 @@ const GeminiConfig = {
     Dicoding Indonesia, Belajar Dasar Pemrograman JavaScript from Dicoding Indonesia, Belajar Membuat
     Aplikasi Back-End untuk Pemula dengan Google Cloud from Dicoding Indonesia.
     Other activities: Chairman of Confucian Student Activity Unit at Gunadarma University`,
-
 };
 
 module.exports = {
