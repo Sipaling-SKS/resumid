@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar1, Briefcase } from "lucide-react";
-import { formatISOToDate } from "@/lib/utils";
+import { formatISOToDate, shorten } from "@/lib/utils";
 import CircularProgress from "@/components/parts/CircularScore";
+import { useState } from "react";
 
 interface HistoryDetailThumbnailProps {
   data: {
@@ -26,6 +27,8 @@ function JobRoleBadge({ role }: { role: string }) {
 }
 
 function HistoryDetailThumbnail({ data }: HistoryDetailThumbnailProps) {
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
   return (
     <Card className="h-fit border-2 border-primary-500 bg-white shadow-lg">
       <CardHeader className="pb-2">
@@ -59,7 +62,18 @@ function HistoryDetailThumbnail({ data }: HistoryDetailThumbnailProps) {
             Summary
           </h4>
           <p className="font-inter text-sm text-paragraph leading-relaxed">
-            {data.summary}
+             {isExpanded ? data.summary : shorten(data.summary, 300)}{' '}
+             {
+               isExpanded ? (
+                 <span className="font-inter text-sm font-semibold text-purple-700 cursor-pointer" onClick={() => setIsExpanded(false)}>
+                   Read less
+                 </span>
+               ) : (
+                 <span className="font-inter text-sm font-semibold text-purple-700 cursor-pointer" onClick={() => setIsExpanded(true)}>
+                   Read more
+                 </span>
+               )
+             }
           </p>
         </div>
       </CardContent>

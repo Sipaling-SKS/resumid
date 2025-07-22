@@ -51,6 +51,10 @@
               {
                 "feedback_message": "The educational information in the header clutters the contact details and should be moved to the dedicated Education section for clarity and conciseness.",
                 "revision_example": "CALVIN DANYALSON | 08972920986 | calvindany1102@gmail.com | https://www.linkedin.com/in/calvin-danyalson-a87295234/ | Depok, Indonesia 16413"
+              },
+              {
+                "feedback_message": "Create a distinct 'Certifications' section to highlight your valuable credentials prominently. Soft skills are often best demonstrated through examples in your experience bullet points, but if kept, ensure they are relevant to your target roles. 'Other activities' could be a concise 'Interests' or 'Leadership' section.",
+                "revision_example": "Certifications: Associate Cloud Engineer - Google Cloud | Menjadi Cloud Engineer - Dicoding Indonesia | Belajar Dasar Pemrograman JavaScript - Dicoding Indonesia | Belajar Membuat Aplikasi Back-End untuk Pemula dengan Google Cloud - Dicoding Indonesia. | Languages: Indonesia (Native), English (Intermediate) | Interests: Leadership (Chairman of Confucian Student Activity Unit at Gunadarma University)"
               }
             ],
             "pointer": [
