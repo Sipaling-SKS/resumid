@@ -85,9 +85,9 @@ function HistoryResultAnalyze({ categories }: HistoryResultAnalyzeProps) {
   };
   
   return (
-    <Card className="mb-6 sm:pb-0">
+    <Card className="mb-6 sm:p-0">
       <CardHeader>
-        <CardTitle className="font-outfit text-xl font-semibold text-heading mb-6 sm:mx-8">
+        <CardTitle className="font-outfit text-xl font-semibold text-heading mb-6 sm:mt-8 sm:mx-8">
           Result Analyze
         </CardTitle>
 

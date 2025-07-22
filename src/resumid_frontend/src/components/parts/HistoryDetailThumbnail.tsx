@@ -12,6 +12,7 @@ interface HistoryDetailThumbnailProps {
     score: number;
     date: string;
     summary: string;
+    keywordMatching: string[];
   };
 }
 
@@ -26,8 +27,41 @@ function JobRoleBadge({ role }: { role: string }) {
   );
 }
 
+function KeywordChip({ keyword }: { keyword: string }) {
+  return (
+    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-600 text-white">
+      {keyword}
+    </span>
+  );
+}
+
+function ShowMoreChip({ onClick, showAll, hiddenCount }: { 
+  onClick: () => void; 
+  showAll: boolean; 
+  hiddenCount: number; 
+}) {
+  return (
+    <span 
+      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-primary-600 border border-primary-600 cursor-pointer hover:bg-primary-600 hover:text-white transition-colors"
+      onClick={onClick}
+    >
+      {showAll 
+        ? `Show less (${hiddenCount} hidden)` 
+        : `Show more (+${hiddenCount} keywords)`
+      }
+    </span>
+  );
+}
+
 function HistoryDetailThumbnail({ data }: HistoryDetailThumbnailProps) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [showAllKeywords, setShowAllKeywords] = useState<boolean>(false);
+  
+  const maxKeywordsToShow = 6;
+  const displayedKeywords = showAllKeywords 
+    ? data.keywordMatching 
+    : data.keywordMatching.slice(0, maxKeywordsToShow);
+  const hasMoreKeywords = data.keywordMatching.length > maxKeywordsToShow;
 
   return (
     <Card className="h-fit border-2 border-primary-500 bg-white shadow-lg">
@@ -56,25 +90,44 @@ function HistoryDetailThumbnail({ data }: HistoryDetailThumbnailProps) {
       
       <hr className="border-gray-200" />
       
-      <CardContent className="pt-2">
-        <div className="space-y-2">
-          <h4 className="font-outfit font-semibold text-heading text-base">
-            Summary
-          </h4>
-          <p className="font-inter text-sm text-paragraph leading-relaxed">
-             {isExpanded ? data.summary : shorten(data.summary, 300)}{' '}
-             {
-               isExpanded ? (
-                 <span className="font-inter text-sm font-semibold text-purple-700 cursor-pointer" onClick={() => setIsExpanded(false)}>
-                   Read less
-                 </span>
-               ) : (
-                 <span className="font-inter text-sm font-semibold text-purple-700 cursor-pointer" onClick={() => setIsExpanded(true)}>
-                   Read more
-                 </span>
-               )
-             }
-          </p>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h4 className="font-outfit font-semibold text-heading text-base">
+              Summary
+            </h4>
+            <p className="font-inter text-sm text-paragraph leading-relaxed">
+               {isExpanded ? data.summary : shorten(data.summary, 300)}{' '}
+               {
+                 isExpanded ? (
+                   <span className="font-inter text-sm font-semibold text-purple-700 cursor-pointer" onClick={() => setIsExpanded(false)}>
+                     Read less
+                   </span>
+                 ) : (
+                   <span className="font-inter text-sm font-semibold text-purple-700 cursor-pointer" onClick={() => setIsExpanded(true)}>
+                     Read more
+                   </span>
+                 )
+               }
+            </p>
+          </div>
+
+          <hr className="border-gray-200" />
+          
+          {data.keywordMatching && data.keywordMatching.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {displayedKeywords.map((keyword, index) => (
+                <KeywordChip key={index} keyword={keyword} />
+              ))}
+              {hasMoreKeywords && (
+                <ShowMoreChip 
+                  onClick={() => setShowAllKeywords(!showAllKeywords)}
+                  showAll={showAllKeywords}
+                  hiddenCount={data.keywordMatching.length - maxKeywordsToShow}
+                />
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

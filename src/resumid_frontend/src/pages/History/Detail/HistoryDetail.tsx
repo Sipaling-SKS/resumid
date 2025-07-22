@@ -101,7 +101,8 @@ function transformDataForThumbnail(data: HistoryDetailData) {
     jobTitle: data.jobTitle,
     score: data.score,
     date: data.date,
-    summary: data.summary.summary.value // Extract the summary description
+    summary: data.summary.summary.value,
+    keywordMatching: data.summary.conclusion.keyword_matching || []
   };
 }
 
