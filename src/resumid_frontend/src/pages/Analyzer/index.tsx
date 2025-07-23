@@ -8,7 +8,7 @@ import { SubmitHandler } from "react-hook-form";
 import { resumid_backend } from "../../../../declarations/resumid_backend"
 import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
 import { useNavigate } from "react-router";
-import { useAuth } from "@/hooks/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Resume = {
   fullText: string

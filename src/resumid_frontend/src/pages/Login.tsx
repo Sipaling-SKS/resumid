@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/AuthContext";
-import { useData } from "@/hooks/DataContext"; 
+import { useAuth } from "@/contexts/AuthContext";
+import { useData } from "@/contexts/DataContext"; 
 
 const whoamiStyles: React.CSSProperties = {
   border: "1px solid #1a1a1a",
