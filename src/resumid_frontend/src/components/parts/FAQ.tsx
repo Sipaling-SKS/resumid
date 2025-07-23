@@ -1,26 +1,28 @@
 import Highlight from "@/components/highlight";
 import auah from "@/assets/auah.svg";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"; 
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 
 const AccordionSection = () => {
-  const accordionData = [
-    {
-      title: "How does the AI analyze resumes?",
-      description:
-        "AI analyzes resumes by extracting key information like skills, experience, and education using natural language processing. It then matches this data with job requirements to assess the candidate’s suitability.",
-    },
-    {
-      title: "What formats are supported?",
-      description:
-        "CVs are supported in PDF format, ensuring proper formatting and easy readability across platforms.",
-    },
-    {
-      title: "Is my data secure?",
-      description:
-        "Yes. It’s secure by default. We’re using Web3 technologies and everything is decentralized ensuring user security.",
-    },
-  ];
+  const accordionData =
+    [
+      {
+        title: "🤖 How does the AI analyze resumes?",
+        description:
+          "Our AI uses natural language processing (NLP) to extract key info like skills, experience, and education. It then matches your profile to job requirements — giving you precise, tailored feedback.",
+      },
+      {
+        title: "📑 What formats are supported?",
+        description:
+          "We currently support PDF format only — ensuring your resume retains its layout and reads perfectly across platforms.",
+      },
+      {
+        title: "🔐 Is my data secure?",
+        description:
+          "Absolutely. Your data is protected using decentralized Web3 technologies — no central storage, no compromises. Your privacy comes first.",
+      },
+    ];
+
 
   return (
     <div className="w-full">
@@ -37,7 +39,7 @@ const AccordionSection = () => {
             </AccordionTrigger>
             {/* Deskripsi Accordion */}
             <AccordionContent className="overflow-hidden">
-              <div className="text-paragraph">
+              <div className="text-paragraph text-sm md:text-base">
                 {item.description}
               </div>
             </AccordionContent>
@@ -50,7 +52,7 @@ const AccordionSection = () => {
 
 function FAQ() {
   return (
-    <section className="responsive-container flex flex-col md:flex-row justify-center md:justify-between items-start py-12 md:py-16 border-b border-neutral-200 md:gap-16 gap-8"> 
+    <section className="responsive-container flex flex-col md:flex-row justify-center md:justify-between items-start py-12 md:py-16 border-b border-neutral-200 md:gap-16 gap-8">
       <div className="w-full md:w-1/2 text-center md:text-left">
         <h2 className="font-outfit font-semibold text-3xl md:text-4xl text-balance leading-tight text-heading">
           <Highlight>Got Questions?</Highlight> We’ve Got

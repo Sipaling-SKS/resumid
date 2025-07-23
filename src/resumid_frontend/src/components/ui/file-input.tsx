@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils"
 import { FolderUp, FileCheck, X as Remove, CheckCircle2 as Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/useToast"
 
 interface FileInputProps {
   onFileSelected: (file: File) => void;

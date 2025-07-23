@@ -1,6 +1,6 @@
 import PreviewResume, { PreviewFormValues } from "@/components/parts/PreviewResume";
 import UploadResume from "@/components/parts/UploadResume";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/useToast";
 import { cleanExtractedText, extractPDFContent } from "@/lib/pdf2text";
 import { FormEvent, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
@@ -8,7 +8,7 @@ import { SubmitHandler } from "react-hook-form";
 import { resumid_backend } from "../../../../declarations/resumid_backend"
 import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
 import { useNavigate } from "react-router";
-import { useAuth } from "@/hooks/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Resume = {
   fullText: string
@@ -90,7 +90,7 @@ function Analyzer() {
           variant: "destructive",
         })
       } else {
-        navigate("/history", { replace: true });
+        navigate("/result", { replace: true });
       }
     } catch (error) {
       console.log(error)

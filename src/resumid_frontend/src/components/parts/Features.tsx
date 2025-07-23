@@ -62,32 +62,33 @@ function Features() {
   const featureList: Feature[] = [
     {
       title: "AI-Powered Resume Analyzer",
-      description: "Get instant insights and recommendations tailored to your job field.",
+      description: "Upload your resume and receive tailored insights to boost your chances in your specific field.",
       imageUrl: Gambar1,
       buttonText: "Submit Resume",
       href: "/resume-analyzer",
     },
     {
-      title: "Track Your Progress",
-      description: "Access your analysis history to track improvements over time.",
+      title: "Track Your Growth Over Time",
+      description: "View your past resume analysis to measure progress and refine your resumes with confidence.",
       imageUrl: Gambar2,
     },
     {
-      title: "Affordable Premium Insights",
-      description: "Unlock detailed reports and additional features with our flexible paywall system.",
+      title: "Unlock Deeper Insights",
+      description: "Go beyond the basics with premium unlimited analysis, detailed reports, and job specific recommendations — all at affordable pricing.",
       imageUrl: Gambar3,
-      buttonText: "Pricing",
+      buttonText: "View Pricing",
     },
   ];
 
   return (
     <section id="features" className="responsive-container py-16 border-b border-neutral-200">
       <h2 className="text-balance font-outfit text-heading text-3xl md:text-4xl text-center md:text-left font-semibold md:mb-2">
-        Why Resumid is the Best Resume Analyzer Platform to Date
+        Why Choose Resumid
       </h2>
       <p className="font-inter text-[18px] text-paragraph mt-4 mb-8 md:mb-12 text-center md:text-left">
-        Here are key features to help you decide using our product:
+        Discover the powerful features that make Resumid the smarter choice for job seekers and professionals alike.
       </p>
+
       <div className="mx-auto max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {featureList.map((feature, index) => (
           <FeatureCard
