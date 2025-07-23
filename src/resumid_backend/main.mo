@@ -7,6 +7,8 @@ import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
 import Int "mo:base/Int";
 import Time "mo:base/Time";
+import Array "mo:base/Array";
+import Float "mo:base/Float";
 
 import GptTypes "types/GptTypes";
 import GptServices "services/GptServices";
@@ -14,6 +16,9 @@ import HistoryTypes "types/HistoryTypes_new";
 import HistoryServices "services/HistoryServices_new";
 import UserTypes "types/UserTypes";
 import UserServices "services/UserServices";
+import GeminiTypes "types/GeminiTypes";
+import GeminiServices "services/GeminiServices";
+import DateHelper "helpers/DateHelper";
 
 
 actor Resumid {
@@ -145,87 +150,87 @@ actor Resumid {
   // };
 
   // final analyzev2
-    // public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
-    //   let userId = Principal.toText(msg.caller);
-    //   Debug.print("Caller Principal for AnalyzeResume: " # userId);
+    public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
+      let userId = Principal.toText(msg.caller);
+      Debug.print("Caller Principal for AnalyzeResume: " # userId);
 
-    //   // Panggil service eksternal
-    //   let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
-    //   Debug.print("Analyze result: " # debug_show(analyzeResult));
+      // Panggil service eksternal
+      let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
+      Debug.print("Analyze result: " # debug_show(analyzeResult));
 
-    //   switch (analyzeResult) {
-    //     case null {
-    //       Debug.print("AnalyzeResume returned null");
-    //       return null;
-    //     };
-    //     case (?result) {
-    //       // Dapatkan timestamp saat ini
-    //       let timestamp = Time.now();
-    //       let formattedTimestamp = DateHelper.formatTimestamp(timestamp);
+      switch (analyzeResult) {
+        case null {
+          Debug.print("AnalyzeResume returned null");
+          return null;
+        };
+        case (?result) {
+          // Dapatkan timestamp saat ini
+          let timestamp = Time.now();
+          let formattedTimestamp = DateHelper.formatTimestamp(timestamp);
 
-    //       // Konversi konten analisis ke tipe internal
-    //       let convertedContent = Array.map<GeminiTypes.Section, HistoryTypes.ContentItem>(
-    //         result.content,
-    //         func (section) {
-    //           {
-    //             title = section.title;
-    //             value = {
-    //               feedback = Array.map<GeminiTypes.FeedbackItem, HistoryTypes.Feedback>(
-    //                 section.value.feedback,
-    //                 func (fb) {
-    //                   {
-    //                     feedback_message = fb.feedback_message;
-    //                     revision_example = fb.revision_example;
-    //                   }
-    //                 }
-    //               );
-    //               pointer = section.value.pointer;
-    //               score = section.value.score;
-    //               strength = section.value.strength;
-    //               weaknesess = section.value.weaknesess;
-    //             };
-    //           }
-    //         }
-    //       );
+          // Konversi konten analisis ke tipe internal
+          let convertedContent = Array.map<GeminiTypes.Section, HistoryTypes.ContentItem>(
+            result.content,
+            func (section) {
+              {
+                title = section.title;
+                value = {
+                  feedback = Array.map<GeminiTypes.FeedbackItem, HistoryTypes.Feedback>(
+                    section.value.feedback,
+                    func (fb) {
+                      {
+                        feedback_message = fb.feedback_message;
+                        revision_example = fb.revision_example;
+                      }
+                    }
+                  );
+                  pointer = section.value.pointer;
+                  score = section.value.score * 10;
+                  strength = section.value.strength;
+                  weaknesess = section.value.weaknesess;
+                };
+              }
+            }
+          );
 
-    //       let convertedConclusion : HistoryTypes.Conclusion = {
-    //         career_recomendation = result.conclusion.career_recomendation;
-    //         keyword_matching = result.conclusion.keyword_matching;
-    //         section_to_add = result.conclusion.section_to_add;
-    //         section_to_remove = result.conclusion.section_to_remove;
-    //       };
+          let convertedConclusion : HistoryTypes.Conclusion = {
+            career_recomendation = result.conclusion.career_recomendation;
+            keyword_matching = result.conclusion.keyword_matching;
+            section_to_add = result.conclusion.section_to_add;
+            section_to_remove = result.conclusion.section_to_remove;
+          };
 
-    //       let convertedSummary : HistoryTypes.Summary = {
-    //         score = result.summary.score;
-    //         value = result.summary.value;
-    //       };
+          let convertedSummary : HistoryTypes.Summary = {
+            score = Float.fromInt(result.summary.score) * 10;
+            value = result.summary.value;
+          };
 
-    //       // Siapkan input untuk addHistory
-    //       let input : HistoryTypes.AddHistoryInput = {
-    //         fileName = fileName;
-    //         jobTitle = jobTitle;
-    //         summary = convertedSummary;
-    //         conclusion = convertedConclusion;
-    //         content = convertedContent;
-    //         createdAt = formattedTimestamp;
-    //       };
+          // Siapkan input untuk addHistory
+          let input : HistoryTypes.AddHistoryInput = {
+            fileName = fileName;
+            jobTitle = jobTitle;
+            summary = convertedSummary;
+            conclusion = convertedConclusion;
+            content = convertedContent;
+            createdAt = formattedTimestamp;
+          };
 
-    //       // Simpan menggunakan service
-    //       let addResult = await HistoryServices.addHistory(histories, userId, input);
+          // Simpan menggunakan service
+          let addResult = await HistoryServices.addHistory(histories, userId, input);
 
-    //       switch (addResult) {
-    //         case (#ok(history)) {
-    //           Debug.print("Berhasil menambahkan history ID: " # history.historyId);
-    //         };
-    //         case (#err(errMsg)) {
-    //           Debug.print("Gagal menambahkan history: " # errMsg);
-    //         };
-    //       };
+          switch (addResult) {
+            case (#ok(history)) {
+              Debug.print("Berhasil menambahkan history ID: " # history.historyId);
+            };
+            case (#err(errMsg)) {
+              Debug.print("Gagal menambahkan history: " # errMsg);
+            };
+          };
 
-    //       return ?result;
-    //     };
-    //   };
-    // };
+          return ?result;
+        };
+      };
+    };
 
 
   // ==============================
