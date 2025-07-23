@@ -13,7 +13,7 @@ function Navbar() {
   const Nav = isMobile ? MobileNavbar : DesktopNavbar;
 
   return (
-    <nav className="sticky top-0 z-30 inline-flex items-center justify-between w-full px-[4%] xl:px-[8%] py-3 border-b border-neutral-200 bg-white">
+    <nav className="sticky top-0 z-50 inline-flex items-center justify-between w-full px-[4%] xl:px-[8%] py-3 border-b border-neutral-200 bg-white">
       <Nav isAuthenticated={isAuthenticated} navigate={navigate} isOpen={isOpen} setIsOpen={setIsOpen} />
     </nav>
   )

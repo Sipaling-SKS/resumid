@@ -10,8 +10,7 @@ import { NavLink, type NavLinkProps } from "react-router";
 
 
 function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
-  const { isAuthenticated, login, logout } = useAuth();
-    const { userData } = useData();
+  const { isAuthenticated, login, logout, userData } = useAuth();
 
   return (
     <>
@@ -84,11 +83,11 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
                 Home
               </NavLink>
               <NavLink
-                to="/history"
+                to="/result"
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) => cn(buttonVariants({ variant: "link", size: "lg" }), "p-2", isActive && "underline")}
               >
-                History
+                Results
               </NavLink>
               <NavLink
                 to="/resume-analyzer"

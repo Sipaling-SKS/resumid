@@ -1,6 +1,6 @@
 import Logo from "@/assets/logo-black.svg";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { capitalize, cn, scrollTo, scrollToTop } from "@/lib/utils";
+import { cn, scrollTo, scrollToTop } from "@/lib/utils";
 import { NavLink } from "react-router";
 import { LogIn, LogOut, User2 as ProfileIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,8 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
 
 function DesktopNavbar({ navigate }: any) {
-  const { isAuthenticated, login, logout } = useAuth();
-  const { userData } = useData();
+  const { isAuthenticated, login, logout, userData } = useAuth();
 
   return (
     <>
@@ -86,7 +85,25 @@ function DesktopNavbar({ navigate }: any) {
                 Home
               </NavLink>
               <NavLink
-                to="/history"
+                to="/"
+                onClick={() => {
+                  if (window.location.pathname !== "/") {
+                    navigate("/");
+                    setTimeout(() => scrollTo("pricing", 72), 50); // wait for render
+                  } else {
+                    scrollTo("pricing", 72);
+                  }
+                }}
+
+                className={cn(
+                  buttonVariants({ variant: "link", size: "lg" }),
+                  "p-0"
+                )}
+              >
+                Pricing
+              </NavLink>
+              <NavLink
+                to="/result"
                 className={({ isActive }) =>
                   cn(
                     buttonVariants({ variant: "link", size: "lg" }),
@@ -95,7 +112,7 @@ function DesktopNavbar({ navigate }: any) {
                   )
                 }
               >
-                History
+                Results
               </NavLink>
               <NavLink
                 to="/resume-analyzer"
@@ -147,7 +164,7 @@ function DesktopNavbar({ navigate }: any) {
           </DropdownMenu>
         </div>
       ) : (
-        <Button variant="gradient" onClick={login}>
+        <Button variant="gradient" onClick={() => login()}>
           Sign In
           <LogIn strokeWidth={2.8} />
         </Button>

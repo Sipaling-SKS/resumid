@@ -8,8 +8,7 @@ const whoamiStyles: React.CSSProperties = {
 };
 
 const Login: React.FC = () => {
-  const { isAuthenticated, principal, logout } = useAuth(); 
-  const { userData } = useData(); 
+  const { isAuthenticated, principal, logout, userData } = useAuth();  
   const [userDetails, setUserDetails] = useState<any[]>([]);
 
   // useEffect(() => {

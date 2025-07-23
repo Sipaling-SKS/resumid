@@ -5,7 +5,8 @@ import App from './App';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+=import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { TooltipProvider } from './components/ui/tooltip';
 
 const root = document.getElementById('root');
 const queryClient = new QueryClient();
@@ -16,9 +17,9 @@ if (root) {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <DataProvider>
-              <App />
-          </DataProvider>
+          <TooltipProvider delayDuration={300} disableHoverableContent>
+            <App />
+          </TooltipProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

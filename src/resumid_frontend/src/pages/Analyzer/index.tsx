@@ -1,6 +1,6 @@
 import PreviewResume, { PreviewFormValues } from "@/components/parts/PreviewResume";
 import UploadResume from "@/components/parts/UploadResume";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/useToast";
 import { cleanExtractedText, extractPDFContent } from "@/lib/pdf2text";
 import { FormEvent, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
@@ -90,7 +90,7 @@ function Analyzer() {
           variant: "destructive",
         })
       } else {
-        navigate("/history", { replace: true });
+        navigate("/result", { replace: true });
       }
     } catch (error) {
       console.log(error)
