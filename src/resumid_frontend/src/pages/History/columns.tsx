@@ -30,12 +30,12 @@ export const columns: ColumnDef<History>[] = [
   {
     accessorKey: "fileName",
     header: "Resume Name",
-    cell: ({ renderValue }) => renderValue || "-"
+    cell: ({ cell }) => cell.getValue() || "-"
   },
   {
     accessorKey: "jobTitle",
     header: "Job Title / Role",
-    cell: ({ renderValue }) => renderValue || "-"
+    cell: ({ cell }) => cell.getValue() || "-"
   },
   {
     accessorKey: "score",
@@ -46,7 +46,7 @@ export const columns: ColumnDef<History>[] = [
     }
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "date",
     header: "Analyze Date",
     cell: ({ cell }) => {
       const value: string = cell.getValue<any>();
