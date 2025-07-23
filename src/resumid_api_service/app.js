@@ -51,13 +51,13 @@ app.use("/api", router);
 
 const port = process.env.EXPRESS_PORT || 6000;
 
-app.listen(port, () => {
-  console.log(`Server running in http://localhost:${port}`);
-});
-// mongoose
-//   .connect(process.env.EXPRESS_MONGODB_URI)
-//   .then(() => {
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
+mongoose
+  .connect(process.env.EXPRESS_MONGODB_URI)
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Server running in http://localhost:${port}`);
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+  });
