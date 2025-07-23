@@ -14,8 +14,10 @@ const TrGeminiRequestLog = require("../models/TrGeminiRequestLog");
 const ai = new GoogleGenAI({ apiKey: process.env.EXPRESS_GEMINI_API_KEY });
 
 const AnalyzeResume = async (req) => {
-  const cvContent = req.body.cyContent;
+  const cvContent = req.body.cvContent;
   const jobTitle = req.body.jobTitle;
+
+  const promptBody = `Job Title: ${jobTitle}. CV Content: ${cvContent}`;
 
   const now = new Date();
   const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
@@ -23,7 +25,7 @@ const AnalyzeResume = async (req) => {
   try {
     const response = await ai.models.generateContent({
       model: GeminiConfig.model,
-      contents: cvContent,
+      contents: promptBody,
       config: {
         systemInstruction: GeminiConfig.systemInstruction,
         responseMimeType: GeminiConfig.responseMimetype,
@@ -48,6 +50,11 @@ const AnalyzeResume = async (req) => {
 };
 
 const MockupAnalyzeResume = () => {
+  const cvContent = req.body.cyContent;
+  const jobTitle = req.body.jobTitle;
+  console.log(cvContent);
+  console.log(jobTitle);
+
   const cvReview = {
     conclusion: {
       career_recomendation: [
