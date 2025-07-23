@@ -131,9 +131,16 @@ module {
     };
 
     public type HistoryOutput = {
+        fileName : Text;
+        jobTitle : Text;
+        summary : Summary;
         conclusion : Conclusion;
         content : [ContentItem];
+        createdAt : Text;
+        userId : Text;
+        historyId : Text;
     };
+
 
     public type PaginatedResult = {
         totalRowCount : Nat;

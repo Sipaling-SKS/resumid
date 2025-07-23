@@ -11,6 +11,7 @@ import Order "mo:base/Order";
 import Iter "mo:base/Iter";
 import Option "mo:base/Option";
 import Int "mo:base/Int";
+import Debug "mo:base/Debug";
 
 
 
@@ -195,9 +196,16 @@ module {
         for (history in userHistories.vals()) {
             if (history.historyId == historyId) {
             return #ok({
+                fileName = history.fileName;
+                jobTitle = history.jobTitle;
+                summary = history.summary;
                 conclusion = history.conclusion;
                 content = history.content;
+                createdAt = history.createdAt;
+                userId = history.userId;
+                historyId = history.historyId;
             });
+
             };
         };
         return #err("No record found with the analysis ID: " # historyId # ". Please check and try again.");
@@ -285,50 +293,104 @@ module {
 //     };
 //     };
 //  };
-public func addDummyHistoriesSync(histories: HistoryTypes.Histories, userId: Text) {
+
+// public func addDummyHistoriesSync(histories: HistoryTypes.Histories, userId: Text) {
+//   for (i in Iter.range(1, 10)) {
+//     let dummyFeedback: HistoryTypes.Feedback = {
+//       feedback_message = "Improve clarity.";
+//       revision_example = "Add measurable results.";
+//     };
+
+//     // Section 1: Summary
+//     let value1: HistoryTypes.Value = {
+//       feedback = [dummyFeedback];
+//       pointer = ["summary"];
+//       score = 75 + (i % 5);
+//       strength = "Concise";
+//       weaknesess = "Lacks specificity";
+//     };
+//     let content1: HistoryTypes.ContentItem = {
+//       title = "Summary";
+//       value = value1;
+//     };
+
+//     // Section 2: Experience
+//     let value2: HistoryTypes.Value = {
+//       feedback = [dummyFeedback];
+//       pointer = ["experience"];
+//       score = 80 + (i % 5);
+//       strength = "Relevant experience";
+//       weaknesess = "Missing results";
+//     };
+//     let content2: HistoryTypes.ContentItem = {
+//       title = "Experience";
+//       value = value2;
+//     };
+
+//     // Section 3: Education
+//     let value3: HistoryTypes.Value = {
+//       feedback = [dummyFeedback];
+//       pointer = ["education"];
+//       score = 85 + (i % 5);
+//       strength = "Prestigious institution";
+//       weaknesess = "Too short";
+//     };
+//     let content3: HistoryTypes.ContentItem = {
+//       title = "Education";
+//       value = value3;
+//     };
+
+//     let dummyConclusion: HistoryTypes.Conclusion = {
+//       career_recomendation = ["Backend Developer", "Software Engineer"];
+//       keyword_matching = ["Node.js", "React"];
+//       section_to_add = ["Projects"];
+//       section_to_remove = ["Objective"];
+//     };
+
+//     let timestamp = Time.now();
+
+//     let dummySummary: HistoryTypes.Summary = {
+//         score = 81.0;
+//         value = "Ini Resume shows good structure and relevant experience.";
+//       };
+
+//     let dummyHistory: HistoryTypes.History = {
+//       userId = userId;
+//       fileName = "CV_Dummy_" # Nat.toText(i) # ".pdf";
+//       jobTitle = "Data Analyst" # Nat.toText(i);
+//       summary = dummySummary;
+//       conclusion = dummyConclusion;
+//       content = [content1, content2, content3]; // <- 3 sections here
+//       createdAt = DateHelper.formatTimestamp(timestamp);
+//     };
+
+//     switch (histories.get(userId)) {
+//       case null {
+//         histories.put(userId, [dummyHistory]);
+//       };
+//       case (?existing) {
+//         histories.put(userId, Array.append([dummyHistory], existing));
+//       };
+//     };
+//   };
+// };
+
+public func addDummyHistoriesSync(histories: HistoryTypes.Histories, userId: Text) : async () {
   for (i in Iter.range(1, 10)) {
     let dummyFeedback: HistoryTypes.Feedback = {
       feedback_message = "Improve clarity.";
       revision_example = "Add measurable results.";
     };
 
-    // Section 1: Summary
-    let value1: HistoryTypes.Value = {
-      feedback = [dummyFeedback];
-      pointer = ["summary"];
-      score = 75 + (i % 5);
-      strength = "Concise";
-      weaknesess = "Lacks specificity";
-    };
     let content1: HistoryTypes.ContentItem = {
       title = "Summary";
-      value = value1;
-    };
-
-    // Section 2: Experience
-    let value2: HistoryTypes.Value = {
-      feedback = [dummyFeedback];
-      pointer = ["experience"];
-      score = 80 + (i % 5);
-      strength = "Relevant experience";
-      weaknesess = "Missing results";
-    };
-    let content2: HistoryTypes.ContentItem = {
-      title = "Experience";
-      value = value2;
-    };
-
-    // Section 3: Education
-    let value3: HistoryTypes.Value = {
-      feedback = [dummyFeedback];
-      pointer = ["education"];
-      score = 85 + (i % 5);
-      strength = "Prestigious institution";
-      weaknesess = "Too short";
-    };
-    let content3: HistoryTypes.ContentItem = {
-      title = "Education";
-      value = value3;
+      value = {
+        feedback = [dummyFeedback];
+        pointer = ["summary"];
+        score = 75 + (i % 5);
+        strength = "Concise";
+        weaknesess = "Lacks specificity";
+      };
     };
 
     let dummyConclusion: HistoryTypes.Conclusion = {
@@ -338,33 +400,31 @@ public func addDummyHistoriesSync(histories: HistoryTypes.Histories, userId: Tex
       section_to_remove = ["Objective"];
     };
 
-    let timestamp = Time.now();
-
     let dummySummary: HistoryTypes.Summary = {
-        score = 81.0;
-        value = "Ini Resume shows good structure and relevant experience.";
-      };
+      score = 81.0;
+      value = "Resume shows good structure and relevant experience.";
+    };
 
-    let dummyHistory: HistoryTypes.History = {
-      userId = userId;
-      historyId = "dummy-" # Nat.toText(i);
+    let dummyInput: HistoryTypes.AddHistoryInput = {
       fileName = "CV_Dummy_" # Nat.toText(i) # ".pdf";
       jobTitle = "Data Analyst" # Nat.toText(i);
       summary = dummySummary;
       conclusion = dummyConclusion;
-      content = [content1, content2, content3]; // <- 3 sections here
-      createdAt = DateHelper.formatTimestamp(timestamp);
+      content = [content1];
     };
 
-    switch (histories.get(userId)) {
-      case null {
-        histories.put(userId, [dummyHistory]);
+    // 🔁 Cek hasil pemanggilan addHistory
+    let result = await addHistory(histories, userId, dummyInput);
+    switch (result) {
+      case (#ok(history)) {
+        Debug.print("✔️ Berhasil tambah dummy ke-" # Nat.toText(i));
       };
-      case (?existing) {
-        histories.put(userId, Array.append([dummyHistory], existing));
+      case (#err(errMsg)) {
+        Debug.print("❌ Gagal tambah dummy ke-" # Nat.toText(i) # ": " # errMsg);
       };
     };
   };
 };
+
 
 };
