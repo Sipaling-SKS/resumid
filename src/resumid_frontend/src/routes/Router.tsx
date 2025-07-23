@@ -18,7 +18,7 @@ function Router() {
         <Route element={<ProtectedRoute redirectTo="/" />}>
           <Route path="/resume-analyzer" element={<Analyzer />} />
           <Route path="/history-old" element={<Result />} />
-          <Route path="/history" element={<HistoryList />} />
+          <Route path="/result" element={<HistoryList />} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Route>

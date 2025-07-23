@@ -90,7 +90,7 @@ function Analyzer() {
           variant: "destructive",
         })
       } else {
-        navigate("/history", { replace: true });
+        navigate("/result", { replace: true });
       }
     } catch (error) {
       console.log(error)
