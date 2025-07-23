@@ -70,35 +70,35 @@ function Result() {
       setLoadingHistories(true);
 
       try {
-        const res = await resumidActor.getHistories()
-        // const response = await resumid_backend.getHistories();
+        // const res = await resumidActor.getHistories()
+        // // const response = await resumid_backend.getHistories();
 
-        if ("ok" in res) {
-          const backendHistories = res.ok.map((history: History) => ({
-            id: history.historyId,
-            filename: history.fileName,
-            jobTitle: history.jobTitle,
-            score: parseFloat(history.score),
-            date: new Date(history.createdAt).toISOString(),
-            summary: history.summary,
-            suggestions: history.suggestions.length ? history.suggestions : null,
-            strengths: history.strengths.length ? history.strengths : null,
-            gaps: history.gaps.length ? history.gaps : null,
-            weakness: history.weaknesses.length ? history.weaknesses : null,
-          }));
+        // if ("ok" in res) {
+        //   const backendHistories = res.ok.map((history: History) => ({
+        //     id: history.historyId,
+        //     filename: history.fileName,
+        //     jobTitle: history.jobTitle,
+        //     score: parseFloat(history.score),
+        //     date: new Date(history.createdAt).toISOString(),
+        //     summary: history.summary,
+        //     suggestions: history.suggestions.length ? history.suggestions : null,
+        //     strengths: history.strengths.length ? history.strengths : null,
+        //     gaps: history.gaps.length ? history.gaps : null,
+        //     weakness: history.weaknesses.length ? history.weaknesses : null,
+        //   }));
 
-          setHistories(backendHistories);
-          const initialId = backendHistories[0]?.id || null;
+        //   setHistories(backendHistories);
+        //   const initialId = backendHistories[0]?.id || null;
 
-          console.log("DEBUG RESULT: ", backendHistories[0]?.userId)
+        //   console.log("DEBUG RESULT: ", backendHistories[0]?.userId)
 
-          setSelectedId(initialId);
-          if (initialId) {
-            setSelectedIdData(backendHistories.find((item: any) => item.id === initialId) || null);
-          }
-        } else {
-          console.error("Failed to fetch histories:", res.err);
-        }
+        //   setSelectedId(initialId);
+        //   if (initialId) {
+        //     setSelectedIdData(backendHistories.find((item: any) => item.id === initialId) || null);
+        //   }
+        // } else {
+        //   console.error("Failed to fetch histories:", res.err);
+        // }
       } catch (error) {
         console.error("Error fetching histories:", error);
       } finally {

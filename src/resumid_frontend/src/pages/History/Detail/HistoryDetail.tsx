@@ -13,136 +13,45 @@ import { X } from "lucide-react";
 import HistoryResultAnalyze from "@/components/parts/HistoryResultAnalyze";
 import SectionAnalysis from "@/components/parts/SectionAnalysis";
 
+import type { HistoryIdInput } from "../../../../../../src/declarations/resumid_backend/resumid_backend.did";
 import summaryExample from "./summary_example.json";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import { HistoryDataTransformer } from "@/utils/historyDataTransform";
+import { HistoryDetailData } from "@/types/history.types";
 
-export type CategoryScore = {
-  score: number;
-  label: string;
-};
+async function handleGetHistoryDetail(resumidActor: any, historyId: string): Promise<HistoryDetailData> {
+  if (!resumidActor) {
+    throw new Error('Actor not available');
+  }
 
-export type SectionAnalysisData = {
-  strengths: string[];
-  weaknesses: string[];
-  pointers: string[];
-  feedback: {
-    message: string;
-    example?: string;
-  }[];
-};
-
-export type ContentSection = {
-  title: string;
-  value: {
-    score: number;
-    strength: string;
-    weaknesess: string;
-    pointer: string[];
-    feedback: {
-      feedback_message: string;
-      revision_example: string;
-    }[];
-  };
-};
-
-export type HistoryDetailData = {
-  id: string;
-  filename: string;
-  jobTitle: string;
-  score: number;
-  date: string;
-  summary: {
-    content: ContentSection[];
-    summary: {
-      score: number;
-      value: string;
-    };
-    conclusion: {
-      career_recomendation: string[];
-      keyword_matching: string[];
-      section_to_add: string[];
-      section_to_remove: string[];
-    };
-  };
-};
-
-// Function to transform data for components
-function transformDataForComponents(data: HistoryDetailData) {
-  const categories: Record<string, CategoryScore> = {};
-  const sections: Record<string, SectionAnalysisData> = {};
+  const input: HistoryIdInput = { historyId };
+  const result = await resumidActor.getHistoryById(input);
   
-  data.summary.content.forEach((section) => {
-    const key = section.title.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    
-    // Transform for categories (scores)
-    categories[key] = {
-      score: section.value.score * 10, // Convert 0-10 scale to 0-100
-      label: section.title
-    };
-    
-    // Transform for sections (analysis data)
-    sections[key] = {
-      strengths: section.value.strength ? [section.value.strength] : [],
-      weaknesses: section.value.weaknesess ? [section.value.weaknesess] : [], // Note: keeping original typo
-      pointers: section.value.pointer || [],
-      feedback: section.value.feedback?.map(f => ({
-        message: f.feedback_message,
-        example: f.revision_example
-      })) || []
-    };
-  });
-
-  return { categories, sections };
-}
-
-function transformDataForThumbnail(data: HistoryDetailData) {
-  return {
-    id: data.id,
-    filename: data.filename,
-    jobTitle: data.jobTitle,
-    score: data.score,
-    date: data.date,
-    summary: data.summary.summary.value,
-    keywordMatching: data.summary.conclusion.keyword_matching || []
-  };
+  if ('err' in result) {
+    throw new Error(result.err);
+  }
+  
+  return HistoryDataTransformer.convertBackendToFrontend(result.ok);
 }
 
 function HistoryDetail() {
   const { id } = useParams();
   const { isTablet, isMobile } = useWindowSize();
+  const { resumidActor } = useAuth();
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [data, setData] = useState<HistoryDetailData | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Simulate loading delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const summaryArray = summaryExample as HistoryDetailData[];
-        
-        if (!summaryArray || summaryArray.length === 0) {
-          throw new Error('No history data available');
-        }
-        
-        // Use first item from array as sample data
-        setData(summaryArray[0]);
-      } catch (err) {
-        console.error('Error loading history detail:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) {
-      loadData();
-    }
-  }, [id]);
+  const {
+    data,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['historyDetail', id],
+    queryFn: () => handleGetHistoryDetail(resumidActor, id!),
+    enabled: !!id && !!resumidActor,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
   if (isLoading) {
     return (
@@ -160,22 +69,22 @@ function HistoryDetail() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">Error loading history details</p>
-          <p className="text-paragraph">{error || 'Please try again later'}</p>
+          <p className="text-paragraph">{error?.message || 'Please try again later'}</p>
         </div>
       </div>
     );
   }
 
-  const { categories, sections } = transformDataForComponents(data);
-  const thumbnailData = transformDataForThumbnail(data);
+  const { categories, sections } = HistoryDataTransformer.transformForComponents(data);
+  const thumbnailData = HistoryDataTransformer.transformForThumbnail(data);
   const sectionEntries = Object.entries(sections);
 
   return (
     <>
       <Helmet>
         <meta charSet="utf-8" />
-        <title>History Detail - {data.filename} | Resumid</title>
-        <meta name="description" content={`Analysis details for ${data.filename}`} />
+        <title>History Detail - {data.fileName} | Resumid</title>
+        <meta name="description" content={`Analysis details for ${data.fileName}`} />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">

@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { SubmitHandler } from "react-hook-form";
 import { resumid_backend } from "../../../../declarations/resumid_backend"
-import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
+// import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
 import { useNavigate } from "react-router";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -81,7 +81,7 @@ function Analyzer() {
       const cleanedJobDescription = jobDescription ? jobDescription.replaceAll("\n", " ") : undefined
       const cleanedFullText = fullText.replaceAll("\"", "<ACK0007>")
 
-      const res: [] | [AnalyzeStructure] = await resumidActor.AnalyzeResume(filename, cleanedFullText, jobTitle, cleanedJobDescription || "")
+      const res: [] = await resumidActor.AnalyzeResume(filename, cleanedFullText, jobTitle, cleanedJobDescription || "")
       
       if (!(res && res.length > 0)) {
         toast({

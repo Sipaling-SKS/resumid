@@ -146,26 +146,26 @@ export default function HistoryList() {
 
       if ("ok" in res) {
         // TODO: Remap later
-        const result = res.ok.map((history: History) => ({
-          id: history.historyId,
-          filename: history.fileName,
-          jobTitle: history.jobTitle,
-          score: parseFloat(history.score),
-          date: new Date(history.createdAt).toISOString(),
-          summary: history.summary,
-          suggestions: history.suggestions.length ? history.suggestions : null,
-          strengths: history.strengths.length ? history.strengths : null,
-          gaps: history.gaps.length ? history.gaps : null,
-          weakness: history.weaknesses.length ? history.weaknesses : null,
-        }))
+        // const result = res.ok.map((history: History) => ({
+        //   id: history.historyId,
+        //   filename: history.fileName,
+        //   jobTitle: history.jobTitle,
+        //   score: parseFloat(history.score),
+        //   date: new Date(history.createdAt).toISOString(),
+        //   summary: history.summary,
+        //   suggestions: history.suggestions.length ? history.suggestions : null,
+        //   strengths: history.strengths.length ? history.strengths : null,
+        //   gaps: history.gaps.length ? history.gaps : null,
+        //   weakness: history.weaknesses.length ? history.weaknesses : null,
+        // }))
 
-        return {
-          message: res?.message || "success",
-          data: result,
-          totalRowCount: result.length || 0,
-          totalPages: 1,
-          currentPage: 1
-        };
+        // return {
+        //   message: res?.message || "success",
+        //   data: result,
+        //   totalRowCount: result.length || 0,
+        //   totalPages: 1,
+        //   currentPage: 1
+        // };
       } else {
         throw new Error(res.err ?? "Unknown error");
       }
