@@ -66,7 +66,15 @@ module {
     };
 
     let allHistories = switch (histories.get(userId)) {
-        case null { return #err("No records found."); };
+        case null { 
+          return #ok({
+            totalRowCount = 0;
+            totalPages = 0;
+            currentPage = page;
+            pageSize = pageSize;
+            data = [];
+        });
+         };
         case (?hs) {
         var h = hs;
 
