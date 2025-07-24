@@ -7,6 +7,7 @@ import {
   getSortedRowModel,
   useReactTable,
   TableOptions,
+  Row,
 } from "@tanstack/react-table";
 
 import {
@@ -22,10 +23,12 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { HTMLAttributes } from "react";
 
 interface ExtendedTableOptions<TData> extends Partial<TableOptions<TData>> {
   isLoading?: boolean;
   pageSizeOptions?: number[];
+  tableBodyRowProps?: (props: { row: Row<TData> }) => HTMLAttributes<HTMLTableRowElement>;
 }
 
 export type HistoryTableOptions<TData> = Partial<ExtendedTableOptions<TData>>;
@@ -43,7 +46,7 @@ export default function HistoryTable<TData, TValue>({
   data,
   options = {},
 }: HistoryTableProps<TData, TValue>) {
-  const { isLoading, pageSizeOptions = DEFAULT_ROW_OPTION } = options;
+  const { isLoading, pageSizeOptions = DEFAULT_ROW_OPTION, tableBodyRowProps } = options;
 
   const table = useReactTable<TData>({
     data,
@@ -53,6 +56,7 @@ export default function HistoryTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getRowId: (row: any) => row.id,
 
     ...options,
   });
@@ -60,11 +64,10 @@ export default function HistoryTable<TData, TValue>({
   return (
     <div className="relative rounded-md border overflow-x-auto">
       {table.getFilteredSelectedRowModel().rows.length > 0 && (
-        <div className="text-paragraph flex-1 text-sm p-4">
+        <div className="text-paragraph font-medium flex-1 text-sm p-4 border-b bg-neutral-50">
           <p>
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected.{" "}
-            <span className="font-semibold text-paragraph cursor-pointer">Clear Selection</span>
           </p>
         </div>
       )}
@@ -95,6 +98,7 @@ export default function HistoryTable<TData, TValue>({
                 key={row.id}
                 className="text-paragraph"
                 data-state={row.getIsSelected() && "selected"}
+                {...(tableBodyRowProps ? tableBodyRowProps({ row }) : {})}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

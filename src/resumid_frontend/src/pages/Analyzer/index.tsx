@@ -74,10 +74,9 @@ function Analyzer() {
     try {
       const finalData: Resume = { ...resume, ...data };
       const { fullText, filename, jobTitle } = finalData
+      const cleanedFullText =  fullText.replaceAll("\"", "<ACK0007>");
 
-      const res = await resumidActor.AnalyzeResumeV2(filename, fullText, jobTitle)
-
-      console.log(res);
+      const res = await resumidActor.AnalyzeResumeV2(filename, cleanedFullText, jobTitle)
 
       if (!(res && res.length > 0)) {
         toast({
