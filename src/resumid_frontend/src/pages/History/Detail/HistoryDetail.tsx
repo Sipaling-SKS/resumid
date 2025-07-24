@@ -25,6 +25,7 @@ async function handleGetHistoryDetail(resumidActor: any, historyId: string): Pro
     throw new Error('Actor not available');
   }
 
+
   const input: HistoryIdInput = { historyId };
   const result = await resumidActor.getHistoryById(input);
   

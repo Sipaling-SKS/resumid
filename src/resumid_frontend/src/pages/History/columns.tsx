@@ -3,6 +3,7 @@ import { History } from "../../../../declarations/resumid_backend/resumid_backen
 import { ColumnDef } from "@tanstack/react-table";
 import { formatISOToDate } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 
 export const columns: ColumnDef<History>[] = [
   {
