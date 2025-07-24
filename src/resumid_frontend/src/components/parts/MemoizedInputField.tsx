@@ -1,7 +1,7 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { HTMLInputTypeAttribute, ReactNode, useEffect, useRef, useState } from "react";
 
 import { Input } from "../ui/input";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -10,10 +10,12 @@ interface MemoizedSearchInputProps {
   id: string;
   startIcon?: ReactNode,
   placeholder?: string;
+  type?: HTMLInputTypeAttribute
   value: string;
   onChange: (value: string) => void;
   debounce?: number;
   fullWidth?: boolean;
+  className?: string;
 }
 
 const inputVariants = cva("relative", {
@@ -34,6 +36,7 @@ export default function MemoizedInputField({
   placeholder,
   value,
   onChange,
+  className,
   debounce = 500,
   fullWidth = false,
 }: MemoizedSearchInputProps) {
@@ -83,7 +86,7 @@ export default function MemoizedInputField({
         id={id}
         type="text"
         placeholder={placeholder}
-        className={cn("font-normal", startIcon ? "pl-9" : "")}
+        className={cn("font-normal", startIcon ? "pl-9" : "", className)}
       />
     </div>
   );

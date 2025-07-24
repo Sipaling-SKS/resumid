@@ -66,7 +66,7 @@ export default function HistoryCards({
             <HistoryThumbnail
               key={item.id}
               data={item}
-              onSelect={(id) => navigate(`/result/${id}`)}
+              onSelect={(id) => navigate(`/history-detail/${id}`)}
             />
           ))
         ) : (
