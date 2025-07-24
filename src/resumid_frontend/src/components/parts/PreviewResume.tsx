@@ -69,7 +69,7 @@ function PreviewResume({ isLoading, onSubmit, resume, setResume, setStep }: Prev
             <div className="p-1">
               <Textarea
                 {...register("fullText", { required: true })}
-                className="min-h-32 max-h-64 py-1 font-normal outline-dashed outline-2 outline-primary-500 outline-offset-1 scrollbar"
+                className="min-h-48 max-h-80 py-1 font-normal outline-dashed outline-2 outline-primary-500 outline-offset-1 scrollbar"
               />
             </div>
             {errors?.fullText && <p className="text-sm text-red-500">{errors.fullText.message}</p>}
@@ -85,10 +85,10 @@ function PreviewResume({ isLoading, onSubmit, resume, setResume, setStep }: Prev
             />
             {errors?.jobTitle && <p className="text-sm text-red-500">{errors.jobTitle.message}</p>}
           </Label>
-          <Label htmlFor="job-description" className="space-y-2">
+          {/* <Label htmlFor="job-description" className="space-y-2">
             <p className="text-paragraph">{"Job Description (Optional)"}</p>
             <Textarea {...register("jobDescription")} id="job-description" className="min-h-48 max-h-96 font-normal" placeholder="Paste the job description here" />
-          </Label>
+          </Label> */}
           <div className="pt-2 flex flex-col md:flex-row-reverse gap-2 md:gap-4">
             <Button disabled={isLoading} type="submit" className="w-full">
               {isLoading && <Loader2 className="animate-spin" />}

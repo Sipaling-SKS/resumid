@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { UNSAFE_decodeViaTurboStream, useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Helmet } from "react-helmet";
 
 // import hooks
@@ -14,7 +14,7 @@ import { columns } from "./columns";
 
 // import types
 import { History } from "../../../../declarations/resumid_backend/resumid_backend.did";
-import { ColumnFiltersState, GlobalFilterTableState, PaginationState, RowSelectionState, SortingState } from "@tanstack/react-table";
+import { ColumnFiltersState, PaginationState, RowSelectionState, SortingState } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { AlertCircleIcon, ArrowDownUp, ArrowDownUpIcon, Filter, Grid2x2, PlusIcon, Search, SlidersHorizontal, SlidersHorizontalIcon, TableProperties, X } from "lucide-react";
 import MemoizedInputField from "@/components/parts/MemoizedInputField";
@@ -48,7 +48,16 @@ type HistorySearchParams = {
   view: "table" | "card";
 }
 
-const DEFAULT_ROW_OPTION: number[] = [10, 20, 30, 40, 50];
+interface HistoryResponse {
+  message: string,
+  data: History[],
+  totalRowCount: number,
+  currentPage: number,
+  pageSize: number,
+  totalPages: number,
+}
+
+const DEFAULT_ROW_OPTION: number[] = [1, 10, 20, 30, 40, 50];
 
 function decodeBase64(encodedString: string, returnVal: ColumnSort[] | ColumnFilters[] = []) {
   try {
@@ -140,32 +149,38 @@ export default function HistoryList() {
 
   const { resumidActor } = useAuth();
 
-  async function handleGetHistories(): Promise<any> {
+  async function handleGetHistories(): Promise<HistoryResponse> {
     try {
-      const res = await resumidActor.getHistories();
+      console.log(pagination);
+      const res = await resumidActor.getHistoriesPaginated(pagination.pageIndex, pagination.pageSize, sorting, columnFilters, globalFilter);
 
       if ("ok" in res) {
-        // TODO: Remap later
-        // const result = res.ok.map((history: History) => ({
-        //   id: history.historyId,
-        //   filename: history.fileName,
-        //   jobTitle: history.jobTitle,
-        //   score: parseFloat(history.score),
-        //   date: new Date(history.createdAt).toISOString(),
-        //   summary: history.summary,
-        //   suggestions: history.suggestions.length ? history.suggestions : null,
-        //   strengths: history.strengths.length ? history.strengths : null,
-        //   gaps: history.gaps.length ? history.gaps : null,
-        //   weakness: history.weaknesses.length ? history.weaknesses : null,
-        // }))
+        const response = res.ok;
+        const { data, totalRowCount, totalPages, currentPage, pageSize } = response;
 
-        // return {
-        //   message: res?.message || "success",
-        //   data: result,
-        //   totalRowCount: result.length || 0,
-        //   totalPages: 1,
-        //   currentPage: 1
-        // };
+        const result = data.map((history: History) => {
+          const { value: summary, score } = history.summary;
+
+          const mappedResult = {
+            id: history.historyId,
+            fileName: history.fileName,
+            jobTitle: history.jobTitle,
+            score,
+            date: new Date(history.createdAt).toISOString(),
+            summary,
+          };
+
+          return mappedResult;
+        })
+
+        return {
+          message: res?.message || "success",
+          data: result,
+          totalRowCount: Number(totalRowCount),
+          totalPages: Number(totalPages),
+          currentPage: Number(currentPage),
+          pageSize: Number(pageSize),
+        };
       } else {
         throw new Error(res.err ?? "Unknown error");
       }
@@ -175,8 +190,8 @@ export default function HistoryList() {
     }
   }
 
-  const { data: response = {}, isFetching, isLoading, isError, error } = useQuery({
-    queryKey: ['histories'],
+  const { data: response = {} as HistoryResponse, isFetching, isLoading, isError, error } = useQuery({
+    queryKey: ['histories', pagination.pageIndex, pagination.pageSize, globalFilter, columnFilters, sorting],
     queryFn: handleGetHistories,
     retry: 0,
     refetchOnWindowFocus: false
@@ -188,6 +203,7 @@ export default function HistoryList() {
   const options: HistoryTableOptions<History> = {
     isLoading: isLoading,
     pageSizeOptions: DEFAULT_ROW_OPTION,
+    pageCount: totalPages,
 
     state: {
       columnFilters,
@@ -479,7 +495,7 @@ export default function HistoryList() {
             </Alert>
           )}
           {view === "card" ? (
-            <HistoryCards data={data} pagination={pagination} setPagination={setPagination} pageCount={totalPages}  rowSelection={selectedRows} onRowSelectionChange={setSelectedRows} />
+            <HistoryCards isLoading={isFetching || isLoading} data={data} pagination={pagination} setPagination={setPagination} pageCount={totalPages} rowSelection={selectedRows} onRowSelectionChange={setSelectedRows} pageSizeOptions={DEFAULT_ROW_OPTION}/>
           ) : (
             <HistoryTable columns={columns} data={data} options={options} />
           )}

@@ -42,7 +42,7 @@ export default function HistoryCards({
   const { pageIndex, pageSize } = pagination
 
   const canPreviousPage = pageIndex > 0
-  const canNextPage = pageIndex < pageCount - 1
+  const canNextPage = pageIndex < Number(pageCount) - 1
 
   const setPageIndex = (index: number) => {
     setPagination({ pageIndex: index, pageSize })
@@ -55,7 +55,7 @@ export default function HistoryCards({
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 pt-2">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, idx) => (

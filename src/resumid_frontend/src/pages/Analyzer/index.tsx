@@ -2,7 +2,7 @@ import PreviewResume, { PreviewFormValues } from "@/components/parts/PreviewResu
 import UploadResume from "@/components/parts/UploadResume";
 import { toast } from "@/hooks/useToast";
 import { cleanExtractedText, extractPDFContent } from "@/lib/pdf2text";
-import { FormEvent, useEffect, useState } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { SubmitHandler } from "react-hook-form";
 import { resumid_backend } from "../../../../declarations/resumid_backend"
@@ -52,7 +52,7 @@ function Analyzer() {
         })
         return;
       }
-      
+
       setResume({
         fullText: cleanedText,
         filename: file.name,
@@ -75,13 +75,11 @@ function Analyzer() {
     setLoading(true)
     try {
       const finalData: Resume = { ...resume, ...data };
-  
-      const { fullText, filename, jobTitle, jobDescription } = finalData
-      
-      const cleanedJobDescription = jobDescription ? jobDescription.replaceAll("\n", " ") : undefined
-      const cleanedFullText = fullText.replaceAll("\"", "<ACK0007>")
+      const { fullText, filename, jobTitle } = finalData
 
-      const res: [] = await resumidActor.AnalyzeResume(filename, cleanedFullText, jobTitle, cleanedJobDescription || "")
+      const res = await resumidActor.AnalyzeResumeV2(filename, fullText, jobTitle)
+
+      console.log(res);
       
       if (!(res && res.length > 0)) {
         toast({
