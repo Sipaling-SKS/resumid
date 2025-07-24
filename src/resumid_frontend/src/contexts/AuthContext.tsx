@@ -2,17 +2,26 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { AuthClient } from "@dfinity/auth-client";
 import { createActor, canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid_backend";
 import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declarations/internet_identity";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/useToast";
 import { useNavigate } from "react-router";
+import { LoaderCircle } from "lucide-react";
+
+type AuthLoginOptions = {
+  onSuccessNavigate?: () => void;
+  onErrorNavigate?: () => void;
+  onFinish?: () => void;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: () => void;
+  login: (options?: AuthLoginOptions) => void;
   logout: () => void;
   authClient: AuthClient | null;
   identity: any | null;
   principal: any | null;
   resumidActor: any | null;
+  userData: any | null;
+  fetchUserData: () => Promise<void>;
   loading: boolean;
 }
 
@@ -52,29 +61,73 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [identity, setIdentity] = useState<any | null>(null);
   const [principal, setPrincipal] = useState<any | null>(null);
   const [resumidActor, setResumidActor] = useState<any | null>(null);
+  const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
+
+  const fetchUserData = async () => {
+    if (!authClient) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    const resumidActor = createActor(CANISTER_ID_BACKEND, {
+      agentOptions: { identity: authClient.getIdentity() },
+    });
+
+    try {
+      const data = await resumidActor.getUserById();
+
+      if (!data || Object.keys(data).length === 0) {
+        console.error("No user data found");
+        setUserData(null);
+        setLoading(false);
+        return;
+      }
+
+      const serializedData = JSON.parse(
+        JSON.stringify(data, (key, value) =>
+          typeof value === "bigint" ? value.toString() : value
+        )
+      );
+
+      console.log("Serialized user data:", serializedData);
+
+      setUserData(serializedData);
+      localStorage.setItem("userData", JSON.stringify(serializedData));
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setUserData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     const initAuthClient = async () => {
       setLoading(true);
+
       const client = await AuthClient.create(defaultOptions.createOptions);
       setAuthClient(client);
+
       const isAuthenticated = await client.isAuthenticated();
       setIsAuthenticated(isAuthenticated);
 
       if (isAuthenticated) {
         const identity = client.getIdentity();
-        setIdentity(identity);
-
         const principal = identity.getPrincipal();
-        setPrincipal(principal);
-
         const actor = createActor(CANISTER_ID_BACKEND, {
           agentOptions: { identity },
         });
+
+        setIdentity(identity);
+        setPrincipal(principal);
         setResumidActor(actor);
 
+        await fetchUserData();
       } else {
         setIdentity(null);
         setPrincipal(null);
@@ -86,12 +139,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initAuthClient();
   }, []);
-  
-  const login = async () => {
-    if (authClient) {
-      authClient.login({
-        ...defaultOptions.loginOptions,
-        onSuccess: async () => {
+
+  useEffect(() => {
+    const cached = localStorage.getItem("userData");
+    if (cached) {
+      try {
+        setUserData(JSON.parse(cached));
+      } catch { }
+    }
+  }, []);
+
+  const login = async (
+    options?: AuthLoginOptions
+  ) => {
+    if (!authClient) return;
+
+    const {
+      onSuccessNavigate,
+      onErrorNavigate,
+      onFinish,
+    } = options || {};
+
+    authClient.login({
+      ...defaultOptions.loginOptions,
+      onSuccess: async () => {
+        try {
           setLoading(true);
           const isAuthenticated = await authClient.isAuthenticated();
           setIsAuthenticated(isAuthenticated);
@@ -109,22 +181,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             await actor.whoami();
             await actor.authenticateUser();
-            
+
             setResumidActor(actor);
+
+            await fetchUserData();
 
             toast({
               title: "Signed in Successfully",
               description: "Start analyzing your resume now!",
               variant: "success",
             });
-          }
 
+            onSuccessNavigate?.();
+          } else {
+            onErrorNavigate?.();
+          }
+        } catch (err) {
+          console.error("Login error:", err);
+          onErrorNavigate?.();
+        } finally {
           setLoading(false);
-        },
-      });
-    }
-    
+          onFinish?.();
+        }
+      },
+    });
   };
+
 
   const logout = async () => {
     if (authClient) {
@@ -135,6 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIdentity(null);
       setPrincipal(null);
       setResumidActor(null);
+      setUserData(null);
       setLoading(false);
       toast({
         title: "You've been Signed Out",
@@ -143,6 +226,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="overflow-hidden w-full h-screen flex flex-col gap-4 justify-center items-center text-primary-500">
+        <LoaderCircle size={64} className="animate-spin" />
+        <h1 className="font-inter text-lg font-semibold text-primary-500">Please Wait</h1>
+      </div>
+    );
+  }
+
 
   return (
     <AuthContext.Provider
@@ -154,6 +247,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         identity,
         principal,
         resumidActor,
+        userData,
+        fetchUserData,
         loading,
       }}
     >

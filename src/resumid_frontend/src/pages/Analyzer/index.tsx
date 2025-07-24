@@ -1,14 +1,12 @@
 import PreviewResume, { PreviewFormValues } from "@/components/parts/PreviewResume";
 import UploadResume from "@/components/parts/UploadResume";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/useToast";
 import { cleanExtractedText, extractPDFContent } from "@/lib/pdf2text";
-import { FormEvent, useEffect, useState } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { SubmitHandler } from "react-hook-form";
-import { resumid_backend } from "../../../../declarations/resumid_backend"
-import { AnalyzeStructure, History } from "../../../../declarations/resumid_backend/resumid_backend.did"
 import { useNavigate } from "react-router";
-import { useAuth } from "@/hooks/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Resume = {
   fullText: string
@@ -52,7 +50,7 @@ function Analyzer() {
         })
         return;
       }
-      
+
       setResume({
         fullText: cleanedText,
         filename: file.name,
@@ -75,14 +73,12 @@ function Analyzer() {
     setLoading(true)
     try {
       const finalData: Resume = { ...resume, ...data };
-  
-      const { fullText, filename, jobTitle, jobDescription } = finalData
-      
-      const cleanedJobDescription = jobDescription ? jobDescription.replaceAll("\n", " ") : undefined
-      const cleanedFullText = fullText.replaceAll("\"", "<ACK0007>")
+      const { fullText, filename, jobTitle } = finalData
 
-      const res: [] | [AnalyzeStructure] = await resumidActor.AnalyzeResume(filename, cleanedFullText, jobTitle, cleanedJobDescription || "")
-      
+      const res = await resumidActor.AnalyzeResumeV2(filename, fullText, jobTitle)
+
+      console.log(res);
+
       if (!(res && res.length > 0)) {
         toast({
           title: "Uh oh! Analzying went wrong.",
@@ -90,7 +86,7 @@ function Analyzer() {
           variant: "destructive",
         })
       } else {
-        navigate("/history", { replace: true });
+        navigate("/result", { replace: true });
       }
     } catch (error) {
       console.log(error)

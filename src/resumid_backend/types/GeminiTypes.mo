@@ -19,12 +19,12 @@ module GeminiTypes {
         section_to_remove : [Text];
     };
 
-    type Section = {
+    public type Section = {
         title : Text;
         value : SectionValue;
     };
 
-    type FeedbackItem = {
+    public type FeedbackItem = {
         feedback_message : Text;
         revision_example : Text;
     };

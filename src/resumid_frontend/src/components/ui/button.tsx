@@ -15,18 +15,22 @@ const buttonVariants = cva(
         "bg-[#FFDADA] text-[#C92F2F] hover:bg-[#F1C9C9] font-medium",
       outline:
         "border border-neutral-200 bg-white text-paragraph hover:bg-secondary-900 font-medium",
+      grey:
+        "bg-transparent hover:bg-neutral-100 hover:text-neutral-500 dark:border-neutral-800 dark:hover:bg-neutral-800 dark:hover:text-neutral-50",
+      "grey-outline":
+        "border border-neutral-200 bg-transparent hover:bg-neutral-100 hover:text-neutral-900 dark:border-neutral-800 dark:hover:bg-neutral-800 dark:hover:text-neutral-50",
       secondary:
         "bg-secondary-900 text-paragraph hover:bg-secondary-800/60 font-medium",
       gradient: "bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:from-primary-500/90 hover:to-accent-500/90 font-medium",
       ghost: "hover:bg-secondary-900 text-paragraph font-medium",
       link: "text-paragraph underline-offset-8 hover:underline",
-      blue: "bg-[#215ADE] text-white hover:bg-[#215ADE]/90 font-semibold",  
+      blue: "bg-[#215ADE] text-white hover:bg-[#215ADE]/90 font-semibold",
     },
     size: {
       default: "h-10 px-4 py-2 text-sm [&_svg]:w-4 [&_svg]:h-4",
       sm: "h-9 rounded-md px-3 text-sm [&_svg]:w-4 [&_svg]:h-4",
       lg: "h-12 rounded-md px-6 [&_svg]:w-6 [&_svg]:h-6",
-      icon: "h-10 w-10 [&_svg]:w-8 [&_svg]:h-8",
+      icon: "h-10 w-10 [&_svg]:w-4 [&_svg]:h-4",
     },
   },
   defaultVariants: {
