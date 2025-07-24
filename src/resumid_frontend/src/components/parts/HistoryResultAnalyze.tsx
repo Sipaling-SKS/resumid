@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import CircularProgress from "@/components/parts/CircularScore";
-import { CategoryScore } from "@/pages/History/Detail/HistoryDetail";
 import { useRef, useState } from "react";
+import { CategoryScore } from "@/types/history.types";
 
 interface HistoryResultAnalyzeProps {
   categories: Record<string, CategoryScore>;
