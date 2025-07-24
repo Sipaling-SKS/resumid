@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = "/",
 }) => {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -18,7 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const attemptedPathRef = useRef(location.pathname + location.search);
 
   useEffect(() => {
-    if (!isAuthenticated && !loginTriggeredRef.current) {
+    if (!loading && !isAuthenticated && !loginTriggeredRef.current) {
       loginTriggeredRef.current = true;
 
       console.log("attempt protected route access")
@@ -36,7 +36,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         },
       });
     }
-  }, [isAuthenticated, login]);
+  }, [loading, isAuthenticated, login]);
 
   return isAuthenticated ? (
     <Outlet />

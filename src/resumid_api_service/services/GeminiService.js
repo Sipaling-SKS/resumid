@@ -25,7 +25,7 @@ const AnalyzeResume = async (req) => {
   try {
     const response = await ai.models.generateContent({
       model: GeminiConfig.model,
-      contents: promptBody,
+      contents: promptBody.replace('<ACK0007>', '\''),
       config: {
         systemInstruction: GeminiConfig.systemInstruction,
         responseMimeType: GeminiConfig.responseMimetype,

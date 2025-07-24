@@ -37,24 +37,30 @@ export function capitalize(str: string) {
 }
 
 export function shorten(str: string, length: number): string {
-  return str && str.length > length ? str.slice(0,length).split(' ').slice(0, -1).join(' ') + "..." : str
+  return str && str.length > length ? str.slice(0, length).split(' ').slice(0, -1).join(' ') + "..." : str
+}
+
+export function getTextSizeClass(length: number) {
+  if (length <= 30) return "text-lg";
+  if (length <= 60) return "text-base";
+  return "text-sm";
 }
 
 export function formatISOToDate(isoDate: string, includeTime: boolean = false) {
   const date = new Date(isoDate);
   const options: Intl.DateTimeFormatOptions = includeTime
     ? {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        hour12: true, // Use 12-hour format (AM/PM); set to false for 24-hour format
-      }
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true, // Use 12-hour format (AM/PM); set to false for 24-hour format
+    }
     : {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      };
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    };
   return date.toLocaleDateString('en-US', options);
 }

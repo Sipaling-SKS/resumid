@@ -109,23 +109,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initAuthClient = async () => {
       setLoading(true);
+
       const client = await AuthClient.create(defaultOptions.createOptions);
       setAuthClient(client);
+
       const isAuthenticated = await client.isAuthenticated();
       setIsAuthenticated(isAuthenticated);
 
       if (isAuthenticated) {
         const identity = client.getIdentity();
-        setIdentity(identity);
-
         const principal = identity.getPrincipal();
-        setPrincipal(principal);
-
         const actor = createActor(CANISTER_ID_BACKEND, {
           agentOptions: { identity },
         });
+
+        setIdentity(identity);
+        setPrincipal(principal);
         setResumidActor(actor);
 
+        await fetchUserData();
       } else {
         setIdentity(null);
         setPrincipal(null);
@@ -136,6 +138,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initAuthClient();
+  }, []);
+
+  useEffect(() => {
+    const cached = localStorage.getItem("userData");
+    if (cached) {
+      try {
+        setUserData(JSON.parse(cached));
+      } catch { }
+    }
   }, []);
 
   const login = async (

@@ -10,9 +10,6 @@ import { useAuth } from "@/hooks/AuthContext";
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
-
-// pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-
 export type Resume = {
   fullText: string;
   filename: string;
@@ -111,9 +108,9 @@ function Analyzer() {
     }
 
     try {
-      const finalResume: Resume = { ...resume, jobTitle: data.jobTitle };
-      const cleanedFullText = finalResume.fullText.replaceAll("\"", "<ACK0007>");
-
+      const finalData: Resume = { ...resume, ...data };
+      const { fullText, filename, jobTitle } = finalData
+      const cleanedFullText =  fullText.replaceAll("\"", "<ACK0007>");
       if (resumidActor) {
         const res = await resumidActor.AnalyzeResume(
           finalResume.filename,
