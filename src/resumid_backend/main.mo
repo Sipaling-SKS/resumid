@@ -150,7 +150,7 @@ actor Resumid {
   // };
 
   // final analyzev2
-    public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
+    public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?HistoryTypes.History {
       let userId = Principal.toText(msg.caller);
       Debug.print("Caller Principal for AnalyzeResume: " # userId);
 
@@ -221,13 +221,14 @@ actor Resumid {
           switch (addResult) {
             case (#ok(history)) {
               Debug.print("Berhasil menambahkan history ID: " # history.historyId);
+              return ?history;
             };
             case (#err(errMsg)) {
               Debug.print("Gagal menambahkan history: " # errMsg);
+              return null;
             };
           };
 
-          return ?result;
         };
       };
     };
