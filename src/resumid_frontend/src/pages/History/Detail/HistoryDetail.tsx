@@ -19,6 +19,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { HistoryDataTransformer } from "@/utils/historyDataTransform";
 import { HistoryDetailData } from "@/types/history.types";
+import SkeletonSectionAnalysis from "@/components/parts/skeleton/SkeletonSectionAnalysis";
+import SkeletonHistoryResultAnalyze from "@/components/parts/skeleton/SkeletonHistoryResultAnalyze";
+import SkeletonHistoryDetailThumbnail from "@/components/parts/skeleton/SkeletonHistoryDetailThumbnail";
 
 async function handleGetHistoryDetail(resumidActor: any, historyId: string): Promise<HistoryDetailData> {
   if (!resumidActor) {
@@ -56,12 +59,28 @@ function HistoryDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p className="text-paragraph">Loading history details...</p>
+      <>
+        <Helmet>
+          <meta charSet="utf-8" />
+          <title>Loading History Detail | Resumid</title>
+        </Helmet>
+
+        <div className="min-h-screen bg-gray-50">
+          <div className="responsive-container py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-4">
+                <SkeletonHistoryDetailThumbnail />
+              </div>
+              <div className="lg:col-span-8">
+                <SkeletonHistoryResultAnalyze />
+                {[...Array(5)].map((_, index) => (
+                  <SkeletonSectionAnalysis key={index} />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
