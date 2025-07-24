@@ -1,12 +1,12 @@
 import { Document, Page, pdfjs } from 'react-pdf';
 import UploadResume from "@/components/parts/UploadResume";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/useToast";
 import { cleanExtractedText, extractPDFContent } from "@/lib/pdf2text";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router";
-import { useAuth } from "@/hooks/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
