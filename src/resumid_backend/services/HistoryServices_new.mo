@@ -12,6 +12,8 @@ import Iter "mo:base/Iter";
 import Option "mo:base/Option";
 import Int "mo:base/Int";
 import Debug "mo:base/Debug";
+import Float "mo:base/Float";
+
 
 
 
@@ -102,54 +104,145 @@ module {
 
 
         // === Sorting ===
-       switch (sortBys) {
-        case null {};
-        case (?sortFields) {
-            h := Array.sort<HistoryTypes.History>(h, func(a: HistoryTypes.History, b: HistoryTypes.History) : Order.Order {
-            for ((field, desc) in sortFields.vals()) {
+      //  switch (sortBys) {
+      //   case null {};
+      //   case (?sortFields) {
+      //       h := Array.sort<HistoryTypes.History>(h, func(a: HistoryTypes.History, b: HistoryTypes.History) : Order.Order {
+      //       for ((field, desc) in sortFields.vals()) {
 
-                let cmp : Int = switch (field) {
-                case ("createdAt") {
-                    if (a.createdAt < b.createdAt) { -1 }
-                    else if (a.createdAt > b.createdAt) { 1 }
-                    else { 0 }
-                };
+      //           let cmp : Int = switch (field) {
+      //           case ("createdAt") {
+      //               if (a.createdAt < b.createdAt) { -1 }
+      //               else if (a.createdAt > b.createdAt) { 1 }
+      //               else { 0 }
+      //           };
 
-                case ("score") {
-                    let scoreA : Int = switch (Array.find(a.content, func(c: HistoryTypes.ContentItem) : Bool {
-                    c.title == "Header"
-                    })) {
-                    case null { 0 };
-                    case (?c) { c.value.score };
-                    };
+      //           case ("score") {
+      //               let scoreA : Int = switch (Array.find(a.content, func(c: HistoryTypes.ContentItem) : Bool {
+      //               c.title == "Header"
+      //               })) {
+      //               case null { 0 };
+      //               case (?c) { c.value.score };
+      //               };
 
-                    let scoreB : Int = switch (Array.find(b.content, func(c: HistoryTypes.ContentItem) : Bool {
-                    c.title == "Header"
-                    })) {
-                    case null { 0 };
-                    case (?c) { c.value.score };
-                    };
+      //               let scoreB : Int = switch (Array.find(b.content, func(c: HistoryTypes.ContentItem) : Bool {
+      //               c.title == "Header"
+      //               })) {
+      //               case null { 0 };
+      //               case (?c) { c.value.score };
+      //               };
 
-                    if (scoreA < scoreB) { -1 }
-                    else if (scoreA > scoreB) { 1 }
-                    else { 0 }
-                };
+      //               if (scoreA < scoreB) { -1 }
+      //               else if (scoreA > scoreB) { 1 }
+      //               else { 0 }
+      //           };
 
-                case _ { 0 };
-                };
+      //           case _ { 0 };
+      //           };
 
-                if (cmp != 0) {
-                return if (desc) {
-                    if (cmp < 0) { #greater } else { #less }
-                } else {
-                    if (cmp < 0) { #less } else { #greater }
-                };
-                };
+      //           if (cmp != 0) {
+      //           return if (desc) {
+      //               if (cmp < 0) { #greater } else { #less }
+      //           } else {
+      //               if (cmp < 0) { #less } else { #greater }
+      //           };
+      //           };
+      //       };
+      //       return #equal;
+      //       });
+      //   };
+      //   };
+
+      // === Sorting ===
+      // switch (sortBys) {
+      //   case null {};
+      //   case (?sortFields) {
+      //     h := Array.sort<HistoryTypes.History>(h, func(a: HistoryTypes.History, b: HistoryTypes.History) : Order.Order {
+      //       for ((field, desc) in sortFields.vals()) {
+      //         let cmp : Int = switch (field) {
+      //           case ("score") {
+      //             let scoreA : Int = switch (Array.find(a.content, func(c: HistoryTypes.ContentItem) : Bool {
+      //               c.title == "Header"
+      //             })) {
+      //               case null { 0 };
+      //               case (?c) { c.value.score };
+      //             };
+
+      //             let scoreB : Int = switch (Array.find(b.content, func(c: HistoryTypes.ContentItem) : Bool {
+      //               c.title == "Header"
+      //             })) {
+      //               case null { 0 };
+      //               case (?c) { c.value.score };
+      //             };
+
+      //             if (scoreA < scoreB) { -1 }
+      //             else if (scoreA > scoreB) { 1 }
+      //             else { 0 }
+      //           };
+
+      //           case ("createdAt") {
+      //             if (a.createdAt < b.createdAt) { -1 }
+      //             else if (a.createdAt > b.createdAt) { 1 }
+      //             else { 0 }
+      //           };
+
+      //           // Add more sort fields here if needed
+      //           case _ { 0 };
+      //         };
+
+      //         if (cmp != 0) {
+      //           return if (desc) {
+      //             if (cmp < 0) { #greater } else { #less }
+      //           } else {
+      //             if (cmp < 0) { #less } else { #greater }
+      //           };
+      //         };
+      //       };
+
+      //       return #equal; // all fields equal
+      //     });
+      //   };
+      // };
+      switch (sortBys) {
+      case null {};
+      case (?sortFields) {
+        h := Array.sort<HistoryTypes.History>(h, func(a: HistoryTypes.History, b: HistoryTypes.History) : Order.Order {
+          for ((field, desc) in sortFields.vals()) {
+            let cmp : Int = switch (field) {
+              case ("score") {
+                let scoreA = a.summary.score;
+                let scoreB = b.summary.score;
+
+                if (scoreA < scoreB) { -1 }
+                else if (scoreA > scoreB) { 1 }
+                else { 0 }
+              };
+
+              case ("createdAt") {
+                if (a.createdAt < b.createdAt) { -1 }
+                else if (a.createdAt > b.createdAt) { 1 }
+                else { 0 }
+              };
+
+              // Tambahkan field lain di sini kalau diperlukan
+              case _ { 0 };
             };
-            return #equal;
-            });
-        };
-        };
+
+            if (cmp != 0) {
+              return if (desc) {
+                if (cmp < 0) { #greater } else { #less }
+              } else {
+                if (cmp < 0) { #less } else { #greater }
+              };
+            };
+          };
+
+          return #equal; 
+        });
+      };
+    };
+
+
 
 
         // === Global Filter ===
@@ -409,7 +502,7 @@ public func addDummyHistoriesSync(histories: HistoryTypes.Histories, userId: Tex
     };
 
     let dummySummary: HistoryTypes.Summary = {
-      score = 81.0;
+      score = 81.0 + Float.fromInt(i);
       value = "Resume shows good structure and relevant experience.";
     };
 
