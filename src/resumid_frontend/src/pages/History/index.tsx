@@ -57,7 +57,7 @@ interface HistoryResponse {
   totalPages: number,
 }
 
-const DEFAULT_ROW_OPTION: number[] = [1, 10, 20, 30, 40, 50];
+const DEFAULT_ROW_OPTION: number[] = [10, 20, 30, 40, 50];
 
 function decodeBase64(encodedString: string, returnVal: ColumnSort[] | ColumnFilters[] = []) {
   try {
@@ -151,8 +151,16 @@ export default function HistoryList() {
 
   async function handleGetHistories(): Promise<HistoryResponse> {
     try {
-      console.log(pagination);
-      const res = await resumidActor.getHistoriesPaginated(pagination.pageIndex, pagination.pageSize, sorting, columnFilters, globalFilter);
+      const filterBys: [string, string][] = columnFilters.map((f) => [f.id, String(f.value)]);
+      const sortBys: [string, boolean][] = sorting.map((s) => [s.id, s.desc]);
+
+      const res = await resumidActor.getHistoriesPaginated(
+        pagination.pageIndex,
+        pagination.pageSize,
+        [filterBys],
+        [sortBys],
+        globalFilter ?? ""
+      );
 
       if ("ok" in res) {
         const response = res.ok;
@@ -165,7 +173,7 @@ export default function HistoryList() {
             id: history.historyId,
             fileName: history.fileName,
             jobTitle: history.jobTitle,
-            score,
+            score: isNaN(Number(score)) ? 0 : Number(score),
             date: new Date(history.createdAt).toISOString(),
             summary,
           };
@@ -204,6 +212,12 @@ export default function HistoryList() {
     isLoading: isLoading,
     pageSizeOptions: DEFAULT_ROW_OPTION,
     pageCount: totalPages,
+    tableBodyRowProps: ({ row }: { row: any }) => ({
+      onClick: () => {
+        navigate(`/history-detail/${row.original.id}`)
+      },
+      className: "text-paragraph cursor-pointer"
+    }),
 
     state: {
       columnFilters,
@@ -290,6 +304,14 @@ export default function HistoryList() {
         </section>
         <section className="flex justify-between items-center gap-2">
           <div className="flex items-center gap-2 w-full">
+            <MemoizedInputField
+              id="history-search"
+              startIcon={<Search size={16} />}
+              fullWidth
+              placeholder="Search resume filename, job title/role, score, etc"
+              value={globalFilter}
+              onChange={setGlobalFIlter}
+            />
             <ToggleGroup type="single" value={view} onValueChange={(val: "table" | "card") => setView(val)} variant="outline" className="text-paragraph">
               <Tooltip>
                 <TooltipTrigger>
@@ -312,13 +334,6 @@ export default function HistoryList() {
                 </TooltipContent>
               </Tooltip>
             </ToggleGroup>
-            <MemoizedInputField
-              id="history-search"
-              startIcon={<Search size={16} />}
-              fullWidth
-              placeholder="Search resume filename, job title/role, score, etc"
-              value={globalFilter}
-              onChange={setGlobalFIlter} />
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>
@@ -350,26 +365,26 @@ export default function HistoryList() {
                     <div className="p-2">
                       <Label htmlFor="filter-filename" className="space-y-1">
                         <p className="text-paragraph text-sm">Resume Name</p>
-                        <Input
+                        <MemoizedInputField
                           id="filter-filename"
                           className="font-normal"
                           type="text"
                           placeholder="Input resume name"
                           value={String(columnFilters.find((f) => f.id === "fileName")?.value ?? "")}
-                          onChange={(e) => handleFilterChange("fileName", e.target.value)}
+                          onChange={(value) => handleFilterChange("fileName", value)}
                         />
                       </Label>
                     </div>
                     <div className="p-2">
                       <Label htmlFor="filter-job-role" className="space-y-1">
                         <p className="text-paragraph text-sm">Job Title/Role</p>
-                        <Input
+                        <MemoizedInputField
                           id="filter-job-role"
                           className="font-normal"
                           type="text"
                           placeholder="Input job title/role"
                           value={String(columnFilters.find((f) => f.id === "jobTitle")?.value ?? "")}
-                          onChange={(e) => handleFilterChange("jobTitle", e.target.value)}
+                          onChange={(value) => handleFilterChange("jobTitle", value)}
                         />
                       </Label>
                     </div>
@@ -495,9 +510,12 @@ export default function HistoryList() {
             </Alert>
           )}
           {view === "card" ? (
-            <HistoryCards isLoading={isFetching || isLoading} data={data} pagination={pagination} setPagination={setPagination} pageCount={totalPages} rowSelection={selectedRows} onRowSelectionChange={setSelectedRows} pageSizeOptions={DEFAULT_ROW_OPTION}/>
+            <HistoryCards isLoading={isFetching || isLoading} data={data} pagination={pagination} setPagination={setPagination} pageCount={totalPages} rowSelection={selectedRows} onRowSelectionChange={setSelectedRows} pageSizeOptions={DEFAULT_ROW_OPTION} />
           ) : (
-            <HistoryTable columns={columns} data={data} options={options} />
+            <HistoryTable columns={[...columns, {
+              header: 'Detail',
+              cell: ({ row }: { row: any }) => (<Button variant="grey-outline" size="sm" onClick={() => navigate(`/history-detail/${row.original.id}`)}>View</Button>)
+            }]} data={data} options={options} />
           )}
         </div>
       </main >

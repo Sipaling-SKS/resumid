@@ -14,7 +14,7 @@ import GeminiTypes "../types/GeminiTypes";
 module GeminiServices {
     public func AnalyzeResume(resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
         let route : Text = "/gemini-service";
-        // let route : Text = "/gpt-mockup";
+        // let route : Text = "/gemini-mockup";
 
         // Construct Request Body
         let body : GeminiTypes.AnalyzeResumeRequest = {
@@ -33,7 +33,7 @@ module GeminiServices {
             case (#ok(jsonBody)) {
 
                 // Debug json body
-                // Debug.print(debug_show (jsonBody));
+                Debug.print(debug_show (jsonBody));
 
                 let bodyAsBlob = Text.encodeUtf8(jsonBody);
 
@@ -48,7 +48,6 @@ module GeminiServices {
                     method = #post;
                 };
 
-                // Debug.print(debug_show(request));
                 let result : HttpTypes.HttpResponse = await HttpHelper.sendPostHttpRequest(request);
 
                 // Decode Body Response
@@ -63,13 +62,11 @@ module GeminiServices {
                         null;
                     };
                     case (?text) {
-                        // Debug.print(debug_show(text));
+                        Debug.print(debug_show(text));
                         switch (JSON.fromText(text, null)) {
-                            case (#ok(blob)) {
-                                // Debug.print("Masuk Sini");
-                                
+                            case (#ok(blob)) {                                
                                 let geminiResponse : ?GeminiTypes.AnalyzeStructureResponse = from_candid (blob);
-                                // Debug.print(debug_show (geminiResponse));
+                                Debug.print(debug_show (geminiResponse));
 
                                 geminiResponse;
                             };
