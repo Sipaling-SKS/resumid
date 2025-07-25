@@ -87,9 +87,8 @@ dfx deploy
 ```env
 # START EXPRESS ENVIRONMENT VARIABLES
 EXPRESS_MONGODB_URI='mongodb+srv://<user>:<password>@cluster0.afxyv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-EXPRESS_GPT_BASE_URL = 'https://api.openai.com/v1'
 EXPRESS_API_KEY = 'EXPRESS_API_KEY'
-EXPRESS_GPT_API_KEY = 'GPT_API_KEY'
+EXPRESS_GEMINI_API_KEY = 'GEMINI_API_KEY'
 EXPRESS_PORT = 5000
 # END EXPRESS ENVIRONMENT VARIABLES
 ```
