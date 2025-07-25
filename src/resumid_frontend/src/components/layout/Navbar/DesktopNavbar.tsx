@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useData } from "@/contexts/DataContext";
 
 function DesktopNavbar({ navigate }: any) {
   const { isAuthenticated, login, logout, userData } = useAuth();

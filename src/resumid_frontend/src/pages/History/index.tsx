@@ -512,7 +512,10 @@ export default function HistoryList() {
           {view === "card" ? (
             <HistoryCards isLoading={isFetching || isLoading} data={data} pagination={pagination} setPagination={setPagination} pageCount={totalPages} rowSelection={selectedRows} onRowSelectionChange={setSelectedRows} pageSizeOptions={DEFAULT_ROW_OPTION} />
           ) : (
-            <HistoryTable columns={columns} data={data} options={options} />
+            <HistoryTable columns={[...columns, {
+              header: 'Detail',
+              cell: ({ row }: { row: any }) => (<Button variant="grey-outline" size="sm" onClick={() => navigate(`/history-detail/${row.original.id}`)}>View</Button>)
+            }]} data={data} options={options} />
           )}
         </div>
       </main >
