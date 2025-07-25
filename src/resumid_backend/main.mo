@@ -55,10 +55,11 @@ actor Resumid {
   // Gemini Analyze Method
   // ==============================
 
-  public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
+  public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?HistoryTypes.History {
     let userId = Principal.toText(msg.caller);
     Debug.print("Caller Principal for AnalyzeResume: " # userId);
 
+    // Panggil service eksternal
     let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
     Debug.print("Analyze result: " # debug_show (analyzeResult));
 
@@ -68,171 +69,11 @@ actor Resumid {
         return null;
       };
       case (?result) {
+        // Dapatkan timestamp saat ini
         let timestamp = Time.now();
         let formattedTimestamp = DateHelper.formatTimestamp(timestamp);
 
-<<<<<<< Updated upstream
-  //   switch (analyzeResult) {
-  //     case (null) {
-  //       Debug.print("AnalyzeResult is null. Skipping HistoryServices processing.");
-  //     };
-  //     case (?result) {
-  //       let addHistoryInput = {
-  //         fileName = fileName;
-  //         jobTitle = jobTitle;
-  //         summary = result.summary;
-  //         score = result.score;
-  //         strengths = result.strengths;
-  //         weaknesses = result.weakness;
-  //         gaps = result.gaps;
-  //         suggestions = result.suggestions;
-  //       };
-
-  //       let historyResult = await HistoryServices.addHistory(histories, userId, addHistoryInput);
-
-
-  //       // Create logging for history result process
-  //       switch (historyResult) {
-  //         case (#ok(res)) {
-  //           Debug.print(debug_show (res));
-  //           Debug.print("History added successfully.");
-  //         };
-  //         case (#err(errorMessage)) {
-  //           Debug.print("Failed to add history: " # errorMessage);
-  //           Debug.print(errorMessage);
-  //         };
-  //       };
-  //     };
-  //   };
-
-  //   analyzeResult;
-  // };
-
-  // public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
-  //   let userId = Principal.toText(msg.caller);
-
-  //   Debug.print("Caller Principal for AnalyzeResume: " # userId);
-
-  //   let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
-  //   Debug.print(debug_show (analyzeResult));
-
-  //   // switch (analyzeResult) {
-  //   //   case (null) {
-  //   //     Debug.print("AnalyzeResult is null. Skipping HistoryServices processing.");
-  //   //   };
-  //   //   case (?result) {
-  //   //     let addHistoryInput = {
-  //   //       fileName = fileName;
-  //   //       jobTitle = jobTitle;
-  //   //       summary = result.summary;
-  //   //       score = result.score;
-  //   //       strengths = result.strengths;
-  //   //       weaknesses = result.weakness;
-  //   //       gaps = result.gaps;
-  //   //       suggestions = result.suggestions;
-  //   //     };
-
-  //   //     let historyResult = await HistoryServices.addHistory(histories, userId, addHistoryInput);
-
-
-  //   //     // Create logging for history result process
-  //   //     switch (historyResult) {
-  //   //       case (#ok(res)) {
-  //   //         Debug.print(debug_show (res));
-  //   //         Debug.print("History added successfully.");
-  //   //       };
-  //   //       case (#err(errorMessage)) {
-  //   //         Debug.print("Failed to add history: " # errorMessage);
-  //   //         Debug.print(errorMessage);
-  //   //       };
-  //   //     };
-  //   //   };
-  //   // };
-
-  //   analyzeResult;
-  // };
-
-  // final analyzev2
-    public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?HistoryTypes.History {
-      let userId = Principal.toText(msg.caller);
-      Debug.print("Caller Principal for AnalyzeResume: " # userId);
-
-      // Panggil service eksternal
-      let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
-      Debug.print("Analyze result: " # debug_show(analyzeResult));
-
-      switch (analyzeResult) {
-        case null {
-          Debug.print("AnalyzeResume returned null");
-          return null;
-        };
-        case (?result) {
-          // Dapatkan timestamp saat ini
-          let timestamp = Time.now();
-          let formattedTimestamp = DateHelper.formatTimestamp(timestamp);
-
-          // Konversi konten analisis ke tipe internal
-          let convertedContent = Array.map<GeminiTypes.Section, HistoryTypes.ContentItem>(
-            result.content,
-            func (section) {
-              {
-                title = section.title;
-                value = {
-                  feedback = Array.map<GeminiTypes.FeedbackItem, HistoryTypes.Feedback>(
-                    section.value.feedback,
-                    func (fb) {
-                      {
-                        feedback_message = fb.feedback_message;
-                        revision_example = fb.revision_example;
-                      }
-                    }
-                  );
-                  pointer = section.value.pointer;
-                  score = section.value.score;
-                  strength = section.value.strength;
-                  weaknesess = section.value.weaknesess;
-                };
-              }
-            }
-          );
-
-          let convertedConclusion : HistoryTypes.Conclusion = {
-            career_recomendation = result.conclusion.career_recomendation;
-            keyword_matching = result.conclusion.keyword_matching;
-            section_to_add = result.conclusion.section_to_add;
-            section_to_remove = result.conclusion.section_to_remove;
-          };
-
-          let convertedSummary : HistoryTypes.Summary = {
-            score = result.summary.score;
-            value = result.summary.value;
-          };
-
-          // Siapkan input untuk addHistory
-          let input : HistoryTypes.AddHistoryInput = {
-            fileName = fileName;
-            jobTitle = jobTitle;
-            summary = convertedSummary;
-            conclusion = convertedConclusion;
-            content = convertedContent;
-            createdAt = formattedTimestamp;
-          };
-
-          // Simpan menggunakan service
-          let addResult = await HistoryServices.addHistory(histories, userId, input);
-
-          switch (addResult) {
-            case (#ok(history)) {
-              Debug.print("Berhasil menambahkan history ID: " # history.historyId);
-              ?history;
-            };
-            case (#err(errMsg)) {
-              Debug.print("Gagal menambahkan history: " # errMsg);
-              null;
-            };
-          };
-
-=======
+        // Konversi konten analisis ke tipe internal
         let convertedContent = Array.map<GeminiTypes.Section, HistoryTypes.ContentItem>(
           result.content,
           func(section) {
@@ -249,7 +90,7 @@ actor Resumid {
                   },
                 );
                 pointer = section.value.pointer;
-                score = section.value.score * 10;
+                score = section.value.score;
                 strength = section.value.strength;
                 weaknesess = section.value.weaknesess;
               };
@@ -262,14 +103,14 @@ actor Resumid {
           keyword_matching = result.conclusion.keyword_matching;
           section_to_add = result.conclusion.section_to_add;
           section_to_remove = result.conclusion.section_to_remove;
->>>>>>> Stashed changes
         };
 
         let convertedSummary : HistoryTypes.Summary = {
-          score = Float.fromInt(result.summary.score) * 10;
+          score = result.summary.score;
           value = result.summary.value;
         };
 
+        // Siapkan input untuk addHistory
         let input : HistoryTypes.AddHistoryInput = {
           fileName = fileName;
           jobTitle = jobTitle;
@@ -279,18 +120,20 @@ actor Resumid {
           createdAt = formattedTimestamp;
         };
 
+        // Simpan menggunakan service
         let addResult = await HistoryServices.addHistory(histories, userId, input);
 
         switch (addResult) {
           case (#ok(history)) {
             Debug.print("Berhasil menambahkan history ID: " # history.historyId);
+            ?history;
           };
           case (#err(errMsg)) {
             Debug.print("Gagal menambahkan history: " # errMsg);
+            null;
           };
         };
 
-        return ?result;
       };
     };
   };
@@ -305,10 +148,10 @@ actor Resumid {
 
     switch (result) {
       case (#ok(history)) {
-        return #ok(history.historyId); 
+        return #ok(history.historyId);
       };
       case (#err(errMsg)) {
-        return #err(errMsg); 
+        return #err(errMsg);
       };
     };
   };
