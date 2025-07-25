@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileInput } from "@/components/ui/file-input";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/useToast";
 import { Loader2 } from "lucide-react";
 
 interface UploadResumeProps {

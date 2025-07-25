@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuth } from "../hooks/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const Logout: React.FC = () => {
   const { login, isAuthenticated, identity, principal } = useAuth();
@@ -12,7 +12,7 @@ const Logout: React.FC = () => {
       <p>Principal: {JSON.stringify(principal)}</p>
       <p>Identity: {JSON.stringify(identity)}</p>
       <p>is Auth? {String(isAuthenticated)}</p>
-      <button type="button" id="loginButton" onClick={login}>
+      <button type="button" id="loginButton" onClick={() => login()}>
         Log in
       </button>
     </div>

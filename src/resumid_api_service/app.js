@@ -14,32 +14,32 @@ const app = express();
 const validateApiKey = (req, res, next) => {
   const apiKey = req.headers[API_HEADERS_KEY];
 
-  if(!apiKey) {
+  if (!apiKey) {
     return res.status(401).json({ message: "API key is missing" });
   }
-  if(apiKey != process.env.EXPRESS_API_KEY) {
+  if (apiKey != process.env.EXPRESS_API_KEY) {
     return res.status(403).json({ message: "Invalid API key" });
   }
 
   next();
-}
+};
 
 // Validate idempotency key
 // TODO: Change this logic to caching flow
 const idempotencyKeys = new Set();
 const attachIdempotencyKeys = (req, res, next) => {
   const requestKey = req.headers[API_IDEMPOTENCY_KEY];
-  if(idempotencyKeys.has(requestKey)) {
-    return res.send(409).json({ "message": "Duplicate request detected" });
+  if (idempotencyKeys.has(requestKey)) {
+    return res.send(409).json({ message: "Duplicate request detected" });
   }
 
   idempotencyKeys.add(requestKey);
 
   // Delete after 4 sec
   setTimeout(() => {
-    idempotencyKeys.delete(requestKey); 
+    idempotencyKeys.delete(requestKey);
   }, 4000);
-  
+
   next();
 };
 
@@ -49,7 +49,7 @@ app.use(validateApiKey);
 app.use(attachIdempotencyKeys);
 app.use("/api", router);
 
-const port = process.env.EXPRESS_PORT || 5000;
+const port = process.env.EXPRESS_PORT || 6000;
 
 mongoose
   .connect(process.env.EXPRESS_MONGODB_URI)
