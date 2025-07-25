@@ -46,11 +46,44 @@ function SectionAnalysis({
     }
   ];
 
+  function isMeaningfulValue(value: string): boolean {
+    const trimmedValue = value.trim().toLowerCase();
+    return trimmedValue !== 'none' && 
+           trimmedValue !== 'none.' && 
+           trimmedValue !== 'n/a' && 
+           trimmedValue !== 'n/a.' &&
+           trimmedValue !== '' &&
+           !trimmedValue.match(/^no\s+(revisions?|changes?)\s+needed\.?$/i);
+  }
+
+  function filterMeaningfulContent(items: string[]): string[] {
+    return items.filter(item => isMeaningfulValue(item));
+  }
+
+  function filterMeaningfulFeedback(feedbackItems: { message: string; example?: string; }[]): { message: string; example?: string; }[] {
+    return feedbackItems
+      .filter(item => isMeaningfulValue(item.message))
+      .map(item => ({
+        message: item.message,
+        example: item.example && isMeaningfulValue(item.example) ? item.example : undefined
+      }));
+  }
+
   function checkDefaultValue(analysis: SectionAnalysisData) {
     for (const section of sections) {
       const sectionData = analysis[section.key as keyof SectionAnalysisData];
       if (sectionData && sectionData.length > 0) {
-        return ["section-analysis"];
+        if (section.key === 'feedback') {
+          const meaningfulFeedback = filterMeaningfulFeedback(sectionData as { message: string; example?: string; }[]);
+          if (meaningfulFeedback.length > 0) {
+            return ["section-analysis"];
+          }
+        } else {
+          const meaningfulContent = filterMeaningfulContent(sectionData as string[]);
+          if (meaningfulContent.length > 0) {
+            return ["section-analysis"];
+          }
+        }
       }
     }
     return [];
@@ -82,6 +115,15 @@ function SectionAnalysis({
               {sections.map((section) => {
                 const sectionData = analysis[section.key as keyof SectionAnalysisData];
                 if (!sectionData || sectionData.length === 0) return null;
+
+                let meaningfulData: any;
+                if (section.key === 'feedback') {
+                  meaningfulData = filterMeaningfulFeedback(sectionData as { message: string; example?: string; }[]);
+                } else {
+                  meaningfulData = filterMeaningfulContent(sectionData as string[]);
+                }
+                
+                if (!meaningfulData || meaningfulData.length === 0) return null;
                 
                 return (
                   <div key={section.key} className="rounded-lg text-sm md:text-base">
@@ -93,7 +135,7 @@ function SectionAnalysis({
                     </div>
                     <div className="ml-3">
                       {section.key === 'feedback' ? (
-                        (sectionData as { message: string; example?: string; }[]).map((item, index) => (
+                        meaningfulData.map((item: { message: string; example?: string; }, index: number) => (
                           <div key={index} className="mb-4 last:mb-0">
                             <div className="flex items-start gap-2 mb-2">
                               <span className="leading-relaxed mt-0 flex-shrink-0">•</span>
@@ -111,8 +153,7 @@ function SectionAnalysis({
                           </div>
                         ))
                       ) : (
-                        // Regular handling for other sections
-                        (sectionData as string[]).map((item, index) => (
+                        meaningfulData.map((item: string, index: number) => (
                           <div key={index} className="flex items-start gap-2 mb-2 last:mb-0">
                             <span className="leading-relaxed mt-0 flex-shrink-0">•</span>
                             <span className="leading-relaxed">{item}</span>

@@ -91,11 +91,11 @@ function CircularProgress({
       className
     )}>
       {showScoreText && (
-        <h3 className="text-paragraph leading-none" style={{ fontSize: 'clamp(0.75rem, 6vw, 1rem)' }}>Score</h3>
+        <h3 className="text-paragraph leading-none" style={{ fontSize: 'clamp(0.7rem, 5vw, 0.95rem)' }}>Score</h3>
       )}
-      <p className="leading-none" style={{ fontSize: 'clamp(1rem, 6vw, 1.75rem)', color: currentColors.textColor }}>
+      <p className="leading-none" style={{ fontSize: 'clamp(0.95rem, 5vw, 1.7rem)', color: currentColors.textColor }}>
         {Math.floor(animatedScore)}
-        <span className="font-bold" style={{ fontSize: 'clamp(0.625rem, 5vw, 1.25rem)' }}>%</span>
+        <span className="font-bold" style={{ fontSize: 'clamp(0.6rem, 4vw, 1.25rem)' }}>%</span>
       </p>
       <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 36 36">
         {/* Background track */}
