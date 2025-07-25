@@ -185,7 +185,7 @@ actor Resumid {
                     }
                   );
                   pointer = section.value.pointer;
-                  score = section.value.score * 10;
+                  score = section.value.score;
                   strength = section.value.strength;
                   weaknesess = section.value.weaknesess;
                 };
@@ -201,7 +201,7 @@ actor Resumid {
           };
 
           let convertedSummary : HistoryTypes.Summary = {
-            score = Float.fromInt(result.summary.score) * 10;
+            score = result.summary.score;
             value = result.summary.value;
           };
 
@@ -221,11 +221,11 @@ actor Resumid {
           switch (addResult) {
             case (#ok(history)) {
               Debug.print("Berhasil menambahkan history ID: " # history.historyId);
-              return ?history;
+              ?history;
             };
             case (#err(errMsg)) {
               Debug.print("Gagal menambahkan history: " # errMsg);
-              return null;
+              null;
             };
           };
 

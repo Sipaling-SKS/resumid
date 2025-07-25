@@ -12,7 +12,7 @@ module GeminiTypes {
         summary : Summary;
     };
 
-    type Conclusion = {
+    public type Conclusion = {
         career_recomendation : [Text];
         keyword_matching : [Text];
         section_to_add : [Text];
@@ -29,16 +29,16 @@ module GeminiTypes {
         revision_example : Text;
     };
 
-    type SectionValue = {
+    public type SectionValue = {
         feedback : [FeedbackItem];
         pointer : [Text];
-        score : Nat;
+        score : Int;
         strength : Text;
         weaknesess : Text;
     };
 
-    type Summary = {
-        score : Nat;
+    public type Summary = {
+        score : Int;
         value : Text;
     };
 

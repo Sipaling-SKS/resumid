@@ -43,14 +43,15 @@ const AnalyzeResume = async (req) => {
     });
 
     await newData.save();
+    console.log(JSON.parse(response.text)[0])
     return JSON.parse(response.text)[0];
   } catch (err) {
     console.log(err);
   }
 };
 
-const MockupAnalyzeResume = () => {
-  const cvContent = req.body.cyContent;
+const MockupAnalyzeResume = (req) => {
+  const cvContent = req.body.cvContent;
   const jobTitle = req.body.jobTitle;
   console.log(cvContent);
   console.log(jobTitle);

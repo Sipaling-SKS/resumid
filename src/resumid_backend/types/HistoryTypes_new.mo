@@ -103,7 +103,7 @@ module {
     };
 
     public type Summary = {
-        score : Float;
+        score : Int;
         value : Text;
     };
 

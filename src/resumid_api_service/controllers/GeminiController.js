@@ -6,7 +6,7 @@ exports.CreateAnalyzeResume = async (req, res, next) => {
   return res.status(200).json(response);
 };
 exports.CreateMockupAnalyzeResume = async (req, res, next) => {
-  const response = GeminiServices.MockupAnalyzeResume();
+  const response = GeminiServices.MockupAnalyzeResume(req);
   
   return res.status(200).json(response);
 };

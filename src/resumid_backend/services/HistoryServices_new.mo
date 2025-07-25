@@ -401,7 +401,7 @@ public func addDummyHistoriesSync(histories: HistoryTypes.Histories, userId: Tex
     };
 
     let dummySummary: HistoryTypes.Summary = {
-      score = 81.0;
+      score = 81;
       value = "Resume shows good structure and relevant experience.";
     };
 
