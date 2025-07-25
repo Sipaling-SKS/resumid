@@ -157,8 +157,8 @@ export default function HistoryList() {
       const res = await resumidActor.getHistoriesPaginated(
         pagination.pageIndex,
         pagination.pageSize,
-        [filterBys],
         [sortBys],
+        [filterBys],
         globalFilter ?? ""
       );
 
