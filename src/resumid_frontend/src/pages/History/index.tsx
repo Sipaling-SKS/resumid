@@ -173,7 +173,7 @@ export default function HistoryList() {
             id: history.historyId,
             fileName: history.fileName,
             jobTitle: history.jobTitle,
-            score,
+            score: isNaN(Number(score)) ? 0 : Number(score),
             date: new Date(history.createdAt).toISOString(),
             summary,
           };

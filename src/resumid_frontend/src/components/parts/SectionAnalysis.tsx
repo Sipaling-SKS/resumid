@@ -1,6 +1,7 @@
 import { Card, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ChevronDown } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
 
 interface SectionAnalysisData {
   strengths: string[];
@@ -18,30 +19,30 @@ interface SectionAnalysisProps {
   score?: number;
 }
 
-function SectionAnalysis({ 
-  title, 
+function SectionAnalysis({
+  title,
   analysis,
-  score 
+  score
 }: SectionAnalysisProps) {
   const sections = [
-    { 
-      key: 'strengths', 
-      label: 'Strengths', 
+    {
+      key: 'strengths',
+      label: 'Strengths',
       color: 'bg-green-500'
     },
-    { 
-      key: 'weaknesses', 
-      label: 'Weaknesses', 
+    {
+      key: 'weaknesses',
+      label: 'Weaknesses',
       color: 'bg-red-500'
     },
-    { 
-      key: 'pointers', 
-      label: 'Pointers for Improvement', 
+    {
+      key: 'pointers',
+      label: 'Pointers for Improvement',
       color: 'bg-yellow-500'
     },
-    { 
-      key: 'feedback', 
-      label: 'Feedback', 
+    {
+      key: 'feedback',
+      label: 'Feedback',
       color: 'bg-blue-500'
     }
   ];
@@ -109,7 +110,7 @@ function SectionAnalysis({
               )}
             </div>
           </AccordionTrigger>
-          
+
           <AccordionContent className="px-6 pb-6 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
             <div className="space-y-4">
               {sections.map((section) => {
@@ -128,7 +129,7 @@ function SectionAnalysis({
                 return (
                   <div key={section.key} className="rounded-lg text-sm md:text-base">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className={`w-1 h-5 rounded-r-sm ${section.color}`}></div>
+                      <div className={`w-1 h-5 ${section.color}`}></div>
                       <h4 className={`font-semibold`}>
                         {section.label}
                       </h4>
@@ -144,9 +145,12 @@ function SectionAnalysis({
                             {item.example && (
                               <div className="ml-4 mt-3">
                                 <blockquote className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-                                  <p className="text-gray-700 italic leading-relaxed">
-                                    {item.example}
-                                  </p>
+                                  <div className="text-gray-700 italic leading-relaxed">
+                                    <ReactMarkdown>
+                                      {item.example}
+                                    </ReactMarkdown>
+                                  </div>
+
                                 </blockquote>
                               </div>
                             )}
