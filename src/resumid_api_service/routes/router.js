@@ -1,20 +1,10 @@
-const express = require('express');
-
-const GptController = require("../controllers/GptRequestController");
-const GeminiController = require("../controllers/GeminiController");
+import express from 'express';
+import presignedUrlRouter from './routes/PresignedUrlRouter.js';
+import geminiRouter from './routes/GeminiRouter.js';
 
 const router = express.Router();
 
-// Connected endpoint with open ai gpt service
-router.post('/gpt-service', GptController.CreateAnalyzeResume);
+router.use('/upload', presignedUrlRouter);
+router.use('/analyze', geminiRouter);
 
-// Mockup endpoint to return open ai gpt response mockup (static response)
-router.post('/gpt-mockup', GptController.CreateMockupAnalyzeResume);
-
-// Connected endpoint with open ai gemini service
-router.post('/gemini-service', GeminiController.CreateAnalyzeResume);
-
-// Mockup endpoint to return open ai gemini response mockup (static response)
-router.post('/gemini-mockup', GeminiController.CreateMockupAnalyzeResume);
-
-module.exports = router;
+export default router;
