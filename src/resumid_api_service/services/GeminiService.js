@@ -6,6 +6,8 @@ const dotenv = require("dotenv").config({
 });
 const axios = require("axios");
 const { GeminiConfig } = require("../constants/geminiConfig");
+const { resumeExtractConfig } = require("../constants/resumeExtractConfig");
+
 
 const TrGptRequestLog = require("../models/TrGptRequestLog");
 
@@ -268,7 +270,43 @@ const MockupAnalyzeResume = (req) => {
   return cvReview;
 };
 
+const ExtractResume = async (req) => {
+  const cvContent = req.body.cvContent; 
+
+  const now = new Date();
+  const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
+
+  try {
+    const response = await ai.models.generateContent({
+      model: resumeExtractConfig.model,
+      contents: cvContent, 
+      config: {
+        systemInstruction: resumeExtractConfig.systemInstruction,
+        responseMimeType: resumeExtractConfig.responseMimetype,
+        responseSchema: resumeExtractConfig.responseStruct,
+      },
+    });
+
+    const newData = new TrGeminiRequestLog({
+      idempotency_key: req.headers[API_IDEMPOTENCY_KEY],
+      gemini_request: JSON.stringify(req.body),
+      gemini_response: JSON.stringify(response.text),
+      expired_date: expired_date,
+      created_at: now,
+      updated_at: now,
+    });
+    await newData.save();
+
+    return JSON.parse(response.text);
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+};
+
+
 module.exports = {
   AnalyzeResume,
   MockupAnalyzeResume,
+  ExtractResume,
 };

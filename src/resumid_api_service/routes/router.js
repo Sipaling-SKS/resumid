@@ -17,4 +17,7 @@ router.post('/gemini-service', GeminiController.CreateAnalyzeResume);
 // Mockup endpoint to return open ai gemini response mockup (static response)
 router.post('/gemini-mockup', GeminiController.CreateMockupAnalyzeResume);
 
+// Connected endpoint with open ai gemini service
+router.post('/gemini-extract', GeminiController.ExtractResume);
+
 module.exports = router;
