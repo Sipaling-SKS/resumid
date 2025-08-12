@@ -1,4 +1,5 @@
 import Logo from "@/assets/logo-black.svg";
+import SearchBar from "@/components/parts/SearchBar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -133,6 +134,9 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
       {isOpen && <div onClick={() => setIsOpen(false)} className="fixed top-0 left-0 w-full h-full z-40" />}
       <div className="relative inline-flex items-center justify-between gap-8 w-full">
         <img onClick={() => navigate("/")} src={Logo} alt="Logo Resumid" className="pb-1" />
+        <div className="flex-1 px-2">
+          <SearchBar />
+        </div>
         <Button onClick={() => setIsOpen(!isOpen)} variant="ghost" size="icon">
           <Menu size={48} />
         </Button>
