@@ -476,56 +476,56 @@ module {
 //   };
 // };
 
-public func addDummyHistoriesSync(histories: HistoryTypes.Histories, userId: Text) : async () {
-  for (i in Iter.range(1, 10)) {
-    let dummyFeedback: HistoryTypes.Feedback = {
-      feedback_message = "Improve clarity.";
-      revision_example = "Add measurable results.";
-    };
+// public func addDummyHistoriesSync(histories: HistoryTypes.Histories, userId: Text) : async () {
+//   for (i in Iter.range(1, 10)) {
+//     let dummyFeedback: HistoryTypes.Feedback = {
+//       feedback_message = "Improve clarity.";
+//       revision_example = "Add measurable results.";
+//     };
 
-    let content1: HistoryTypes.ContentItem = {
-      title = "Summary";
-      value = {
-        feedback = [dummyFeedback];
-        pointer = ["summary"];
-        score = 75 + (i % 5);
-        strength = "Concise";
-        weaknesess = "Lacks specificity";
-      };
-    };
+//     let content1: HistoryTypes.ContentItem = {
+//       title = "Summary";
+//       value = {
+//         feedback = [dummyFeedback];
+//         pointer = ["summary"];
+//         score = 75 + (i % 5);
+//         strength = "Concise";
+//         weaknesess = "Lacks specificity";
+//       };
+//     };
 
-    let dummyConclusion: HistoryTypes.Conclusion = {
-      career_recomendation = ["Backend Developer", "Software Engineer"];
-      keyword_matching = ["Node.js", "React"];
-      section_to_add = ["Projects"];
-      section_to_remove = ["Objective"];
-    };
+//     let dummyConclusion: HistoryTypes.Conclusion = {
+//       career_recomendation = ["Backend Developer", "Software Engineer"];
+//       keyword_matching = ["Node.js", "React"];
+//       section_to_add = ["Projects"];
+//       section_to_remove = ["Objective"];
+//     };
 
-    let dummySummary: HistoryTypes.Summary = {
-      score = 81.0 + Float.fromInt(i);
-      value = "Resume shows good structure and relevant experience.";
-    };
+//     let dummySummary: HistoryTypes.Summary = {
+//       score = 81 + Float.fromInt(i);
+//       value = "Resume shows good structure and relevant experience.";
+//     };
 
-    let dummyInput: HistoryTypes.AddHistoryInput = {
-      fileName = "CV_Dummy_" # Nat.toText(i) # ".pdf";
-      jobTitle = "Data Analyst" # Nat.toText(i);
-      summary = dummySummary;
-      conclusion = dummyConclusion;
-      content = [content1];
-    };
+//     let dummyInput: HistoryTypes.AddHistoryInput = {
+//       fileName = "CV_Dummy_" # Nat.toText(i) # ".pdf";
+//       jobTitle = "Data Analyst" # Nat.toText(i);
+//       summary = dummySummary;
+//       conclusion = dummyConclusion;
+//       content = [content1];
+//     };
 
-    // 🔁 Cek hasil pemanggilan addHistory
-    let result = await addHistory(histories, userId, dummyInput);
-    switch (result) {
-      case (#ok(history)) {
-        Debug.print("✔️ Berhasil tambah dummy ke-" # Nat.toText(i));
-      };
-      case (#err(errMsg)) {
-        Debug.print("❌ Gagal tambah dummy ke-" # Nat.toText(i) # ": " # errMsg);
-      };
-    };
-  };
-};
+//     // 🔁 Cek hasil pemanggilan addHistory
+//     let result = await addHistory(histories, userId, dummyInput);
+//     switch (result) {
+//       case (#ok(history)) {
+//         Debug.print("✔️ Berhasil tambah dummy ke-" # Nat.toText(i));
+//       };
+//       case (#err(errMsg)) {
+//         Debug.print("❌ Gagal tambah dummy ke-" # Nat.toText(i) # ": " # errMsg);
+//       };
+//     };
+//   };
+// };
 
 
 };

@@ -10,6 +10,7 @@ import HttpTypes "../types/HttpTypes";
 import HttpHelper "../helpers/HttpHelper";
 
 import GeminiTypes "../types/GeminiTypes";
+import ResumeExtractTypes "../types/ResumeExtractTypes";
 
 module GeminiServices {
     public func AnalyzeResume(resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
@@ -72,6 +73,67 @@ module GeminiServices {
                             };
                             case (#err(error)) {
                                 Debug.print(debug_show (error));
+                                null;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+
+    public func Extract(resumeContent: Text) : async ?ResumeExtractTypes.ResumeData {
+        let route : Text = "/resume-extract"; 
+
+        let body : ResumeExtractTypes.ResumeExtractRequest = {
+            cvContent = resumeContent;
+        };
+
+        let bodyKeys = ["cvContent"];
+        let blobBody = to_candid(body);
+
+        switch (JSON.toText(blobBody, bodyKeys, null)) {
+            case (#err(error)) {
+                Debug.print("Error creating request body: " # error);
+                null;
+            };
+            case (#ok(jsonBody)) {
+                Debug.print("ResumeExtract Request JSON: " # jsonBody);
+
+                let bodyAsBlob = Text.encodeUtf8(jsonBody);
+
+                let request : HttpTypes.HttpRequest = {
+                    url = GlobalConstants.API_BASE_URL # route;
+                    max_response_bytes = null;
+                    header_host = GlobalConstants.API_HOST;
+                    header_user_agent = "resume-extract-client";
+                    header_content_type = GlobalConstants.API_CONTENT_TYPE;
+                    body = ?bodyAsBlob;
+                    method = #post;
+                };
+
+                let result : HttpTypes.HttpResponse = await HttpHelper.sendPostHttpRequest(request);
+
+                let decodedText : ?Text = switch (Text.decodeUtf8(result.body)) {
+                    case null { null };
+                    case (?y) { ?y };
+                };
+
+                switch (decodedText) {
+                    case null {
+                        Debug.print("ResumeExtract: Empty response");
+                        null;
+                    };
+                    case (?text) {
+                        Debug.print("ResumeExtract Response: " # text);
+                        
+                        switch (JSON.fromText(text, null)) {
+                            case (#ok(blob)) {
+                                let resumeData : ?ResumeExtractTypes.ResumeData = from_candid(blob);
+                                resumeData;
+                            };
+                            case (#err(error)) {
+                                Debug.print("ResumeExtract JSON parse error: " # error);
                                 null;
                             };
                         };

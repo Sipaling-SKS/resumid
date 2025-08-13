@@ -7,7 +7,7 @@ exports.CreateAnalyzeResume = async (req, res, next) => {
 };
 
 //extract resume
-exports.CreateAnalyzeResume = async (req, res, next) => {
+exports.ExtractResume = async (req, res, next) => {
   const response = await GeminiServices.ExtractResume(req);
   
   return res.status(200).json(response);
