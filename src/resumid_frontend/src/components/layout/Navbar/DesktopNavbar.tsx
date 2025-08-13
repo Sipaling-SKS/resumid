@@ -16,9 +16,11 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
 import SearchBar from "@/components/parts/SearchBar";
+import { shouldShowSearch } from "./searchConfig";
 
 function DesktopNavbar({ navigate }: any) {
   const { isAuthenticated, login, logout, userData } = useAuth();
+  const showSearch = shouldShowSearch(location.pathname);
 
   return (
     <>
@@ -131,9 +133,11 @@ function DesktopNavbar({ navigate }: any) {
           )}
         </ul>
       </div>
-      <div className="flex-1 px-4 max-w-[720px] hidden md:block">
-        <SearchBar />
-      </div>
+      {showSearch && (
+        <div className="flex-1 px-4 max-w-[720px] hidden md:block">
+          <SearchBar />
+        </div>
+      )}
       {isAuthenticated ? (
         <div className="inline-flex gap-4 items-center">
           <div className="inline-flex gap-2 items-center">

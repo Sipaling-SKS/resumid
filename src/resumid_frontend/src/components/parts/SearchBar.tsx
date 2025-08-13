@@ -9,10 +9,11 @@ type SearchBarProps = {
 };
 
 const DEFAULT_HINTS = [
-  "Search for Awesome People",
-  "There are many talented people to search",
-  "Try: Frontend React Engineer",
-  "Find: Mobile Enginner",
+  "Discover talented professionals",
+  "Find your next team member",
+  "Connect with industry experts",
+  "Explore professional networks",
+  "Meet passionate innovators",
 ];
 
 export default function SearchBar({
@@ -64,7 +65,7 @@ export default function SearchBar({
   const clear = () => {
     setValue("");
     if (inputRef.current) {
-      inputRef.current.focus();
+      inputRef.current.blur();
     }
   };
 
@@ -77,7 +78,7 @@ export default function SearchBar({
   return (
     <div
       className={cn(
-        "w-full",
+        "w-full font-inter",
         className
       )}
     >
@@ -105,7 +106,7 @@ export default function SearchBar({
           </button>
         )}
 
-        <div className="flex-1 relative  min-w-0 mx-3">
+        <div className="flex-1 relative min-w-0 mx-3">
           <input
             ref={inputRef}
             value={value}
@@ -114,7 +115,7 @@ export default function SearchBar({
             onBlur={() => setIsFocused(false)}
             placeholder="Type to search..."
             className={cn(
-              "w-full bg-transparent outline-none text-sm text-paragraph font-inter placeholder:text-placeholder",
+              "w-full bg-transparent outline-none text-xs sm:text-sm text-paragraph placeholder:text-placeholder",
               !isActive && "opacity-0 pointer-events-none absolute inset-0"
             )}
             aria-label="Search"
@@ -122,18 +123,43 @@ export default function SearchBar({
           
           {!isActive && (
             <div className="relative h-5 sm:h-6 flex items-center overflow-hidden">
-              {hints.map((hint, i) => (
-                <div
-                  key={`${hint}-${i}`}
-                  className={cn(
-                    "absolute inset-0 flex items-center text-sm text-placeholder font-inter transition-opacity duration-850",
-                    "truncate",
-                    i === hintIndex ? "opacity-100" : "opacity-0"
-                  )}
-                >
-                  {hint}
-                </div>
-              ))}
+              <div className="absolute inset-0 flex flex-col justify-center">
+                {hints.map((hint, i) => {
+                  const isCurrentHint = i === hintIndex;
+                  const isPrevHint = i === (hintIndex - 1 + hints.length) % hints.length;
+                  const isNextHint = i === (hintIndex + 1) % hints.length;
+                  
+                  let translateY = '100%';
+                  let opacity = 0;
+                  
+                  if (isCurrentHint) {
+                    translateY = '0%';
+                    opacity = 1;
+                  } else if (isPrevHint) {
+                    translateY = '-100%';
+                    opacity = 0;
+                  } else if (isNextHint) {
+                    translateY = '100%';
+                    opacity = 0;
+                  }
+                  
+                  return (
+                    <div
+                      key={`${hint}-${i}`}
+                      className={cn(
+                        "absolute inset-0 flex items-center text-xs sm:text-sm text-placeholder transition-all duration-500 ease-in-out",
+                        "truncate"
+                      )}
+                      style={{
+                        transform: `translateY(${translateY})`,
+                        opacity: opacity
+                      }}
+                    >
+                      {hint}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

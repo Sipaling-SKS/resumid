@@ -4,14 +4,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { useData } from "@/contexts/DataContext";
 import { cn, scrollToTop, scrollTo } from "@/lib/utils";
-import { Menu, X as Close, LogOut, User2 as ProfileIcon } from "lucide-react";
-import { NavLink, type NavLinkProps } from "react-router";
+import { Menu, X as Close, LogOut, User2 as ProfileIcon, Search, ArrowLeft } from "lucide-react";
+import { NavLink } from "react-router";
+import { useState } from "react";
+import { shouldShowSearch } from "./searchConfig";
 
 
 function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
   const { isAuthenticated, login, logout, userData } = useAuth();
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const showSearch = shouldShowSearch(location.pathname);
+
+  const handleSearchToggle = () => {
+    setIsSearchExpanded(!isSearchExpanded);
+  };
 
   return (
     <>
@@ -132,14 +139,49 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
         )}
       </div>
       {isOpen && <div onClick={() => setIsOpen(false)} className="fixed top-0 left-0 w-full h-full z-40" />}
-      <div className="relative inline-flex items-center justify-between gap-8 w-full">
-        <img onClick={() => navigate("/")} src={Logo} alt="Logo Resumid" className="pb-1" />
-        <div className="flex-1 px-2">
-          <SearchBar />
-        </div>
-        <Button onClick={() => setIsOpen(!isOpen)} variant="ghost" size="icon">
-          <Menu size={48} />
-        </Button>
+      <div className="relative inline-flex items-center justify-between gap-2 w-full">
+        {showSearch && isSearchExpanded ? (
+          <>
+            <Button 
+              onClick={handleSearchToggle} 
+              variant="ghost" 
+              size="icon"
+              className="flex-shrink-0"
+            >
+              <ArrowLeft size={24} />
+            </Button>
+            <div className="flex-1">
+              <SearchBar />
+            </div>
+          </>
+        ) : (
+          <>
+            <img 
+              onClick={() => navigate("/")} 
+              src={Logo} 
+              alt="Logo Resumid" 
+              className="pb-1 cursor-pointer" 
+            />
+            <div className="inline-flex items-center gap-2">
+              {showSearch && (
+                <Button 
+                  onClick={handleSearchToggle} 
+                  variant="ghost" 
+                  size="icon"
+                >
+                  <Search size={24} />
+                </Button>
+              )}
+              <Button 
+                onClick={() => setIsOpen(!isOpen)} 
+                variant="ghost" 
+                size="icon"
+              >
+                <Menu size={24} />
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </>
   )
