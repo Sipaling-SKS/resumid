@@ -1,20 +1,20 @@
 import { Routes, Route, Navigate } from "react-router";
 
-// Page Imports
 import Home from "@/pages/Home";
 import ProtectedRoute from "./ProtectedRoute";
 
 import Analyzer from "@/pages/Analyzer";
-// import Result from "@/pages/Analyzer/Result";
 import Layout from "@/components/layout";
 import HistoryDetail from "@/pages/History/Detail/HistoryDetail";
 import HistoryList from "@/pages/History";
+import SearchResults from "@/pages/SearchResults";
 
 function Router() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="/search" element={<SearchResults />} />
         <Route element={<ProtectedRoute redirectTo="/" />}>
           <Route path="/resume-analyzer" element={<Analyzer />} />
           <Route path="/history-detail/:id" element={<HistoryDetail />} />

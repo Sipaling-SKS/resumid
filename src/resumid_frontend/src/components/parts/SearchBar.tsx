@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router";
 
 type SearchBarProps = {
   className?: string;
@@ -21,6 +22,8 @@ export default function SearchBar({
   onSearch,
   placeholderHints,
 }: SearchBarProps) {
+  const navigate = useNavigate();
+
   const hints = useMemo(
     () => (placeholderHints && placeholderHints.length > 0 ? placeholderHints : DEFAULT_HINTS),
     [placeholderHints]
@@ -56,7 +59,11 @@ export default function SearchBar({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch?.(value.trim());
+    const query = value.trim();
+    if (query) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+      onSearch?.(query);
+    }
     if (inputRef.current) {
       inputRef.current.blur();
     }

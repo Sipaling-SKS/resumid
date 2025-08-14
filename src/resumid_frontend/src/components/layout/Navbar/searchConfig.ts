@@ -1,6 +1,7 @@
 export const SEARCH_ENABLED_ROUTES = [
   '/',
-  '/home'
+  '/home',
+  '/search'
 ];
 
 export const shouldShowSearch = (pathname: string): boolean => {
