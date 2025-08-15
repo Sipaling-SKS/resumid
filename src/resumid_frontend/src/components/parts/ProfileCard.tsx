@@ -8,7 +8,7 @@ interface ProfileCardProps {
     name: string;
     role: string;
     image: string;
-    endorsements: number;
+    endorsements: number[];
   };
   onClick?: (id: string) => void;
   className?: string;
@@ -19,7 +19,9 @@ export default function ProfileCard({ person, onClick, className }: ProfileCardP
     onClick?.(person.id);
   };
 
-  const displayEndorsements = person.endorsements > 10 ? "10+" : person.endorsements.toString();
+  const endorsementCount = person.endorsements.length;
+  const displayEndorsements = endorsementCount > 10 ? "10+" : endorsementCount.toString();
+  const endorsementText = endorsementCount === 1 ? "endorsement" : "endorsements";
 
   return (
     <Card 
@@ -47,12 +49,14 @@ export default function ProfileCard({ person, onClick, className }: ProfileCardP
               <p className="text-xs sm:text-sm text-paragraph truncate font-inter">
                 {person.role}
               </p>
-              <div className="flex items-center space-x-1">
-                <Award className="w-4 h-4 text-primary-500" />
-                <span className="text-xs text-paragraph font-inter">
-                  <span className="text-base font-bold text-primary-600">{displayEndorsements}</span> endorsements
-                </span>
-              </div>
+              {endorsementCount >= 1 && (
+                <div className="flex items-center space-x-1">
+                  <Award className="w-4 h-4 text-primary-500" />
+                  <span className="text-xs text-paragraph font-inter">
+                    <span className="text-base font-bold text-primary-600">{displayEndorsements}</span> {endorsementText}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -62,8 +66,8 @@ export default function ProfileCard({ person, onClick, className }: ProfileCardP
             <div className="flex flex-col items-center text-white">
               <UserRoundSearch className="w-6 h-6 mb-1" />
               <div className="text-[0.65rem] font-medium text-center leading-tight">
-                <div>Learn</div>
-                <div>More</div>
+                <div>View</div>
+                <div>Profile</div>
               </div>
             </div>
           </div>

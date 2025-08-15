@@ -14,11 +14,11 @@ function Router() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
-        <Route path="/search" element={<SearchResults />} />
         <Route element={<ProtectedRoute redirectTo="/" />}>
           <Route path="/resume-analyzer" element={<Analyzer />} />
           <Route path="/history-detail/:id" element={<HistoryDetail />} />
           <Route path="/result" element={<HistoryList />} />
+          <Route path="/search" element={<SearchResults />} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Route>

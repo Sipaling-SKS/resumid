@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router";
 import { Helmet } from "react-helmet";
 import ProfileCard from "@/components/parts/ProfileCard";
-import { Search, Users } from "lucide-react";
+import { Search } from "lucide-react";
 
 // Static mock data for testing
 const MOCK_PEOPLE = [
@@ -10,35 +10,35 @@ const MOCK_PEOPLE = [
     name: "Michael Chen",
     role: "Full Stack Engineer",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    endorsements: 18
+    endorsements: [1]
   },
   {
     id: "3",
     name: "Emily Rodriguez",
     role: "UX/UI Designer",
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-    endorsements: 31
+    endorsements: [1, 2, 3, 4, 5, 6]
   },
   {
     id: "4",
     name: "David Kim",
     role: "DevOps Engineer",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    endorsements: 15
+    endorsements: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
   },
   {
     id: "5",
     name: "Lisa Thompson",
     role: "Product Manager",
     image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
-    endorsements: 42
+    endorsements: []
   },
   {
     id: "6",
     name: "Alex Martinez",
     role: "Data Scientist",
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-    endorsements: 27
+    endorsements: [1, 2, 3, 4, 5, 6, 7, 8, 9]
   }
 ];
 
@@ -48,6 +48,7 @@ export default function SearchResults() {
   
   const people = MOCK_PEOPLE;
   const isLoading = false;
+  const profileText = people.length === 1 ? 'profile' : 'profiles';
 
   const handleProfileClick = (id: string) => {
     console.log('Profile clicked:', id);
@@ -68,11 +69,10 @@ export default function SearchResults() {
             Search Results
           </h1>
           <p className="text-center text-paragraph font-inter">
-            Found <span className="text-2xl md:text-3xl font-bold text-primary-600">{people.length}</span> people with the keyword of <em className="italic text-heading">{query}</em>
+            Found <span className="text-2xl md:text-3xl font-bold text-primary-600">{people.length}</span> {profileText} with the keyword of <em className="italic text-heading">{query}</em>
           </p>
         </section>
 
-        {/* Results Grid */}
         <section>
           {isLoading ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

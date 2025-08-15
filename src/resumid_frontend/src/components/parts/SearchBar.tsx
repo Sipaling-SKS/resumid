@@ -1,13 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 type SearchBarProps = {
   className?: string;
   onSearch?: (query: string) => void;
   placeholderHints?: string[];
 };
+
+export interface SearchBarRef {
+  reset: () => void;
+}
 
 const DEFAULT_HINTS = [
   "Discover talented professionals",
@@ -17,12 +21,16 @@ const DEFAULT_HINTS = [
   "Meet passionate innovators",
 ];
 
-export default function SearchBar({
-  className,
-  onSearch,
-  placeholderHints,
-}: SearchBarProps) {
+const SearchBar = forwardRef<SearchBarRef, SearchBarProps>((
+  {
+    className,
+    onSearch,
+    placeholderHints,
+  },
+  ref
+) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const hints = useMemo(
     () => (placeholderHints && placeholderHints.length > 0 ? placeholderHints : DEFAULT_HINTS),
@@ -37,6 +45,22 @@ export default function SearchBar({
 
   const isActive = isFocused || value.length > 0;
   const hasValue = value.length > 0;
+
+  useEffect(() => {
+    const queryParam = searchParams.get('q');
+    if (queryParam) {
+      setValue(queryParam);
+    }
+  }, [searchParams]);
+
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      setValue("");
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    }
+  }));
 
   useEffect(() => {
     if (!isActive) {
@@ -92,7 +116,7 @@ export default function SearchBar({
       <form
         onSubmit={handleSubmit}
         className={cn(
-          "group w-full h-10 sm:h-11 rounded-lg border-2 bg-white",
+          "group w-full h-10 sm:h-11 rounded-lg border md:border-2 bg-white",
           hasValue ? "border-primary-500" : "border-neutral-300 focus-within:border-primary-500",
           "transition-colors inline-flex items-center cursor-text"
         )}
@@ -189,7 +213,7 @@ export default function SearchBar({
             
             <button
               type="submit"
-              className="inline-flex items-center justify-center w-9 h-10 sm:h-11 rounded-md bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+              className="inline-flex items-center justify-center w-9 h-10 sm:h-11 rounded-tr-medium rounded-br-font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors"
               aria-label="Search"
               title="Search"
             >
@@ -200,4 +224,8 @@ export default function SearchBar({
       </form>
     </div>
   );
-}
+});
+
+SearchBar.displayName = "SearchBar";
+
+export default SearchBar;
