@@ -501,21 +501,6 @@ module DraftServices {
     };
 
     profileMap.put(userId, updatedProfile);
-
-    // Remove the draft from draft map
-    // let remainingDrafts = Array.filter<ResumeExtractTypes.ResumeHistoryItem>(
-    //   draftItems,
-    //   func(item : ResumeExtractTypes.ResumeHistoryItem) : Bool {
-    //     item.draftId != draftId;
-    //   },
-    // );
-
-    // if (Array.size(remainingDrafts) == 0) {
-    //   draftMap.delete(userId);
-    // } else {
-    //   draftMap.put(userId, remainingDrafts);
-    // };
-
     return #ok("Draft successfully saved to profile");
   };
 };

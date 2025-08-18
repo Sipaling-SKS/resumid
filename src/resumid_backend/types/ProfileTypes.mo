@@ -60,6 +60,8 @@ module ProfileTypes {
     title : Text;
     issuer : ?Text;
     credential_url : ?Text;
+    createdAt : Text;
+    updatedAt : Text;
   };
   public type Skills = {
     skills : [Text];
@@ -69,9 +71,14 @@ module ProfileTypes {
     summary : ?Summary;
     workExperiences : ?[WorkExperience];
     educations : ?[Education];
-    skills : ?Skills;  
+    skills : ?Skills;
   };
-
+  public type SearchResult = {
+    userId : Text;
+    profileId : Text;
+    profileDetail : ?ProfileTypes.ProfileDetail;
+    endorsements : ?[Text];
+  };
   public type Profile = {
     userId : Text;
     profileId : Text;

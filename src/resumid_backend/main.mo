@@ -157,162 +157,6 @@ actor Resumid {
   // Resume Extract Methods
   // ==============================
 
-  // public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
-  //   let userId = Principal.toText(msg.caller);
-  //   let rawJsonOpt = await GeminiServices.ExtractMock(resumeContent);
-
-  //   switch (rawJsonOpt) {
-  //     case null {
-  //       Debug.print("Extract failed or empty");
-  //       return null;
-  //     };
-  //     case (?input) {
-  //       let now = Time.now();
-  //       let formatted = DateHelper.formatTimestamp(now);
-
-  //       // Build Work Experiences
-  //       let workExperiences = Array.tabulate<ResumeExtractTypes.WorkExperience>(
-  //         input.workExperiences.size(),
-  //         func(i : Nat) : ResumeExtractTypes.WorkExperience {
-  //           let we = input.workExperiences[i];
-  //           {
-  //             id = "we" # Nat.toText(i);
-  //             company = we.company;
-  //             location = we.location;
-  //             position = we.position;
-  //             employment_type = we.employment_type;
-  //             period = we.period;
-  //             responsibilities = we.responsibilities;
-  //           };
-  //         },
-  //       );
-
-  //       // Build Educations
-  //       let educations = Array.tabulate<ResumeExtractTypes.Education>(
-  //         input.educations.size(),
-  //         func(i : Nat) : ResumeExtractTypes.Education {
-  //           let ed = input.educations[i];
-  //           {
-  //             id = "edu" # Nat.toText(i);
-  //             institution = ed.institution;
-  //             degree = ed.degree;
-  //             study_period = ed.study_period;
-  //             score = ed.score;
-  //             description = ed.description;
-  //           };
-  //         },
-  //       );
-
-  //       // Build Summary
-  //       let summary : ResumeExtractTypes.Summary = {
-  //         content = input.summary.content;
-  //       };
-
-  //       // Compose ResumeData
-  //       let resumeData : ResumeExtractTypes.ResumeData = {
-  //         summary = ?summary;
-  //         workExperiences = ?workExperiences;
-  //         educations = ?educations;
-  //       };
-
-  //       // Wrap into ResumeHistoryItem
-  //       let historyItem : ResumeExtractTypes.ResumeHistoryItem = {
-  //         userId = userId;
-  //         draftId = "test1";
-  //         data = resumeData;
-  //         createdAt = formatted;
-  //         updatedAt = formatted;
-  //       };
-
-  //       // ✅ Store as array
-  //       draftMap.put(userId, [historyItem]);
-
-  //       return ?resumeData;
-  //     };
-  //   };
-  // };
-
-  // public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
-  //   let userId = Principal.toText(msg.caller);
-  //   let rawJsonOpt = await GeminiServices.ExtractMock(resumeContent);
-
-  //   switch (rawJsonOpt) {
-  //     case null {
-  //       Debug.print("Extract failed or empty");
-  //       return null;
-  //     };
-  //     case (?input) {
-  //       let now = Time.now();
-  //       let formatted = DateHelper.formatTimestamp(now);
-
-  //       // Build Work Experiences
-  //       let workExperiences = Array.tabulate<ResumeExtractTypes.WorkExperience>(
-  //         input.workExperiences.size(),
-  //         func(i : Nat) : ResumeExtractTypes.WorkExperience {
-  //           let we = input.workExperiences[i];
-  //           {
-  //             id = "we" # Nat.toText(i);
-  //             company = we.company;
-  //             location = we.location;
-  //             position = we.position;
-  //             employment_type = we.employment_type;
-  //             period = we.period;
-  //             description = ?we.description;
-  //           };
-  //         },
-  //       );
-
-  //       // Build Educations
-  //       let educations = Array.tabulate<ResumeExtractTypes.Education>(
-  //         input.educations.size(),
-  //         func(i : Nat) : ResumeExtractTypes.Education {
-  //           let ed = input.educations[i];
-  //           {
-  //             id = "edu" # Nat.toText(i);
-  //             institution = ed.institution;
-  //             degree = ed.degree;
-  //             period = ed.period;
-  //             description = ?ed.description;
-  //           };
-  //         },
-  //       );
-
-  //       // Build Summary
-  //       let summary : ResumeExtractTypes.Summary = {
-  //         content = input.summary.content;
-  //       };
-
-  //       // let skills : ResumeExtractTypes.SkillsInput = {
-  //       //   skills = input.skills;  // Changed from [Text] to SkillsInput type
-  //       // };
-  //       let skillsArray : [Text] = input.skills;
-
-  //       // Compose ResumeData
-  //       let resumeData : ResumeExtractTypes.ResumeData = {
-  //         summary = ?summary;
-  //         workExperiences = ?workExperiences;
-  //         educations = ?educations;
-  //         skills = ?skillsArray;  // Changed from ?[Text] to Skills type
-  //       };
-  //       let entropy = await Random.blob();
-  //       let draftId = UUID.generateV4(entropy);
-
-  //       // Wrap into ResumeHistoryItem
-  //       let historyItem : ResumeExtractTypes.ResumeHistoryItem = {
-  //         userId = userId;
-  //         draftId = draftId;
-  //         data = resumeData;
-  //         createdAt = formatted;
-  //         updatedAt = formatted;
-  //       };
-
-  //       // ✅ Store as array
-  //       draftMap.put(userId, [historyItem]);
-
-  //       return ?resumeData;
-  //     };
-  //   };
-  // };
   public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
     let userId = Principal.toText(msg.caller);
     let rawJsonOpt = await GeminiServices.ExtractMock(resumeContent);
@@ -330,9 +174,11 @@ actor Resumid {
         let workExperiences = Array.tabulate<ResumeExtractTypes.WorkExperience>(
           input.workExperiences.size(),
           func(i : Nat) : ResumeExtractTypes.WorkExperience {
+            // let entropy = Random.blob();
+            // let id = UUID.generateV4();
             let we = input.workExperiences[i];
             {
-              id = "we" # Nat.toText(i);
+              id = "we-" # Int.toText(now);
               company = we.company;
               location = we.location;
               position = we.position;
@@ -347,9 +193,11 @@ actor Resumid {
         let educations = Array.tabulate<ResumeExtractTypes.Education>(
           input.educations.size(),
           func(i : Nat) : ResumeExtractTypes.Education {
+            // let entropy = Random.blob();
+            // let id = UUID.generateV4();
             let ed = input.educations[i];
             {
-              id = "edu" # Nat.toText(i);
+              id = "edu" # Int.toText(now);
               institution = ed.institution;
               degree = ed.degree;
               period = ed.period;
@@ -393,8 +241,8 @@ actor Resumid {
     };
   };
 
-  public shared (msg) func GetDraftByUserId() : async [ResumeExtractTypes.ResumeHistoryItem] {
-    let userId = Principal.toText(msg.caller);
+  public shared (msg) func GetDraftByUserId(userId : Text) : async [ResumeExtractTypes.ResumeHistoryItem] {
+    // let userId = Principal.toText(msg.caller);
 
     // Return the array if exists, otherwise return empty array
     switch (draftMap.get(userId)) {
@@ -402,25 +250,6 @@ actor Resumid {
       case (?arr) { arr }; // Return existing drafts
     };
   };
-
-  // public shared (msg) func GetDraftByDraftId(
-  //   draftId : Text
-  // ) : async Result.Result<ResumeExtractTypes.ResumeHistoryItem, Text> {
-  //   let userId = Principal.toText(msg.caller); // or omit if you want all users
-  //   switch (draftMap.get(userId)) {
-  //     case null {
-  //       return [];
-  //     };
-  //     case (?userDrafts) {
-  //       for (draft in userDrafts) {
-  //         if (draft.draftId == draftId) {
-  //           return #ok(draft);
-  //         };
-  //       };
-  //       return #err("No draft found with the ID: " # draftId # ". Please check and try again.");
-  //     };
-  //   };
-  // };
 
   public shared (msg) func getProfileByUserId() : async Result.Result<ProfileTypes.Profile, Text> {
     let userId = Principal.toText(msg.caller);
@@ -441,6 +270,7 @@ actor Resumid {
 
   // editWorkExperienceDraft
   public shared (msg) func editWorkExperienceDraft(
+    userId : Text,
     draftId : Text,
     workExpId : Text,
     updatedFields : {
@@ -455,13 +285,14 @@ actor Resumid {
       description : ?Text;
     },
   ) : async Result.Result<Text, Text> {
-    let userId = Principal.toText(msg.caller);
+    // let userId = Principal.toText(msg.caller);
 
     return await DraftServices.editWorkExperienceDraft(draftMap, draftId, userId, workExpId, updatedFields);
   };
 
   // editEducationDraft
   public shared (msg) func editEducationDraft(
+    userId : Text,
     draftId : Text,
     educationId : Text,
     updatedFields : {
@@ -475,28 +306,29 @@ actor Resumid {
       description : ?Text;
     },
   ) : async Result.Result<Text, Text> {
-    let userId = Principal.toText(msg.caller);
+    // let userId = Principal.toText(msg.caller);
 
     return await DraftServices.editEducationDraft(draftMap, draftId, userId, educationId, updatedFields);
   };
 
   // editSkillsDraft
   public shared (msg) func editSkillsDraft(
+    userId : Text,
     draftId : Text,
     skills : [Text],
-    operation : Text, // "add" or "remove"
   ) : async Result.Result<Text, Text> {
-    let userId = Principal.toText(msg.caller);
+    // let userId = Principal.toText(msg.caller);
 
-    return await DraftServices.editSkillsDraft(draftMap, draftId, userId, skills, operation);
+    return await DraftServices.editSkillsDraft(draftMap, draftId, userId, skills);
   };
 
   public shared (msg) func removeDraftItem(
+    userId : Text,
     draftId : Text,
     itemType : Text,
     itemId : ?Text,
   ) : async Result.Result<Text, Text> {
-    let userId = Principal.toText(msg.caller);
+    // let userId = Principal.toText(msg.caller);
     return await DraftServices.deleteDraftItem(
       draftMap,
       draftId,
@@ -511,6 +343,203 @@ actor Resumid {
     let userId = Principal.toText(msg.caller);
     return await DraftServices.saveDraftToProfile(draftMap, profiles, draftId, userId);
   };
+
+  // ==============================
+  // Profile Management Methods
+  // ==============================
+  public shared (msg) func createProfile(
+    userId : Text,
+    profileData : ProfileTypes.Profile,
+  ) : async Result.Result<Text, Text> {
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.createProfile(profiles, userId, profileData);
+  };
+
+  public shared (msg) func getProfileById(profileId : Text) : async Result.Result<ProfileTypes.Profile, Text> {
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.getProfileById(profiles, userId, profileId);
+  };
+
+  public shared (msg) func updateProfileDetail(
+    userId : Text,
+    profileDetailInput : ?{
+      name : ?Text;
+      current_position : ?Text;
+      description : ?Text;
+    },
+    contactInfo : ?ProfileTypes.ContactInfo,
+  ) : async Text {
+    // let userId = Principal.toText(msg.caller);
+
+    let result = await updateProfileDetailAndContact(
+      profiles,
+      userId,
+      profileDetailInput,
+      contactInfo,
+    );
+
+    switch (result) {
+      case (#ok(_)) {
+        return "Profile for user " # userId # " updated successfully";
+      };
+      case (#err(errMsg)) {
+        return "Failed to update profile: " # errMsg;
+      };
+    };
+  };
+
+  // --- Work Experience ---
+  public shared (msg) func addWorkExperienceShared(
+    userId : Text,
+    newWorkExperience : {
+      company : Text;
+      location : ?Text;
+      position : Text;
+      employment_type : ?Text;
+      period : {
+        start : ?Text;
+        end : ?Text;
+      };
+      description : ?Text;
+    },
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await addWorkExperience(profiles, userId, newWorkExperience);
+  };
+
+  public shared (msg) func editWorkExperienceShared(
+    userId : Text,
+    workExpId : Text,
+    updatedFields : {
+      company : Text;
+      location : ?Text;
+      position : Text;
+      employment_type : ?Text;
+      period : {
+        start : ?Text;
+        end : ?Text;
+      };
+      description : ?Text;
+    },
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await editWorkExperience(profiles, userId, workExpId, updatedFields);
+  };
+
+  // --- Education ---
+  public shared (msg) func addEducationShared(
+    userId : Text,
+    newEducation : {
+      institution : ?Text;
+      degree : ?Text;
+      period : {
+        start : ?Text;
+        end : ?Text;
+      };
+      description : ?Text;
+    },
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await addEducation(profiles, userId, newEducation);
+  };
+
+  public shared (msg) func editEducationShared(
+    userId : Text,
+    educationId : Text,
+    updatedFields : {
+      institution : ?Text;
+      degree : ?Text;
+      period : {
+        start : ?Text;
+        end : ?Text;
+      };
+      description : ?Text;
+    },
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await editEducation(profiles, userId, educationId, updatedFields);
+  };
+
+  // --- Summary ---
+  public shared (msg) func editSummaryShared(
+    userId : Text,
+    updatedSummary : ?Text,
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await editSummary(profiles, userId, updatedSummary);
+  };
+
+  // --- Skills ---
+  public shared (msg) func editSkillsShared(
+    userId : Text,
+    updatedSkills : [Text],
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await editSkills(profiles, userId, updatedSkills);
+  };
+
+  // --- Resume Item Deletion ---
+  public shared (msg) func deleteResumeItemShared(
+    userId : Text,
+    itemType : Text,
+    itemId : ?Text,
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await deleteResumeItem(profiles, userId, itemType, itemId);
+  };
+
+  // --- Certification Management ---
+  public shared (msg) func addCertificationShared(
+    userId : Text,
+    certInput : {
+      title : Text;
+      issuer : ?Text;
+      credential_url : ?Text;
+    },
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await addCertification(profiles, userId, certInput);
+  };
+
+  public shared (msg) func updateCertificationShared(
+    userId : Text,
+    certificationId : Text,
+    updatedFields : {
+      title : Text;
+      issuer : ?Text;
+      credential_url : ?Text;
+    },
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await updateCertification(profiles, userId, certificationId, updatedFields);
+  };
+
+  public shared (msg) func deleteCertificationShared(
+    userId : Text,
+    certificationId : ?Text,
+  ) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
+    return await deleteCertification(profiles, userId, certificationId);
+  };
+
+  // -------------------------
+  // SEARCH
+  // -------------------------
+  public query func searchProfiles(searchInput : Text) : async [ProfileTypes.SearchResult] {
+    return ProfileService.globalSearch(profiles, searchInput);
+  };
+
+  // -------------------------
+  // ENDORSEMENT
+  // -------------------------
+  public func endorseProfile(userId : Text, targetUserId : Text) : async Result.Result<Text, Text> {
+    return await ProfileService.addEndorsedProfile(profile, userId, targetUserId);
+  };
+
+  public func unendorseProfile(userId : Text, targetUserId : Text) : async Result.Result<Text, Text> {
+    return await ProfileService.removeEndorsedProfile(profiles, userId, targetUserId);
+  };
+
   // ==============================
   // History Management Methods
   // ==============================
