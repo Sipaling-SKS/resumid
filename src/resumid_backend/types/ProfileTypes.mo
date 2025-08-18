@@ -27,10 +27,6 @@ module ProfileTypes {
     id : Text;
   };
 
-  // public type Date = {
-  //   year : Nat;
-  //   month : Nat;
-  // };
   public type WorkExperience = {
     id : Text;
     company : Text;
@@ -41,7 +37,7 @@ module ProfileTypes {
       start : ?Text;
       end : ?Text;
     };
-    description :?Text;
+    description : ?Text;
   };
 
   public type Education = {
@@ -59,10 +55,21 @@ module ProfileTypes {
     content : ?Text;
   };
 
+  public type Certificate = {
+    id : Text;
+    title : Text;
+    issuer : ?Text;
+    credential_url : ?Text;
+  };
+  public type Skills = {
+    skills : [Text];
+  };
+
   public type ResumeData = {
     summary : ?Summary;
     workExperiences : ?[WorkExperience];
     educations : ?[Education];
+    skills : ?Skills;  
   };
 
   public type Profile = {
@@ -71,6 +78,7 @@ module ProfileTypes {
     profileDetail : ?ProfileDetail;
     contact : ?ContactInfo;
     resume : ?ResumeData;
+    certificatons : ?[Certificate];
     endorsements : ?[Text];
     endorsedProfiles : ?[Text];
     createdAt : Text;
