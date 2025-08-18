@@ -20,4 +20,7 @@ router.post('/gemini-mockup', GeminiController.CreateMockupAnalyzeResume);
 // Connected endpoint with open ai gemini service
 router.post('/gemini-extract', GeminiController.ExtractResume);
 
+router.post('/gemini-extractMock', GeminiController.ExtractResumeMock);
+
+
 module.exports = router;

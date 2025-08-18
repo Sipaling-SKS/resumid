@@ -1,124 +1,94 @@
-// import HashMap "mo:base/HashMap";
-
-// module ResumeExtractTypes {
-//   public type ResumeExtractRequest = {
-//     cvContent: Text;
-//   };
-
-//   public type Date = {
-//     year: Nat;
-//     month: Nat;
-//   };
-
-//   public type WorkExperience = {
-//     id: Text;
-//     company: Text;
-//     location: Text;
-//     position: Text;
-//     employment_type: ?Text;
-//     period: {
-//       start: Date;
-//       end: Date; 
-//     };
-//     responsibilities: [Text];
-//   };
-
-//   public type Education = {
-//     id: Text;
-//     institution: Text;
-//     degree: Text;
-//     study_period: {
-//       start: Date;
-//       end: Date;
-//     };
-//     score: Text;
-//     description: Text;
-//   };
-
-//   public type Summary = Text;
-
-//   public type ResumeSection = {
-//     title: Text; 
-//     content: {
-//       #Summary: Summary;
-//       #WorkExperience: [WorkExperience];
-//       #Education: [Education];
-//     };
-//   };
-
-//   public type ResumeData = [ResumeSection];
-
-
-//   public type ResumeHistoryItem = {
-//     userId: Text;          
-//     data: ResumeData;      
-//     createdAt: Int;        
-//     updatedAt: Int;        
-//   };
-
-//   public type Histories = HashMap.HashMap<Text, ResumeHistoryItem>;
-// };
-
-
 import HashMap "mo:base/HashMap";
 
 module ResumeExtractTypes {
 
   public type ResumeExtractRequest = {
-    cvContent: Text;
+    cvContent : Text;
   };
 
-  public type Date = {
-    year: Nat;
-    month: Nat;
+  public type WorkExperienceInput = {
+    company : Text;
+    location : Text;
+    position : Text;
+    employment_type : ?Text;
+     period : { 
+      start : ?Text;
+      end : ?Text;
+    };
+    description : Text;  
+  };
+
+  public type EducationInput = {
+    institution : Text;
+    degree : Text;
+     period : {  
+      start : ?Text;
+      end : ?Text;
+    };
+    description : Text;  
+  };
+
+  public type SkillsInput = {
+    skills : [Text];
+  };
+
+  public type SummaryInput = {
+    content : Text;
+  };
+
+  public type ResumeDataInput = {
+    summary : SummaryInput;
+    workExperiences : [WorkExperienceInput];
+    educations : [EducationInput];
+    skills : ?SkillsInput;  
   };
 
   public type WorkExperience = {
-    id: Text;                  
-    company: Text;
-    location: Text;
-    position: Text;
-    employment_type: ?Text;
-    period: {
-      start: Date;
-      end: Date;
+    id : Text;
+    company : Text;
+    location : Text;
+    position : Text;
+    employment_type : ?Text;
+    period : {
+      start : ?Text;
+      end : ?Text;
     };
-    responsibilities: [Text];
+    description : ?Text;
   };
 
   public type Education = {
-    id: Text;                  
-    institution: Text;
-    degree: Text;
-    study_period: {
-      start: Date;
-      end: Date;
+    id : Text;
+    institution : Text;
+    degree : Text;
+    period : {  
+      start : ?Text;
+      end : ?Text;
     };
-    score: Text;
-    description: Text;
+    description : ?Text;
   };
 
-  public type Summary = Text;
-
-  public type SectionValue = {
-    Summary: ?Summary;
-    WorkExperience: ?[WorkExperience];
-    Education: ?[Education];
+  public type Skills = {
+    skills : [Text];
   };
 
-  public type ResumeSection = {
-    title: Text;               
-    content: SectionValue;
+  public type Summary = {
+    content : Text;
   };
 
-  public type ResumeData = [ResumeSection];
+  public type ResumeData = {
+    summary : ?Summary;
+    workExperiences : ?[WorkExperience];
+    educations : ?[Education];
+    skills : ?Skills;  
+  };
 
   public type ResumeHistoryItem = {
-    userId: Text;
-    data: ResumeData;
-    createdAt: Text;
-    updatedAt: Text;
+    userId : Text;
+    draftId : Text;
+    data : ResumeData;
+    createdAt : Text;
+    updatedAt : Text;
   };
 
-  public type Draft = HashMap.HashMap<Text, ResumeHistoryItem>;
+  public type Draft = HashMap.HashMap<Text, [ResumeHistoryItem]>;
 };

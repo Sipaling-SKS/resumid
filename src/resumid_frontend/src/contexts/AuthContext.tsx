@@ -181,7 +181,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             await actor.whoami();
             await actor.authenticateUser();
-            console.log(updated)
 
             setResumidActor(actor);
 

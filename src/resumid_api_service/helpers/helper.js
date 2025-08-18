@@ -1,45 +1,114 @@
-function normalizeDateField(dateValue, fillIfNull = false) {
-  if (!dateValue) {
-    if (fillIfNull) {
-      const now = new Date();
-      return { year: now.getFullYear(), month: now.getMonth() + 1 };
-    }
-    return null;
-  }
 
-  if (typeof dateValue === "string") {
-    const [y, m] = dateValue.split("/").map(Number);
-    return { year: y, month: m };
-  }
+// function fillDefaults(resumeData) {
+//   const currentDate = new Date();
+//   const currentYear = currentDate.getFullYear();
+//   const currentMonth = currentDate.getMonth() + 1;
 
-  if (typeof dateValue === "object" && "year" in dateValue && "month" in dateValue) {
-    return dateValue;
-  }
+//   const safeArray = (arr) => Array.isArray(arr) ? arr : null;
 
-  return null;
+//   return {
+//     summary: resumeData.summary
+//       ? { content: resumeData.summary.content || "" }
+//       : { content: "" },
+
+//     workExperiences: safeArray(resumeData.workExperiences)?.map(exp => {
+//       const start = exp.period?.start || { year: 1970, month: 1 };
+//       const end = exp.period?.end || { year: currentYear, month: currentMonth };
+//       return {
+//         company: exp.company || "",
+//         location: exp.location || "",
+//         position: exp.position || "",
+//         employment_type: exp.employment_type || "",
+//         period: { start, end },
+//         responsibilities: Array.isArray(exp.responsibilities) ? exp.responsibilities : []
+//       };
+//     }) || [
+//       {
+//         company: "",
+//         location: "",
+//         position: "",
+//         employment_type: "",
+//         period: { start: { year: 1970, month: 1 }, end: { year: currentYear, month: currentMonth } },
+//         responsibilities: []
+//       }
+//     ],
+
+//     educations: safeArray(resumeData.educations)?.map(edu => {
+//       const start = edu.study_period?.start || { year: 1970, month: 1 };
+//       const end = edu.study_period?.end || { year: currentYear, month: currentMonth };
+//       return {
+//         institution: edu.institution || "",
+//         degree: edu.degree || "",
+//         study_period: { start, end },
+//         score: edu.score || "",
+//         description: edu.description || ""
+//       };
+//     }) || [
+//       {
+//         institution: "",
+//         degree: "",
+//         study_period: { start: { year: 1970, month: 1 }, end: { year: currentYear, month: currentMonth } },
+//         score: "",
+//         description: ""
+//       }
+//     ]
+//   };
+// }
+
+function fillDefaults(resumeData) {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+
+  const safeArray = (arr) => Array.isArray(arr) ? arr : null;
+
+  return {
+    summary: resumeData.summary
+      ? { content: resumeData.summary.content || "" }
+      : { content: "" },
+
+    workExperiences: safeArray(resumeData.workExperiences)?.map(exp => {
+      const start = exp.period?.start || { year: 1970, month: 1 };
+      const end = exp.period?.end || { year: currentYear, month: currentMonth };
+      return {
+        company: exp.company || "",
+        location: exp.location || "",
+        position: exp.position || "",
+        employment_type: exp.employment_type || "",
+        period: { start, end },
+        description: exp.description || ""  // Changed from responsibilities to description
+      };
+    }) || [
+      {
+        company: "",
+        location: "",
+        position: "",
+        employment_type: "",
+        period: { start: { year: 1970, month: 1 }, end: { year: currentYear, month: currentMonth } },
+        description: ""  // Changed from responsibilities to description
+      }
+    ],
+
+    educations: safeArray(resumeData.educations)?.map(edu => {
+      const start = edu.period?.start || { year: 1970, month: 1 };  // Changed from study_period to period
+      const end = edu.period?.end || { year: currentYear, month: currentMonth };  // Changed from study_period to period
+      return {
+        institution: edu.institution || "",
+        degree: edu.degree || "",
+        period: { start, end },  // Changed from study_period to period
+        description: edu.description || ""  // Removed score field
+      };
+    }) || [
+      {
+        institution: "",
+        degree: "",
+        period: { start: { year: 1970, month: 1 }, end: { year: currentYear, month: currentMonth } },  // Changed from study_period to period
+        description: ""  // Removed score field
+      }
+    ],
+
+    skills: safeArray(resumeData.skills)?.filter(skill => skill && typeof skill === 'string') || []  // Added skills array with validation
+  };
 }
 
-function cleanResumeResponse(parsed) {
-  return parsed.map(section => {
-    if (Array.isArray(section.content)) {
-      section.content = section.content.map(item => {
-        if (item && typeof item === "object") {
-          if (item.period) {
-            item.period.start = normalizeDateField(item.period.start);
-            item.period.end = normalizeDateField(item.period.end, true); // fill if null
-          }
-          if (item.study_period) {
-            item.study_period.start = normalizeDateField(item.study_period.start);
-            item.study_period.end = normalizeDateField(item.study_period.end, true); // fill if null
-          }
-        }
-        return item;
-      });
-    }
-    return section;
-  });
-}
-
-module.exports = {
-  cleanResumeResponse,
-};
+module.exports = { fillDefaults };

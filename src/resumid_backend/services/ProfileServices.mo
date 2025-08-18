@@ -1,693 +1,505 @@
-import ProfileTypes "../types/ProfileTypes";
-import Text "mo:base/Text";
-import Random "mo:base/Random";
 import Array "mo:base/Array";
-import UUID "mo:idempotency-keys/idempotency-keys";
 import Time "mo:base/Time";
-import Option "mo:base/Option";
 import Result "mo:base/Result";
+import Text "mo:base/Text";
+import Option "mo:base/Option";
+
 import DateHelper "../helpers/DateHelper";
+import ProfileTypes "../types/ProfileTypes";
 
-import ResumeExtractTypes "../types/ResumeExtractTypes";
-import HashMap "mo:base/HashMap";
+module ProfileServices {
 
+  // ================ PROFILE DETAIL CRUD ================
 
+  public func updateProfileDetail(
+    profileMap : ProfileTypes.Profiles,
+    userId : Text,
+    profileDetailInput : {
+      name : Text;
+      current_position : ?Text;
+      description : ?Text;
+    },
+  ) : async Result.Result<Text, Text> {
+    // Cek apakah user ada
+    let profiles = switch (profileMap.get(userId)) {
+      case null {
+        return #err("Profile not found");
+      };
+      case (?profiles) { profiles };
+    };
 
-module {
-
-//save to profile
-public func saveDraftToProfile(
-    profiles: ProfileTypes.Profiles,
-    drafts: ResumeExtractTypes.Draft,
-    userId: Text
-) : Result.Result<ProfileTypes.Profiles, Text> {
-
-    switch (drafts.get(userId)) {
-        case null {
-            return #err("No draft found for user: " # userId);
+    // Update profile
+    let updatedProfiles = Array.map<ProfileTypes.Profile, ProfileTypes.Profile>(
+      profiles,
+      func(profile : ProfileTypes.Profile) : ProfileTypes.Profile {
+        // Ambil profilePicture lama kalau ada
+        let existingProfilePicture = switch (profile.profileDetail) {
+          case null { null };
+          case (?detail) { detail.profilePicture };
         };
-        case (?draftItem) {
-            let draftData = draftItem.data;
 
-            let updatedProfiles = switch (profiles.get(userId)) {
-                case (?profile) {
-                    let updatedProfile : ProfileTypes.Profile = {
-                        userId = profile.userId;
-                        id = profile.id;
-                        profileDetail = profile.profileDetail;
-                        contact = profile.contact;
-                        resume = draftData;          
-                        endorsements = profile.endorsements;
-                        endorsedProfiles = profile.endorsedProfiles;
-                        createdAt = profile.createdAt;
-                        updatedAt = profile.updatedAt;
-                    };
-                    let _ = profiles.put(userId, updatedProfile); 
-                    profiles
-                };
-                case null {
-                    let newProfile : ProfileTypes.Profile = {
-                        userId = ?userId;
-                        id = userId;
-                        profileDetail = { name = ""; description = null };
-                        contact = null;
-                        resume = draftData;         
-                        endorsements = null;
-                        endorsedProfiles = null;
-                        createdAt = null;
-                        updatedAt = null;
-                    };
-                    let _ = profiles.put(userId, newProfile);
-                    profiles
-                }
+        // Buat detail baru dengan profilePicture lama, dan bungkus name ke ?Text
+        let updatedProfileDetail : ProfileTypes.ProfileDetail = {
+          profilePicture = existingProfilePicture;
+          name = ?profileDetailInput.name; // bungkus ke optional
+          current_position = profileDetailInput.current_position;
+          description = profileDetailInput.description;
+        };
+
+        {
+          profile with
+          profileDetail = ?updatedProfileDetail;
+          updatedAt = DateHelper.formatTimestamp(Time.now());
+        };
+      },
+    );
+
+    // Simpan lagi ke map
+    profileMap.put(userId, updatedProfiles);
+
+    return #ok("Profile detail updated successfully");
+  };
+
+  // ================ CONTACT INFO CRUD ================
+
+  public func updateContactInfo(
+    profileMap : ProfileTypes.Profiles,
+    userId : Text,
+    contactInfo : ProfileTypes.ContactInfo,
+  ) : async Result.Result<Text, Text> {
+    let profiles = switch (profileMap.get(userId)) {
+      case null { return #err("Profile not found") };
+      case (?profiles) profiles;
+    };
+
+    let updatedProfiles = Array.map<ProfileTypes.Profile, ProfileTypes.Profile>(
+      profiles,
+      func(profile : ProfileTypes.Profile) : ProfileTypes.Profile {
+        {
+          profile with
+          contact = ?contactInfo;
+          updatedAt = DateHelper.formatTimestamp(Time.now());
+        };
+      },
+    );
+
+    profileMap.put(userId, updatedProfiles);
+    return #ok("Contact info updated successfully");
+  };
+
+  // ================ RESUME DATA CRUD ================
+
+  // ================ ENDORSEMENTS CRUD ================
+
+  public func addEndorsedProfile(
+    profileMap : ProfileTypes.Profiles,
+    userId : Text, // The user who is giving the endorsement
+    targetUserId : Text, // The user who is being endorsed
+  ) : async Result.Result<Text, Text> {
+
+    // Get the endorser's profile (userId)
+    let endorserProfiles = switch (profileMap.get(userId)) {
+      case null { return #err("Endorser profile not found") };
+      case (?profiles) profiles;
+    };
+
+    // Get the target user's profile (targetUserId)
+    let targetProfiles = switch (profileMap.get(targetUserId)) {
+      case null { return #err("Target profile not found") };
+      case (?profiles) profiles;
+    };
+
+    let endorserProfile = endorserProfiles[0];
+    let targetProfile = targetProfiles[0];
+
+    // Check endorser's endorsedProfiles list
+    let currentEndorsedProfiles = switch (endorserProfile.endorsedProfiles) {
+      case null { [] };
+      case (?endorsedProfiles) endorsedProfiles;
+    };
+
+    // Check target user's endorsements list
+    let currentEndorsements = switch (targetProfile.endorsements) {
+      case null { [] };
+      case (?endorsements) endorsements;
+    };
+
+    // Check if already endorsed
+    switch (Array.find<Text>(currentEndorsedProfiles, func(id : Text) : Bool { id == targetUserId })) {
+      case (?_) { return #err("Profile already endorsed") };
+      case null {
+        // Add targetUserId to endorser's endorsedProfiles
+        let newEndorsedProfiles = Array.append(currentEndorsedProfiles, [targetUserId]);
+
+        // Add userId to target's endorsements
+        let newEndorsements = Array.append(currentEndorsements, [userId]);
+
+        // Update endorser's profile
+        let updatedEndorserProfiles = Array.map<ProfileTypes.Profile, ProfileTypes.Profile>(
+          endorserProfiles,
+          func(p : ProfileTypes.Profile) : ProfileTypes.Profile {
+            {
+              p with
+              endorsedProfiles = ?newEndorsedProfiles;
+              updatedAt = DateHelper.formatTimestamp(Time.now());
             };
+          },
+        );
 
-            let _ = drafts.remove(userId);
+        // Update target user's profile
+        let updatedTargetProfiles = Array.map<ProfileTypes.Profile, ProfileTypes.Profile>(
+          targetProfiles,
+          func(p : ProfileTypes.Profile) : ProfileTypes.Profile {
+            {
+              p with
+              endorsements = ?newEndorsements;
+              updatedAt = DateHelper.formatTimestamp(Time.now());
+            };
+          },
+        );
 
-            #ok(updatedProfiles)
-        }
-    }
-};
+        // Save both updated profiles
+        profileMap.put(userId, updatedEndorserProfiles);
+        profileMap.put(targetUserId, updatedTargetProfiles);
 
+        return #ok("Mutual endorsement added successfully");
+      };
+    };
+  };
 
+  // Optional: Add a function to remove endorsements (mutual removal)
+  public func removeEndorsedProfile(
+    profileMap : ProfileTypes.Profiles,
+    userId : Text, // The user who is removing the endorsement
+    targetUserId : Text, // The user who is being un-endorsed
+  ) : async Result.Result<Text, Text> {
 
-//edit data in draft
-public func editWorkExperienceInDraft(
-    drafts: ResumeExtractTypes.Draft,
-    userId: Text,
-    newWork: ResumeExtractTypes.WorkExperience
-) : Result.Result<Text, Text> {
+    // Get both profiles
+    let endorserProfiles = switch (profileMap.get(userId)) {
+      case null { return #err("Endorser profile not found") };
+      case (?profiles) profiles;
+    };
 
-    switch (drafts.get(userId)) {
-        case null {
-            return #err("No draft found for user: " # userId);
+    let targetProfiles = switch (profileMap.get(targetUserId)) {
+      case null { return #err("Target profile not found") };
+      case (?profiles) profiles;
+    };
+
+    let endorserProfile = endorserProfiles[0];
+    let targetProfile = targetProfiles[0];
+
+    // Remove targetUserId from endorser's endorsedProfiles
+    let currentEndorsedProfiles = switch (endorserProfile.endorsedProfiles) {
+      case null { [] };
+      case (?endorsedProfiles) endorsedProfiles;
+    };
+
+    // Remove userId from target's endorsements
+    let currentEndorsements = switch (targetProfile.endorsements) {
+      case null { [] };
+      case (?endorsements) endorsements;
+    };
+
+    let newEndorsedProfiles = Array.filter<Text>(currentEndorsedProfiles, func(id : Text) : Bool { id != targetUserId });
+    let newEndorsements = Array.filter<Text>(currentEndorsements, func(id : Text) : Bool { id != userId });
+
+    // Update endorser's profile
+    let updatedEndorserProfiles = Array.map<ProfileTypes.Profile, ProfileTypes.Profile>(
+      endorserProfiles,
+      func(p : ProfileTypes.Profile) : ProfileTypes.Profile {
+        {
+          p with
+          endorsedProfiles = ?newEndorsedProfiles;
+          updatedAt = DateHelper.formatTimestamp(Time.now());
         };
-        case (?draftItem) {
-            let resumeData = draftItem.data;
-            let updatedData : ResumeExtractTypes.ResumeData =
-                Array.map<ResumeExtractTypes.ResumeSection, ResumeExtractTypes.ResumeSection>(resumeData, func(section) {
-                    if (section.title == "WorkExperience") {
-                        switch (section.content.WorkExperience) {
-                            case (?workList) {
-                                let updatedList : [ResumeExtractTypes.WorkExperience] =
-                                Array.map<ResumeExtractTypes.WorkExperience, ResumeExtractTypes.WorkExperience>(
-                                    workList,
-                                    func(w: ResumeExtractTypes.WorkExperience) : ResumeExtractTypes.WorkExperience {
-                                        if (w.id == newWork.id) { newWork } else { w }
-                                    }
-                                );
+      },
+    );
 
-                                { section with content = { section.content with WorkExperience = ?updatedList } };
+    // Update target user's profile
+    let updatedTargetProfiles = Array.map<ProfileTypes.Profile, ProfileTypes.Profile>(
+      targetProfiles,
+      func(p : ProfileTypes.Profile) : ProfileTypes.Profile {
+        {
+          p with
+          endorsements = ?newEndorsements;
+          updatedAt = DateHelper.formatTimestamp(Time.now());
+        };
+      },
+    );
+
+    // Save both updated profiles
+    profileMap.put(userId, updatedEndorserProfiles);
+    profileMap.put(targetUserId, updatedTargetProfiles);
+
+    return #ok("Mutual endorsement removed successfully");
+  };
+
+  // ================ READ INDIVIDUAL SECTIONS ================
+
+  public func readEndorsements(
+    profileMap : ProfileTypes.Profiles,
+    userId : Text,
+  ) : async Result.Result<?[Text], Text> {
+    let profiles = switch (profileMap.get(userId)) {
+      case null { return #err("Profile not found") };
+      case (?profiles) profiles;
+    };
+
+    return #ok(profiles[0].endorsements);
+  };
+
+  public func readEndorsedProfiles(
+    profileMap : ProfileTypes.Profiles,
+    userId : Text,
+  ) : async Result.Result<?[Text], Text> {
+    let profiles = switch (profileMap.get(userId)) {
+      case null { return #err("Profile not found") };
+      case (?profiles) profiles;
+    };
+
+    return #ok(profiles[0].endorsedProfiles);
+  };
+
+  // ================ UTILITY FUNCTIONS ================
+
+  public func getProfilebyUserId(
+    profileMap : ProfileTypes.Profiles,
+    userId : Text,
+  ) : async Result.Result<ProfileTypes.Profile, Text> {
+    let profiles = switch (profileMap.get(userId)) {
+      case null { return #err("Profile not found") };
+      case (?profiles) profiles;
+    };
+
+    return #ok(profiles[0]);
+  };
+
+  public func getProfileByProfileId(
+    profileMap : ProfileTypes.Profiles,
+    profileId : Text,
+  ) : async Result.Result<ProfileTypes.Profile, Text> {
+
+    // Search through all users' profiles to find matching profileId
+    for ((userId, profileList) in profileMap.entries()) {
+      let foundProfile = Array.find<ProfileTypes.Profile>(
+        profileList,
+        func(profile : ProfileTypes.Profile) : Bool {
+          profile.profileId == profileId;
+        },
+      );
+
+      switch (foundProfile) {
+        case (?profile) {
+          return #ok(profile);
+        };
+        case null {
+          // Continue searching in other users
+        };
+      };
+    };
+
+    // Profile not found in any user's profile list
+    return #err("Profile with ID " # profileId # " not found");
+  };
+
+
+
+  //searchProfiles
+
+  public func globalSearch(
+    profiles : ProfileTypes.Profiles,
+    searchInput : Text,
+  ) : [ProfileTypes.Profile] {
+    if (Text.size(searchInput) == 0) {
+      return [];
+    };
+
+    let lower = Text.toLowercase(searchInput);
+    var results : [ProfileTypes.Profile] = [];
+
+    for ((userId, profileList) in profiles.entries()) {
+      let filtered = Array.filter<ProfileTypes.Profile>(
+        profileList,
+        func(p : ProfileTypes.Profile) : Bool {
+          var match = false;
+
+          // Check ProfileDetail
+          switch (p.profileDetail) {
+            case (?detail) {
+              switch (detail.name) {
+                case (?name) {
+                  if (Text.contains(Text.toLowercase(name), #text lower)) {
+                    match := true;
+                  };
+                };
+                case null {};
+              };
+
+              if (not match) {
+                switch (detail.current_position) {
+                  case (?position) {
+                    if (Text.contains(Text.toLowercase(position), #text lower)) {
+                      match := true;
+                    };
+                  };
+                  case null {};
+                };
+              };
+
+              if (not match) {
+                switch (detail.description) {
+                  case (?desc) {
+                    if (Text.contains(Text.toLowercase(desc), #text lower)) {
+                      match := true;
+                    };
+                  };
+                  case null {};
+                };
+              };
+            };
+            case null {};
+          };
+
+          // Check ResumeData if no match yet
+          if (not match) {
+            switch (p.resume) {
+              case (?resumeData) {
+                // Check Summary
+                switch (resumeData.summary) {
+                  case (?s) {
+                    switch (s.content) {
+                      case (?content) {
+                        if (Text.contains(Text.toLowercase(content), #text lower)) {
+                          match := true;
+                        };
+                      };
+                      case null {};
+                    };
+                  };
+                  case null {};
+                };
+
+                // Check Work Experiences
+                if (not match) {
+                  switch (resumeData.workExperiences) {
+                    case (?workExps) {
+                      let foundWork = Array.find<ProfileTypes.WorkExperience>(
+                        workExps,
+                        func(we : ProfileTypes.WorkExperience) : Bool {
+                          var weMatch = false;
+
+                          if (Text.contains(Text.toLowercase(we.company), #text lower)) {
+                            weMatch := true;
+                          };
+
+                          if (not weMatch) {
+                            switch (we.location) {
+                              case (?loc) {
+                                if (Text.contains(Text.toLowercase(loc), #text lower)) {
+                                  weMatch := true;
+                                };
+                              };
+                              case null {};
                             };
-                            case null { section };
-                        }
-                    } else {
-                        section
-                    }
-                });
-            let now = Time.now();
-            let formatted = DateHelper.formatTimestamp(now);
-            let updatedDraft : ResumeExtractTypes.ResumeHistoryItem = {
-                userId = draftItem.userId;
-                data = updatedData;
-                createdAt = draftItem.createdAt;
-                updatedAt = formatted;
-            };
-            let _ = drafts.put(userId, updatedDraft);
+                          };
 
-            #ok("WorkExperience updated in draft for user: " # userId)
-        }
-    }
-};
+                          if (not weMatch) {
+                            if (Text.contains(Text.toLowercase(we.position), #text lower)) {
+                              weMatch := true;
+                            };
+                          };
 
-public func editEducationInDraft(
-    drafts: ResumeExtractTypes.Draft,
-    userId: Text,
-    newEdu: ResumeExtractTypes.Education
-) : Result.Result<Text, Text> {
-
-    switch (drafts.get(userId)) {
-        case null { return #err("No draft found for user: " # userId); };
-        case (?draftItem) {
-            let resumeData = draftItem.data;
-
-            let updatedData : ResumeExtractTypes.ResumeData =
-                Array.map<ResumeExtractTypes.ResumeSection, ResumeExtractTypes.ResumeSection>(
-                    resumeData,
-                    func(section: ResumeExtractTypes.ResumeSection) : ResumeExtractTypes.ResumeSection {
-                        if (section.title == "Education") {
-                            switch (section.content.Education) {
-                                case (?eduList) {
-                                    let updatedList : [ResumeExtractTypes.Education] =
-                                        Array.map<ResumeExtractTypes.Education, ResumeExtractTypes.Education>(
-                                            eduList,
-                                            func(e: ResumeExtractTypes.Education) : ResumeExtractTypes.Education {
-                                                if (e.id == newEdu.id) { newEdu } else { e }
-                                            }
-                                        );
-                                    { section with content = { section.content with Education = ?updatedList } };
+                          if (not weMatch) {
+                            switch (we.description) {
+                              case (?desc) {
+                                if (Text.contains(Text.toLowercase(desc), #text lower)) {
+                                  weMatch := true;
                                 };
-                                case null { section };
-                            }
-                        } else { section }
-                    }
-                );
-
-            let now = Time.now();
-            let formatted = DateHelper.formatTimestamp(now);
-
-            let updatedDraft : ResumeExtractTypes.ResumeHistoryItem = {
-                userId = draftItem.userId;
-                data = updatedData;
-                createdAt = draftItem.createdAt;
-                updatedAt = formatted;
-            };
-            let _ = drafts.put(userId, updatedDraft);
-
-            #ok("Education updated in draft for user: " # userId)
-        }
-    }
-};
-
-public func editSummaryInDraft(
-    drafts: ResumeExtractTypes.Draft,
-    userId: Text,
-    newSummary: ResumeExtractTypes.Summary
-) : Result.Result<Text, Text> {
-
-    switch (drafts.get(userId)) {
-        case null { return #err("No draft found for user: " # userId); };
-        case (?draftItem) {
-            let resumeData = draftItem.data;
-
-            let updatedData : ResumeExtractTypes.ResumeData =
-                Array.map<ResumeExtractTypes.ResumeSection, ResumeExtractTypes.ResumeSection>(
-                    resumeData,
-                    func(section: ResumeExtractTypes.ResumeSection) : ResumeExtractTypes.ResumeSection {
-                        if (section.title == "Summary") {
-                            { section with content = { section.content with Summary = newSummary } };
-                        } else { section }
-                    }
-                );
-
-            let now = Time.now();
-            let formatted = DateHelper.formatTimestamp(now);
-
-            let updatedDraft : ResumeExtractTypes.ResumeHistoryItem = {
-                userId = draftItem.userId;
-                data = updatedData;
-                createdAt = draftItem.createdAt;
-                updatedAt = formatted;
-            };
-            let _ = drafts.put(userId, updatedDraft);
-
-            #ok("Summary updated in draft for user: " # userId)
-        }
-    }
-};
-
-
-//edit data in profile
-public func editWorkExperienceInProfile(
-    profiles: ProfileTypes.Profiles,
-    userId: Text,
-    newWork: ProfileTypes.WorkExperience
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found for user: " # userId); };
-        case (?profile) {
-            // Ambil resume lama, jika null jadikan array kosong
-            let resumeData = switch (profile.resume) {
-                case null { [] };
-                case (?r) { r };
-            };
-
-            // Update section WorkExperience saja
-            let updatedResume : [ProfileTypes.ResumeSection] =
-                Array.map<ProfileTypes.ResumeSection, ProfileTypes.ResumeSection>(
-                    resumeData,
-                    func(section: ProfileTypes.ResumeSection) : ProfileTypes.ResumeSection {
-                        if (section.title == "WorkExperience") {
-                            switch (section.content.WorkExperience) {
-                                case (?workList) {
-                                    let updatedList : [ProfileTypes.WorkExperience] =
-                                        Array.map<ProfileTypes.WorkExperience, ProfileTypes.WorkExperience>(
-                                            workList,
-                                            func(w: ProfileTypes.WorkExperience) : ProfileTypes.WorkExperience {
-                                                if (w.id == newWork.id) { newWork } else { w }
-                                            }
-                                        );
-                                    { section with content = { section.content with WorkExperience = ?updatedList } };
-                                };
-                                case null { section };
-                            }
-                        } else { section } // section lain tidak berubah
-                    }
-                );
-
-            // Update profile hanya untuk resume, field lain tetap sama
-            let updatedProfile : ProfileTypes.Profile = { profile with resume = ?updatedResume };
-            let _ = profiles.put(userId, updatedProfile);
-
-            #ok("WorkExperience updated in profile for user: " # userId)
-        }
-    }
-};
-
-public func editEducationInProfile(
-    profiles: ProfileTypes.Profiles,
-    userId: Text,
-    newEdu: ProfileTypes.Education
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found for user: " # userId); };
-        case (?profile) {
-            let resumeData = switch (profile.resume) {
-                case null { [] };
-                case (?r) { r };
-            };
-
-            let updatedResume : [ProfileTypes.ResumeSection] =
-                Array.map<ProfileTypes.ResumeSection, ProfileTypes.ResumeSection>(
-                    resumeData,
-                    func(section: ProfileTypes.ResumeSection) : ProfileTypes.ResumeSection {
-                        if (section.title == "Education") {
-                            switch (section.content.Education) {
-                                case (?eduList) {
-                                    let updatedList : [ProfileTypes.Education] =
-                                        Array.map<ProfileTypes.Education, ProfileTypes.Education>(
-                                            eduList,
-                                            func(e: ProfileTypes.Education) : ProfileTypes.Education {
-                                                if (e.id == newEdu.id) { newEdu } else { e }
-                                            }
-                                        );
-                                    { section with content = { section.content with Education = ?updatedList } };
-                                };
-                                case null { section };
-                            }
-                        } else { section }
-                    }
-                );
-
-            let updatedProfile : ProfileTypes.Profile = { profile with resume = ?updatedResume };
-            let _ = profiles.put(userId, updatedProfile);
-
-            #ok("Education updated in profile for user: " # userId)
-        }
-    }
-};
-
-public func editSummaryInProfile(
-    profiles: ProfileTypes.Profiles,
-    userId: Text,
-    newSummary: ProfileTypes.Summary
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found for user: " # userId); };
-        case (?profile) {
-            let resumeData = switch (profile.resume) {
-                case null { [] };
-                case (?r) { r };
-            };
-
-            let updatedResume : [ProfileTypes.ResumeSection] =
-                Array.map<ProfileTypes.ResumeSection, ProfileTypes.ResumeSection>(
-                    resumeData,
-                    func(section: ProfileTypes.ResumeSection) : ProfileTypes.ResumeSection {
-                        if (section.title == "Summary") {
-                            { section with content = { section.content with Summary = newSummary } };
-                        } else { section }
-                    }
-                );
-
-            let updatedProfile : ProfileTypes.Profile = { profile with resume = ?updatedResume };
-            let _ = profiles.put(userId, updatedProfile);
-
-            #ok("Summary updated in profile for user: " # userId)
-        }
-    }
-};
-
-public func editProfileDetail(
-    profiles: ProfileTypes.Profiles,
-    userId: Text,
-    newDetail: ProfileTypes.ProfileDetail
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found for user: " # userId); };
-        case (?profile) {
-            let updatedProfile : ProfileTypes.Profile = { profile with profileDetail = newDetail };
-            let _ = profiles.put(userId, updatedProfile);
-
-            #ok("Profile detail updated for user: " # userId)
-        }
-    }
-};
-
-public func editContactInfo(
-    profiles: ProfileTypes.Profiles,
-    userId: Text,
-    newContact: ProfileTypes.ContactInfo
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found for user: " # userId); };
-        case (?profile) {
-            let updatedProfile : ProfileTypes.Profile = { profile with contact = ?newContact };
-            let _ = profiles.put(userId, updatedProfile);
-
-            #ok("Contact info updated for user: " # userId)
-        }
-    }
-};
-
-
-//delete data draft
-
-public func deleteWorkExperienceInDraft(
-    drafts: ResumeExtractTypes.Draft,
-    userId: Text,
-    workId: Text
-) : Result.Result<Text, Text> {
-
-    switch (drafts.get(userId)) {
-        case null { return #err("No draft found for user: " # userId); };
-        case (?draftItem) {
-            let resumeData = draftItem.data;
-
-            let updatedData : ResumeExtractTypes.ResumeData =
-                Array.map<ResumeExtractTypes.ResumeSection, ResumeExtractTypes.ResumeSection>(
-                    resumeData,
-                    func(section) {
-                        if (section.title == "WorkExperience") {
-                            switch (section.content.WorkExperience) {
-                                case (?workList) {
-                                    let filtered = Array.filter<ResumeExtractTypes.WorkExperience>(
-                                        workList,
-                                        func(w) { w.id != workId }
-                                    );
-                                    { section with content = { section.content with WorkExperience = ?filtered } };
-                                };
-                                case null { section };
-                            }
-                        } else { section }
-                    }
-                );
-
-            let updatedDraft = { draftItem with data = updatedData };
-            let _ = drafts.put(userId, updatedDraft);
-
-            #ok("WorkExperience deleted from draft: " # workId)
-        }
-    }
-};
-
-public func deleteEducationInDraft(
-    drafts: ResumeExtractTypes.Draft,
-    userId: Text,
-    eduId: Text
-) : Result.Result<Text, Text> {
-
-    switch (drafts.get(userId)) {
-        case null { return #err("No draft found for user: " # userId); };
-        case (?draftItem) {
-            let resumeData = draftItem.data;
-
-            let updatedData : ResumeExtractTypes.ResumeData =
-                Array.map<ResumeExtractTypes.ResumeSection, ResumeExtractTypes.ResumeSection>(
-                    resumeData,
-                    func(section) {
-                        if (section.title == "Education") {
-                            switch (section.content.Education) {
-                                case (?eduList) {
-                                    let filtered = Array.filter<ResumeExtractTypes.Education>(
-                                        eduList,
-                                        func(e) { e.id != eduId }
-                                    );
-                                    { section with content = { section.content with Education = ?filtered } };
-                                };
-                                case null { section };
-                            }
-                        } else { section }
-                    }
-                );
-
-            let updatedDraft = { draftItem with data = updatedData };
-            let _ = drafts.put(userId, updatedDraft);
-
-            #ok("Education deleted from draft: " # eduId)
-        }
-    }
-};
-
-public func deleteSectionInDraft(
-    drafts: ResumeExtractTypes.Draft,
-    userId: Text,
-    sectionTitle: Text
-) : Result.Result<Text, Text> {
-
-    switch (drafts.get(userId)) {
-        case null { return #err("No draft found for user: " # userId); };
-        case (?draftItem) {
-            let resumeData = draftItem.data;
-
-            let updatedData = Array.filter<ResumeExtractTypes.ResumeSection>(
-                resumeData,
-                func(section) { section.title != sectionTitle }
-            );
-
-            let updatedDraft = { draftItem with data = updatedData };
-            let _ = drafts.put(userId, updatedDraft);
-
-            #ok("Section deleted from draft: " # sectionTitle)
-        }
-    }
-};
-
-//delete data profile
-public func deleteWorkExperienceInProfile(
-    profiles: ProfileTypes.Profiles,
-    userId: Text,
-    workId: Text
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found"); };
-        case (?profile) {
-            let resumeData = switch (profile.resume) {
-                case null { [] };
-                case (?r) { r };
-            };
-
-            let updatedResume : [ProfileTypes.ResumeSection] =
-                Array.map<ProfileTypes.ResumeSection, ProfileTypes.ResumeSection>(
-                    resumeData,
-                    func(section: ProfileTypes.ResumeSection) : ProfileTypes.ResumeSection {
-                        if (section.title == "WorkExperience") {
-                            switch (section.content.WorkExperience) {
-                                case (?workList) {
-                                    let filtered : [ProfileTypes.WorkExperience] =
-                                        Array.filter<ProfileTypes.WorkExperience>(
-                                            workList,
-                                            func(w) { w.id != workId }
-                                        );
-                                    { section with content = { section.content with WorkExperience = ?filtered } };
-                                };
-                                case null { section };
-                            }
-                        } else { section }
-                    }
-                );
-
-            let updatedProfile : ProfileTypes.Profile = { profile with resume = ?updatedResume };
-            let _ = profiles.put(userId, updatedProfile);
-
-            #ok("WorkExperience item deleted: " # workId)
-        }
-    }
-};
-
-public func deleteEducationInProfile(
-    profiles: ProfileTypes.Profiles,
-    userId: Text,
-    eduId: Text
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found"); };
-        case (?profile) {
-            let resumeData = switch (profile.resume) {
-                case null { [] };
-                case (?r) { r };
-            };
-
-            let updatedResume : [ProfileTypes.ResumeSection] =
-                Array.map<ProfileTypes.ResumeSection, ProfileTypes.ResumeSection>(
-                    resumeData,
-                    func(section: ProfileTypes.ResumeSection) : ProfileTypes.ResumeSection {
-                        if (section.title == "Education") {
-                            switch (section.content.Education) {
-                                case (?eduList) {
-                                    let filtered : [ProfileTypes.Education] =
-                                        Array.filter<ProfileTypes.Education>(
-                                            eduList,
-                                            func(e) { e.id != eduId }
-                                        );
-                                    { section with content = { section.content with Education = ?filtered } };
-                                };
-                                case null { section };
-                            }
-                        } else { section }
-                    }
-                );
-
-            let updatedProfile : ProfileTypes.Profile = { profile with resume = ?updatedResume };
-            let _ = profiles.put(userId, updatedProfile);
-
-            #ok("Education item deleted: " # eduId)
-        }
-    }
-};
-
-public func deleteSummarySectionInProfile(
-    profiles: ProfileTypes.Profiles,
-    userId: Text
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found"); };
-        case (?profile) {
-            let resumeData = switch (profile.resume) {
-                case null { [] };
-                case (?r) { r };
-            };
-
-            let filteredSections : [ProfileTypes.ResumeSection] =
-                Array.filter<ProfileTypes.ResumeSection>(
-                    resumeData,
-                    func(section) { section.title != "Summary" }
-                );
-
-            let updatedProfile : ProfileTypes.Profile = { profile with resume = ?filteredSections };
-            let _ = profiles.put(userId, updatedProfile);
-
-            #ok("Summary section deleted")
-        }
-    }
-};
-
-public func deleteContactField(
-    profiles: ProfileTypes.Profiles,
-    userId: Text,
-    fieldName: Text
-) : Result.Result<Text, Text> {
-
-    switch (profiles.get(userId)) {
-        case null { return #err("Profile not found for user: " # userId); };
-        case (?profile) {
-            switch (profile.contact) {
-                case null { return #err("No contact info to delete"); };
-                case (?contact) {
-                    let updatedContact : ProfileTypes.ContactInfo =
-                        switch (fieldName) {
-                            case "email" { { contact with email = null } };
-                            case "phone" { { contact with phone = null } };
-                            case "address" { { contact with address = null } };
-                            case "website" { { contact with website = null } };
-                            case "linkedin" { { contact with linkedin = null } };
-                            case "github" { { contact with github = null } };
-                            case _ { return #err("Invalid contact field: " # fieldName) };
-                        };
-
-                    let updatedProfile : ProfileTypes.Profile = { profile with contact = ?updatedContact };
-                    let _ = profiles.put(userId, updatedProfile);
-
-                    #ok("Contact field deleted: " # fieldName)
-                }
-            }
-        }
-    }
-};
-
-
-
-
-public func endorseProfile(
-    profiles: ProfileTypes.Profiles,
-    targetUserId: Text,
-    userId: Text
-) : ProfileTypes.Profiles {
-
-    switch (profiles.get(targetUserId)) {
-        case (?targetProfile) {
-            switch (profiles.get(userId)) {
-                case (?userProfile) {
-                    let updatedEndorsements = 
-                        switch (targetProfile.endorsements) {
-                            case (?list) { ?Array.append(list, [userId]) };
-                            case null { ?[userId] };
-                        };
-                    let updatedTarget = { targetProfile with endorsements = updatedEndorsements };
-                    profiles.put(targetUserId, updatedTarget);
-
-                    let updatedEndorsedProfiles = 
-                        switch (userProfile.endorsedProfiles) {
-                            case (?list) { ?Array.append(list, [targetUserId]) };
-                            case null { ?[targetUserId] };
-                        };
-                    let updatedUser = { userProfile with endorsedProfiles = updatedEndorsedProfiles };
-                    profiles.put(userId, updatedUser);
-
-                    profiles
+                              };
+                              case null {};
+                            };
+                          };
+
+                          weMatch;
+                        },
+                      );
+
+                      switch (foundWork) {
+                        case (?_) { match := true };
+                        case null {};
+                      };
+                    };
+                    case null {};
+                  };
                 };
-                case null { profiles }
-            };
-        };
-        case null { profiles }
-    }
-};
 
-public func unendorseProfile(
-    profiles: ProfileTypes.Profiles,
-    targetUserId: Text,
-    userId: Text
-) : ProfileTypes.Profiles {
+                // Check Educations
+                if (not match) {
+                  switch (resumeData.educations) {
+                    case (?edus) {
+                      let foundEdu = Array.find<ProfileTypes.Education>(
+                        edus,
+                        func(ed : ProfileTypes.Education) : Bool {
+                          var eduMatch = false;
 
-    switch (profiles.get(targetUserId)) {
-        case (?targetProfile) {
-            switch (profiles.get(userId)) {
-                case (?userProfile) {
-                    let updatedEndorsements = 
-                        switch (targetProfile.endorsements) {
-                            case (?list) { ?Array.filter<Text>(list, func(x) { x != userId }) };
-                            case null { null };
-                        };
-                    let updatedTarget = { targetProfile with endorsements = updatedEndorsements };
-                    profiles.put(targetUserId, updatedTarget);
+                          switch (ed.institution) {
+                            case (?inst) {
+                              if (Text.contains(Text.toLowercase(inst), #text lower)) {
+                                eduMatch := true;
+                              };
+                            };
+                            case null {};
+                          };
 
-                    let updatedEndorsedProfiles = 
-                        switch (userProfile.endorsedProfiles) {
-                            case (?list) { ?Array.filter<Text>(list, func(x) { x != targetUserId }) };
-                            case null { null };
-                        };
-                    let updatedUser = { userProfile with endorsedProfiles = updatedEndorsedProfiles };
-                    profiles.put(userId, updatedUser);
+                          if (not eduMatch) {
+                            switch (ed.degree) {
+                              case (?degree) {
+                                if (Text.contains(Text.toLowercase(degree), #text lower)) {
+                                  eduMatch := true;
+                                };
+                              };
+                              case null {};
+                            };
+                          };
 
-                    profiles
+                          if (not eduMatch) {
+                            switch (ed.description) {
+                              case (?desc) {
+                                if (Text.contains(Text.toLowercase(desc), #text lower)) {
+                                  eduMatch := true;
+                                };
+                              };
+                              case null {};
+                            };
+                          };
+
+                          eduMatch;
+                        },
+                      );
+
+                      switch (foundEdu) {
+                        case (?_) { match := true };
+                        case null {};
+                      };
+                    };
+                    case null {};
+                  };
                 };
-                case null { profiles }
+              };
+              case null {};
             };
-        };
-        case null { profiles }
-    }
+          };
+
+          match;
+        },
+      );
+
+      if (filtered.size() > 0) {
+        results := Array.append<ProfileTypes.Profile>(results, filtered);
+      };
+    };
+
+    results;
+  };
+
 };
-
-  
-}
-
-  
-

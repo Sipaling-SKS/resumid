@@ -18,3 +18,9 @@ exports.CreateMockupAnalyzeResume = async (req, res, next) => {
   
   return res.status(200).json(response);
 };
+
+exports.ExtractResumeMock = async (req, res, next) => {
+  const response = GeminiServices.ExtractResumeMock(req);
+  
+  return res.status(200).json(response);
+};
