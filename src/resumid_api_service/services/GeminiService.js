@@ -334,6 +334,61 @@ const MockupAnalyzeResume = (req) => {
 // mockExtractResume.js
 
 
+const ExtractResume = async (req) => {
+  const cvContent = req.body.cvContent;
+
+  const now = new Date();
+  const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
+
+  try {
+    const response = await ai.models.generateContent({
+      model: resumeExtractConfig.model,
+      contents: [{ type: "input_text", text: cvContent }],
+      config: {
+        systemInstruction: { parts: resumeExtractConfig.systemInstruction },
+        responseMimeType: resumeExtractConfig.generationConfig.responseMimeType,
+        responseSchema: resumeExtractConfig.generationConfig.responseSchema,
+      },
+    });
+
+    let parsedResponseRaw = response.output;
+
+    if (typeof parsedResponseRaw === "string") {
+      try {
+        parsedResponseRaw = JSON.parse(parsedResponseRaw);
+      } catch {
+        parsedResponseRaw = {};
+      }
+    } else if (!parsedResponseRaw || typeof parsedResponseRaw !== "object") {
+      // Fallback kalau SDK pakai candidates
+      const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
+      try {
+        parsedResponseRaw = text ? JSON.parse(text) : {};
+      } catch {
+        parsedResponseRaw = {};
+      }
+    }
+
+    const parsedResponseCleaned = fillDefaults(parsedResponseRaw);
+
+    // Simpan log
+    await new TrGeminiRequestLog({
+      idempotency_key: req.headers["idempotency-key"],
+      gemini_request: JSON.stringify(req.body),
+      gemini_response: JSON.stringify(parsedResponseRaw),
+      expired_date,
+      created_at: now,
+      updated_at: now,
+    }).save();
+
+    return parsedResponseRaw;
+
+  } catch (err) {
+    console.error("ExtractResume error:", err);
+    throw err;
+  }
+};
+
 // const ExtractResume = async (req) => {
 //   const cvContent = req.body.cvContent;
 
@@ -341,32 +396,49 @@ const MockupAnalyzeResume = (req) => {
 //   const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
 
 //   try {
-//     const response = await ai.models.generateContent({
-//       model: resumeExtractConfig.model,
-//       contents: [{ type: "input_text", text: cvContent }],
-//       config: {
-//         systemInstruction: { parts: resumeExtractConfig.systemInstruction },
+//     // Validate input
+//     if (!cvContent || typeof cvContent !== 'string') {
+//       throw new Error('Invalid cvContent provided');
+//     }
+
+//     // // Check API key
+//     // if (!process.env.GOOGLE_API_KEY) {
+//     //   throw new Error('Google API key not configured');
+//     // }
+
+//     console.log('Sending request to Gemini API...');
+
+//     // Use the correct API format for Google Gemini
+//     const result = await model.generateContent({
+//       contents: [{
+//         role: 'user',
+//         parts: [{ text: cvContent }]
+//       }],
+//       systemInstruction: {
+//         parts: resumeExtractConfig.systemInstruction
+//       },
+//       generationConfig: {
 //         responseMimeType: resumeExtractConfig.generationConfig.responseMimeType,
 //         responseSchema: resumeExtractConfig.generationConfig.responseSchema,
-//       },
+//       }
 //     });
 
-//     let parsedResponseRaw = response.output;
+//     console.log('Received response from Gemini API');
 
-//     if (typeof parsedResponseRaw === "string") {
+//     // Parse response
+//     let parsedResponseRaw = {};
+
+//     if (result.response) {
+//       const text = result.response.text();
 //       try {
-//         parsedResponseRaw = JSON.parse(parsedResponseRaw);
-//       } catch {
-//         parsedResponseRaw = {};
+//         parsedResponseRaw = JSON.parse(text);
+//       } catch (parseError) {
+//         console.error('JSON parse error:', parseError);
+//         console.log('Raw response:', text);
+//         throw new Error('Failed to parse Gemini response as JSON');
 //       }
-//     } else if (!parsedResponseRaw || typeof parsedResponseRaw !== "object") {
-//       // Fallback kalau SDK pakai candidates
-//       const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
-//       try {
-//         parsedResponseRaw = text ? JSON.parse(text) : {};
-//       } catch {
-//         parsedResponseRaw = {};
-//       }
+//     } else {
+//       throw new Error('No response received from Gemini API');
 //     }
 
 //     const parsedResponseCleaned = fillDefaults(parsedResponseRaw);
@@ -384,110 +456,38 @@ const MockupAnalyzeResume = (req) => {
 //     return parsedResponseCleaned;
 
 //   } catch (err) {
-//     console.error("ExtractResume error:", err);
-//     throw err;
+//     console.error("ExtractResume error details:", {
+//       message: err.message,
+//       stack: err.stack,
+//       cause: err.cause
+//     });
+
+//     // Return a fallback response instead of crashing
+//     const fallbackResponse = {
+//       summary: { content: "" },
+//       workExperiences: [],
+//       educations: [],
+//       skills: []
+//     };
+
+//     // Still log the error attempt
+//     try {
+//       await new TrGeminiRequestLog({
+//         idempotency_key: req.headers["idempotency-key"],
+//         gemini_request: JSON.stringify(req.body),
+//         gemini_response: JSON.stringify({ error: err.message }),
+//         expired_date,
+//         created_at: now,
+//         updated_at: now,
+//       }).save();
+//     } catch (logError) {
+//       console.error('Failed to log error:', logError);
+//     }
+
+//     throw err; // Re-throw if you want the endpoint to return an error
+//     // Or return fallbackResponse; // Return fallback data instead
 //   }
 // };
-
-const ExtractResume = async (req) => {
-  const cvContent = req.body.cvContent;
-
-  const now = new Date();
-  const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
-
-  try {
-    // Validate input
-    if (!cvContent || typeof cvContent !== 'string') {
-      throw new Error('Invalid cvContent provided');
-    }
-
-    // // Check API key
-    // if (!process.env.GOOGLE_API_KEY) {
-    //   throw new Error('Google API key not configured');
-    // }
-
-    console.log('Sending request to Gemini API...');
-
-    // Use the correct API format for Google Gemini
-    const result = await model.generateContent({
-      contents: [{
-        role: 'user',
-        parts: [{ text: cvContent }]
-      }],
-      systemInstruction: {
-        parts: resumeExtractConfig.systemInstruction
-      },
-      generationConfig: {
-        responseMimeType: resumeExtractConfig.generationConfig.responseMimeType,
-        responseSchema: resumeExtractConfig.generationConfig.responseSchema,
-      }
-    });
-
-    console.log('Received response from Gemini API');
-
-    // Parse response
-    let parsedResponseRaw = {};
-
-    if (result.response) {
-      const text = result.response.text();
-      try {
-        parsedResponseRaw = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        console.log('Raw response:', text);
-        throw new Error('Failed to parse Gemini response as JSON');
-      }
-    } else {
-      throw new Error('No response received from Gemini API');
-    }
-
-    const parsedResponseCleaned = fillDefaults(parsedResponseRaw);
-
-    // Simpan log
-    await new TrGeminiRequestLog({
-      idempotency_key: req.headers["idempotency-key"],
-      gemini_request: JSON.stringify(req.body),
-      gemini_response: JSON.stringify(parsedResponseCleaned),
-      expired_date,
-      created_at: now,
-      updated_at: now,
-    }).save();
-
-    return parsedResponseCleaned;
-
-  } catch (err) {
-    console.error("ExtractResume error details:", {
-      message: err.message,
-      stack: err.stack,
-      cause: err.cause
-    });
-
-    // Return a fallback response instead of crashing
-    const fallbackResponse = {
-      summary: { content: "" },
-      workExperiences: [],
-      educations: [],
-      skills: []
-    };
-
-    // Still log the error attempt
-    try {
-      await new TrGeminiRequestLog({
-        idempotency_key: req.headers["idempotency-key"],
-        gemini_request: JSON.stringify(req.body),
-        gemini_response: JSON.stringify({ error: err.message }),
-        expired_date,
-        created_at: now,
-        updated_at: now,
-      }).save();
-    } catch (logError) {
-      console.error('Failed to log error:', logError);
-    }
-
-    throw err; // Re-throw if you want the endpoint to return an error
-    // Or return fallbackResponse; // Return fallback data instead
-  }
-};
 
 
 

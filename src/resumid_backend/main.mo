@@ -34,6 +34,7 @@ actor Resumid {
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
   private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
   private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, [ResumeExtractTypes.ResumeHistoryItem]>(0, Text.equal, Text.hash);
+  
   // ==============================
   // Authentication and User Methods
   // ==============================
@@ -69,12 +70,10 @@ actor Resumid {
   // Resume Analysis Methods
   // ==============================
 
-  // final analyzev2
   public shared (msg) func AnalyzeResumeV2(fileName : Text, historycid : Text, resumeContent : Text, jobTitle : Text) : async ?HistoryTypes.History {
     let userId = Principal.toText(msg.caller);
     Debug.print("Caller Principal for AnalyzeResume: " # userId);
 
-    // Panggil service eksternal
     let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
     Debug.print("Analyze result: " # debug_show (analyzeResult));
 
@@ -84,11 +83,9 @@ actor Resumid {
         return null;
       };
       case (?result) {
-        // Dapatkan timestamp saat ini
         let timestamp = Time.now();
         let formattedTimestamp = DateHelper.formatTimestamp(timestamp);
 
-        // Konversi konten analisis ke tipe internal
         let convertedContent = Array.map<GeminiTypes.Section, HistoryTypes.ContentItem>(
           result.content,
           func(section) {
@@ -125,7 +122,6 @@ actor Resumid {
           value = result.summary.value;
         };
 
-        // Siapkan input untuk addHistory
         let input : HistoryTypes.AddHistoryInput = {
           historycid = historycid;
           fileName = fileName;
@@ -136,7 +132,6 @@ actor Resumid {
           createdAt = formattedTimestamp;
         };
 
-        // Simpan menggunakan service
         let addResult = await HistoryServices.addHistory(histories, userId, input);
 
         switch (addResult) {
@@ -234,7 +229,7 @@ actor Resumid {
           updatedAt = formatted;
         };
 
-        // ✅ Store as array
+
         draftMap.put(userId, [historyItem]);
 
         return ?resumeData;
@@ -245,31 +240,30 @@ actor Resumid {
   public shared (msg) func GetDraftByUserId(userId : Text) : async [ResumeExtractTypes.ResumeHistoryItem] {
     // let userId = Principal.toText(msg.caller);
 
-    // Return the array if exists, otherwise return empty array
     switch (draftMap.get(userId)) {
-      case null { [] }; // No draft → empty array
-      case (?arr) { arr }; // Return existing drafts
+      case null { [] }; 
+      case (?arr) { arr }; 
     };
   };
 
-  // public shared (msg) func getProfileByUserId(userId : Text) : async Result.Result<ProfileTypes.Profile, Text> {
-  //   // let userId = Principal.toText(msg.caller);
-
-  //   switch (profiles.get(userId)) {
-  //     case null {
-  //       return #err("Profile not found for user: " # userId);
-  //     };
-  //     case (?profile) {
-  //       return #ok(profile);
-  //     };
-  //   };
-  // };
-
-  public shared (msg) func getProfileByUserId(userId : Text) : async Result.Result<{ profile : ProfileTypes.Profile; endorsementInfo : [{ userId : Text; name : ?Text; avatar : ?Text }] }, Text> {
+  public shared (msg) func getProfileByUserId(userId : Text) : async {
+    profile : ?ProfileTypes.Profile;
+    endorsementInfo : [{ name : ?Text; avatar : ?Text }];
+  } {
     let result = await ProfileServices.getProfileByUserId(profiles, userId);
     switch (result) {
-      case (?data) { return #ok(data) };
-      case null { return #err("Profile not found for user: " # userId) };
+      case (?data) {
+        return {
+          profile = ?data.profile;
+          endorsementInfo = data.endorsementInfo;
+        };
+      };
+      case null {
+        return {
+          profile = null;
+          endorsementInfo = [];
+        };
+      };
     };
   };
 
@@ -370,19 +364,18 @@ actor Resumid {
     return await ProfileServices.createUserProfile(profiles, userId, profileData);
   };
 
-  // public shared (msg) func getProfileById(profileId : Text) : async Result.Result<ProfileTypes.Profile, Text> {
-  //   let result = await ProfileServices.getProfileByProfileId(profiles, profileId);
-  //   switch (result) {
-  //     case (?profile) { return #ok(profile) };
-  //     case null { return #err("Profile not found") };
-  //   };
-  // };
-
-  public shared (msg) func getProfileById(profileId : Text) : async Result.Result<{ profile : ProfileTypes.Profile; endorsementInfo : [{ userId : Text; name : ?Text; avatar : ?Text }] }, Text> {
-    let result = await ProfileServices.getProfileByProfileId(profiles, profileId);
-    switch (result) {
-      case (?data) { return #ok(data) };
-      case null { return #err("Profile not found") };
+  public shared (msg) func getProfileById(profileId : Text) : async {
+    profile : ?ProfileTypes.Profile;
+    endorsementInfo : [{ name : ?Text; avatar : ?Text }];
+  } {
+    switch (await ProfileServices.getProfileByProfileId(profiles, profileId)) {
+      case (?data) {
+        {
+          profile = ?data.profile; 
+          endorsementInfo = data.endorsementInfo;
+        };
+      };
+      case null { { profile = null; endorsementInfo = [] } };
     };
   };
 

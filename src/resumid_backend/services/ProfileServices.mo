@@ -39,7 +39,6 @@ module ProfileServices {
   ) : async ?{
     profile : ProfileTypes.Profile;
     endorsementInfo : [{
-      userId : Text;
       name : ?Text;
       avatar : ?Text;
     }];
@@ -68,7 +67,6 @@ module ProfileServices {
   ) : async ?{
     profile : ProfileTypes.Profile;
     endorsementInfo : [{
-      userId : Text;
       name : ?Text;
       avatar : ?Text;
     }];
@@ -95,12 +93,10 @@ module ProfileServices {
     profiles : ProfileTypes.Profiles,
     endorsementUserIds : [Text],
   ) : [{
-    userId : Text;
     name : ?Text;
     avatar : ?Text;
   }] {
     var results : [{
-      userId : Text;
       name : ?Text;
       avatar : ?Text;
     }] = [];
@@ -119,7 +115,6 @@ module ProfileServices {
           };
 
           let endorsementInfo = {
-            userId = userId;
             name = name;
             avatar = avatar;
           };
