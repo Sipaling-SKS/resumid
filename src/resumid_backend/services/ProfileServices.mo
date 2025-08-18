@@ -11,26 +11,125 @@ import ProfileTypes "../types/ProfileTypes";
 module ProfileServices {
 
   // utils
+  // public func getProfileByProfileId(
+  //   profiles : ProfileTypes.Profiles,
+  //   profileId : Text,
+  // ) : async ?ProfileTypes.Profile {
+  //   for ((_, profile) in profiles.entries()) {
+  //     if (profile.profileId == profileId) {
+  //       return ?profile;
+  //     };
+  //   };
+  //   return null;
+  // };
+
+  // public func getProfileByUserId(
+  //   profiles : ProfileTypes.Profiles,
+  //   userId : Text,
+  // ) : async ?ProfileTypes.Profile {
+  //   switch (profiles.get(userId)) {
+  //     case null { return null };
+  //     case (?profile) { return ?profile };
+  //   };
+  // };
+
   public func getProfileByProfileId(
     profiles : ProfileTypes.Profiles,
     profileId : Text,
-  ) : ?ProfileTypes.Profile {
+  ) : async ?{
+    profile : ProfileTypes.Profile;
+    endorsementInfo : [{
+      userId : Text;
+      name : ?Text;
+      avatar : ?Text;
+    }];
+  } {
     for ((_, profile) in profiles.entries()) {
       if (profile.profileId == profileId) {
-        return ?profile;
+        let endorsementInfo = switch (profile.endorsements) {
+          case (?endorsementIds) {
+            getEndorsementBasicInfo(profiles, endorsementIds);
+          };
+          case null { [] };
+        };
+
+        return ?{
+          profile = profile;
+          endorsementInfo = endorsementInfo;
+        };
       };
     };
-    return null; 
+    return null;
   };
 
   public func getProfileByUserId(
     profiles : ProfileTypes.Profiles,
     userId : Text,
-  ) : ?ProfileTypes.Profile {
+  ) : async ?{
+    profile : ProfileTypes.Profile;
+    endorsementInfo : [{
+      userId : Text;
+      name : ?Text;
+      avatar : ?Text;
+    }];
+  } {
     switch (profiles.get(userId)) {
       case null { return null };
-      case (?profile) { return ?profile };
+      case (?profile) {
+        let endorsementInfo = switch (profile.endorsements) {
+          case (?endorsementIds) {
+            getEndorsementBasicInfo(profiles, endorsementIds);
+          };
+          case null { [] };
+        };
+
+        return ?{
+          profile = profile;
+          endorsementInfo = endorsementInfo;
+        };
+      };
     };
+  };
+
+  public func getEndorsementBasicInfo(
+    profiles : ProfileTypes.Profiles,
+    endorsementUserIds : [Text],
+  ) : [{
+    userId : Text;
+    name : ?Text;
+    avatar : ?Text;
+  }] {
+    var results : [{
+      userId : Text;
+      name : ?Text;
+      avatar : ?Text;
+    }] = [];
+
+    for (userId in endorsementUserIds.vals()) {
+      switch (profiles.get(userId)) {
+        case (?profile) {
+          let name = switch (profile.profileDetail) {
+            case (?detail) { detail.name };
+            case null { null };
+          };
+
+          let avatar = switch (profile.profileDetail) {
+            case (?detail) { detail.profileCid };
+            case null { null };
+          };
+
+          let endorsementInfo = {
+            userId = userId;
+            name = name;
+            avatar = avatar;
+          };
+          results := Array.append(results, [endorsementInfo]);
+        };
+        case null {};
+      };
+    };
+
+    results;
   };
 
   // create a new user profile
@@ -798,7 +897,7 @@ module ProfileServices {
   public func globalSearch(
     profiles : ProfileTypes.Profiles,
     searchInput : Text,
-  ) : [ProfileTypes.SearchResult] {
+  ) : async [ProfileTypes.SearchResult] {
     if (Text.size(searchInput) == 0) {
       return [];
     };

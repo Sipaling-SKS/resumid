@@ -22,7 +22,7 @@ import UserServices "services/UserServices";
 import GeminiTypes "types/GeminiTypes";
 import GeminiServices "services/GeminiServices";
 import ProfileTypes "types/ProfileTypes";
-// import ProfileServices "services/ProfileServices";
+import ProfileServices "services/ProfileServices";
 import ResumeExtractTypes "types/ResumeExtractTypes";
 
 import DateHelper "helpers/DateHelper";
@@ -70,7 +70,7 @@ actor Resumid {
   // ==============================
 
   // final analyzev2
-  public shared (msg) func AnalyzeResumeV2(fileName : Text, resumeContent : Text, jobTitle : Text) : async ?HistoryTypes.History {
+  public shared (msg) func AnalyzeResumeV2(fileName : Text, historycid : Text, resumeContent : Text, jobTitle : Text) : async ?HistoryTypes.History {
     let userId = Principal.toText(msg.caller);
     Debug.print("Caller Principal for AnalyzeResume: " # userId);
 
@@ -127,6 +127,7 @@ actor Resumid {
 
         // Siapkan input untuk addHistory
         let input : HistoryTypes.AddHistoryInput = {
+          historycid = historycid;
           fileName = fileName;
           jobTitle = jobTitle;
           summary = convertedSummary;
@@ -251,16 +252,24 @@ actor Resumid {
     };
   };
 
-  public shared (msg) func getProfileByUserId() : async Result.Result<ProfileTypes.Profile, Text> {
-    let userId = Principal.toText(msg.caller);
+  // public shared (msg) func getProfileByUserId(userId : Text) : async Result.Result<ProfileTypes.Profile, Text> {
+  //   // let userId = Principal.toText(msg.caller);
 
-    switch (profiles.get(userId)) {
-      case null {
-        return #err("Profile not found for user: " # userId);
-      };
-      case (?profile) {
-        return #ok(profile);
-      };
+  //   switch (profiles.get(userId)) {
+  //     case null {
+  //       return #err("Profile not found for user: " # userId);
+  //     };
+  //     case (?profile) {
+  //       return #ok(profile);
+  //     };
+  //   };
+  // };
+
+  public shared (msg) func getProfileByUserId(userId : Text) : async Result.Result<{ profile : ProfileTypes.Profile; endorsementInfo : [{ userId : Text; name : ?Text; avatar : ?Text }] }, Text> {
+    let result = await ProfileServices.getProfileByUserId(profiles, userId);
+    switch (result) {
+      case (?data) { return #ok(data) };
+      case null { return #err("Profile not found for user: " # userId) };
     };
   };
 
@@ -339,8 +348,8 @@ actor Resumid {
   };
 
   //saveDraftToProfile
-  public shared (msg) func saveDraftToProfile(draftId : Text) : async Result.Result<Text, Text> {
-    let userId = Principal.toText(msg.caller);
+  public shared (msg) func saveDraftToProfile(userId : Text, draftId : Text) : async Result.Result<Text, Text> {
+    // let userId = Principal.toText(msg.caller);
     return await DraftServices.saveDraftToProfile(draftMap, profiles, draftId, userId);
   };
 
@@ -349,15 +358,32 @@ actor Resumid {
   // ==============================
   public shared (msg) func createProfile(
     userId : Text,
-    profileData : ProfileTypes.Profile,
+    profileData : ?{
+      name : ?Text;
+      profileCid : ?Text;
+      bannerCid : ?Text;
+      current_position : ?Text;
+      description : ?Text;
+    },
   ) : async Result.Result<Text, Text> {
-    let userId = Principal.toText(msg.caller);
-    return await ProfileServices.createProfile(profiles, userId, profileData);
+    // let userId = Principal.toText(msg.caller);
+    return await ProfileServices.createUserProfile(profiles, userId, profileData);
   };
 
-  public shared (msg) func getProfileById(profileId : Text) : async Result.Result<ProfileTypes.Profile, Text> {
-    let userId = Principal.toText(msg.caller);
-    return await ProfileServices.getProfileById(profiles, userId, profileId);
+  // public shared (msg) func getProfileById(profileId : Text) : async Result.Result<ProfileTypes.Profile, Text> {
+  //   let result = await ProfileServices.getProfileByProfileId(profiles, profileId);
+  //   switch (result) {
+  //     case (?profile) { return #ok(profile) };
+  //     case null { return #err("Profile not found") };
+  //   };
+  // };
+
+  public shared (msg) func getProfileById(profileId : Text) : async Result.Result<{ profile : ProfileTypes.Profile; endorsementInfo : [{ userId : Text; name : ?Text; avatar : ?Text }] }, Text> {
+    let result = await ProfileServices.getProfileByProfileId(profiles, profileId);
+    switch (result) {
+      case (?data) { return #ok(data) };
+      case null { return #err("Profile not found") };
+    };
   };
 
   public shared (msg) func updateProfileDetail(
@@ -371,7 +397,7 @@ actor Resumid {
   ) : async Text {
     // let userId = Principal.toText(msg.caller);
 
-    let result = await updateProfileDetailAndContact(
+    let result = await ProfileServices.updateProfileDetailAndContact(
       profiles,
       userId,
       profileDetailInput,
@@ -404,7 +430,7 @@ actor Resumid {
     },
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await addWorkExperience(profiles, userId, newWorkExperience);
+    return await ProfileServices.addWorkExperience(profiles, userId, newWorkExperience);
   };
 
   public shared (msg) func editWorkExperienceShared(
@@ -423,7 +449,7 @@ actor Resumid {
     },
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await editWorkExperience(profiles, userId, workExpId, updatedFields);
+    return await ProfileServices.editWorkExperience(profiles, userId, workExpId, updatedFields);
   };
 
   // --- Education ---
@@ -440,7 +466,7 @@ actor Resumid {
     },
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await addEducation(profiles, userId, newEducation);
+    return await ProfileServices.addEducation(profiles, userId, newEducation);
   };
 
   public shared (msg) func editEducationShared(
@@ -457,7 +483,7 @@ actor Resumid {
     },
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await editEducation(profiles, userId, educationId, updatedFields);
+    return await ProfileServices.editEducation(profiles, userId, educationId, updatedFields);
   };
 
   // --- Summary ---
@@ -466,7 +492,7 @@ actor Resumid {
     updatedSummary : ?Text,
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await editSummary(profiles, userId, updatedSummary);
+    return await ProfileServices.editSummary(profiles, userId, updatedSummary);
   };
 
   // --- Skills ---
@@ -475,7 +501,7 @@ actor Resumid {
     updatedSkills : [Text],
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await editSkills(profiles, userId, updatedSkills);
+    return await ProfileServices.editSkills(profiles, userId, updatedSkills);
   };
 
   // --- Resume Item Deletion ---
@@ -485,7 +511,7 @@ actor Resumid {
     itemId : ?Text,
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await deleteResumeItem(profiles, userId, itemType, itemId);
+    return await ProfileServices.deleteResumeItem(profiles, userId, itemType, itemId);
   };
 
   // --- Certification Management ---
@@ -498,7 +524,7 @@ actor Resumid {
     },
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await addCertification(profiles, userId, certInput);
+    return await ProfileServices.addCertification(profiles, userId, certInput);
   };
 
   public shared (msg) func updateCertificationShared(
@@ -511,7 +537,7 @@ actor Resumid {
     },
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await updateCertification(profiles, userId, certificationId, updatedFields);
+    return await ProfileServices.updateCertification(profiles, userId, certificationId, updatedFields);
   };
 
   public shared (msg) func deleteCertificationShared(
@@ -519,32 +545,32 @@ actor Resumid {
     certificationId : ?Text,
   ) : async Result.Result<Text, Text> {
     // let userId = Principal.toText(msg.caller);
-    return await deleteCertification(profiles, userId, certificationId);
+    return await ProfileServices.deleteCertification(profiles, userId, certificationId);
   };
 
   // -------------------------
   // SEARCH
   // -------------------------
-  public query func searchProfiles(searchInput : Text) : async [ProfileTypes.SearchResult] {
-    return ProfileService.globalSearch(profiles, searchInput);
+  public shared (msg) func searchProfiles(searchInput : Text) : async [ProfileTypes.SearchResult] {
+    return await ProfileServices.globalSearch(profiles, searchInput);
   };
 
   // -------------------------
   // ENDORSEMENT
   // -------------------------
-  public func endorseProfile(userId : Text, targetUserId : Text) : async Result.Result<Text, Text> {
-    return await ProfileService.addEndorsedProfile(profile, userId, targetUserId);
+  public shared (msg) func endorseProfile(userId : Text, targetUserId : Text) : async Result.Result<Text, Text> {
+    return await ProfileServices.addEndorsedProfile(profiles, userId, targetUserId);
   };
 
-  public func unendorseProfile(userId : Text, targetUserId : Text) : async Result.Result<Text, Text> {
-    return await ProfileService.removeEndorsedProfile(profiles, userId, targetUserId);
+  public shared (msg) func unendorseProfile(userId : Text, targetUserId : Text) : async Result.Result<Text, Text> {
+    return await ProfileServices.removeEndorsedProfile(profiles, userId, targetUserId);
   };
 
   // ==============================
   // History Management Methods
   // ==============================
 
-  public shared (msg) func addHistory(input : HistoryTypes.AddHistoryInput) : async Result.Result<Text, Text> {
+  public shared (msg) func addHistory(input : HistoryTypes.AddHistoryInput, historycid : Text) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     let result = await HistoryServices.addHistory(histories, userId, input);
 
