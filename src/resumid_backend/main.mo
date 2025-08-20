@@ -190,6 +190,6 @@ actor Resumid {
   };
 
   public shared (msg) func initPackages() : async [PackageTypes.Package] {
-    return PackageServices.initDefaultPackage();
+    return await PackageServices.initDefaultPackage(packages);
   };
 };
