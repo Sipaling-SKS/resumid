@@ -455,7 +455,9 @@ const resumeExtractConfig = {
       - Even if the education section does not have an explicit heading, extract any degrees, institutions, study periods, scores, and descriptions from lines that resemble education.
       - Even if the skills section does not have an explicit heading, extract any technical skills, programming languages, frameworks, tools, or competencies mentioned throughout the CV.
 
-      - If the study period (year/month) is missing, return it as null.
+      - Period dates should be in YYYY-MM format (e.g., "2022-05", "2025-08", "2020-08", "2024-08").
+      - Start date is always required and cannot be null.
+      - End date can be null if the position/education is current/ongoing (not as string "null").
       - Skills should be extracted as individual strings in an array, covering technical skills, programming languages, frameworks, tools, soft skills, certifications, etc.
 
       Example:
@@ -467,7 +469,7 @@ const resumeExtractConfig = {
             "location": "Remote",
             "position": "Backend Developer",
             "employment_type": "Full-time",
-            "period": { "start": { "year": 2022, "month": 5 }, "end": { "year": 2025, "month": 8 } },
+            "period": { "start": "2022-05", "end": "2025-08" },
             "description": "Develop backend APIs and optimize performance for high-traffic applications"
           }
         ],
@@ -475,13 +477,13 @@ const resumeExtractConfig = {
           {
             "institution": "Gunadarma University",
             "degree": "BSc Informatics",
-            "period": { "start": { "year": 2020, "month": 8 }, "end": { "year": 2024, "month": 6 } },
+            "period": { "start": "2020-08", "end": "2024-08" },
             "description": "Focus on software development, data analytics, and machine learning"
           },
           {
             "institution": "Bangkit Academy 2023",
             "degree": "Machine Learning Cohort",
-            "period": { "start": { "year": 2023, "month": 2 }, "end": { "year": 2023, "month": 7 } },
+            "period": { "start": "2023-02", "end": "2023-07" },
             "description": "Best Capstone Presenters - Company capstone"
           }
         ],
@@ -525,23 +527,8 @@ const resumeExtractConfig = {
               period: {
                 type: Type.OBJECT,
                 properties: {
-                  start: {
-                    type: Type.OBJECT,
-                    properties: {
-                      year: { type: Type.INTEGER },
-                      month: { type: Type.INTEGER, nullable: true }
-                    },
-                    required: ["year"]
-                  },
-                  end: {
-                    type: Type.OBJECT,
-                    nullable: true,
-                    properties: {
-                      year: { type: Type.INTEGER },
-                      month: { type: Type.INTEGER, nullable: true }
-                    },
-                    required: ["year"]
-                  }
+                  start: { type: Type.STRING },
+                  end: { type: Type.STRING, nullable: true }
                 },
                 required: ["start"]
               },
@@ -562,23 +549,8 @@ const resumeExtractConfig = {
               period: {
                 type: Type.OBJECT,
                 properties: {
-                  start: {
-                    type: Type.OBJECT,
-                    properties: {
-                      year: { type: Type.INTEGER },
-                      month: { type: Type.INTEGER, nullable: true }
-                    },
-                    required: ["year"]
-                  },
-                  end: {
-                    type: Type.OBJECT,
-                    nullable: true,
-                    properties: {
-                      year: { type: Type.INTEGER },
-                      month: { type: Type.INTEGER, nullable: true }
-                    },
-                    required: ["year"]
-                  }
+                  start: { type: Type.STRING },
+                  end: { type: Type.STRING, nullable: true }
                 },
                 required: ["start"]
               },
@@ -599,5 +571,6 @@ const resumeExtractConfig = {
     responseMimeType: "application/json"
   }
 };
+
 
 module.exports = { resumeExtractConfig };

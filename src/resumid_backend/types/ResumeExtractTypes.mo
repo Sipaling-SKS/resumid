@@ -40,7 +40,7 @@ module ResumeExtractTypes {
     summary : SummaryInput;
     workExperiences : [WorkExperienceInput];
     educations : [EducationInput];
-    skills : ?SkillsInput;  
+    skills : ?[Text];  
   };
 
   public type WorkExperience = {

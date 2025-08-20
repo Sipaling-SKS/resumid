@@ -305,179 +305,98 @@ module GeminiServices {
     };
   };
 
-  //   public func ExtractMock(resumeContent : Text) : async ?ResumeExtractTypes.ResumeDataInput {
-  //     Debug.print("ResumeExtractMock Request Content: " # resumeContent);
+  // public func ExtractMock(resumeContent : Text) : async ?ResumeExtractTypes.ResumeDataInput {
+  //   Debug.print("ResumeExtractMock Request Content: " # resumeContent);
 
-  //     let resumeData : ResumeExtractTypes.ResumeDataInput = {
-  //       summary = {
-  //         content = "Results-driven Informatics graduate with a strong interest in Business Improvement Analysis. Experienced in optimizing workflows, automating processes, and implementing innovative digital solutions across multiple industries. Skilled in data analysis, system integration, project management, and cross-functional collaboration to deliver sustainable business growth.";
-  //       };
-  //       workExperiences = [
-  //         {
-  //           company = "Pharos Group";
-  //           location = "Jakarta, Indonesia";
-  //           position = "Business Process Excellence";
-  //           employment_type = ?"Full-time";
-  //           period = {
-  //             start = ?"2023-01"; // Changed from { year = 2023; month = 1 } to ?Text
-  //             end = ?"2024-06"; // Changed from { year = 2024; month = 6 } to ?Text
-  //           };
-  //           description = ?"Led the development of an integrated Change Control Phase 2 by aligning workflows with the Registration module, adding notification features, optimizing form structures, and providing real-time monitoring dashboards. Spearheaded the full digitization of the CAPA (Corrective and Preventive Action) process, streamlining root cause analysis and preventive action implementation across entities. Created comprehensive documentation including BRD, PRD, traceability matrix, and user requirements to ensure structured, scalable system implementation.";
-  //           // Changed from responsibilities array to single description field
-  //         },
-  //         {
-  //           company = "Sari Tirta Group (Subholding Melawai Group)";
-  //           location = "Jakarta, Indonesia";
-  //           position = "IT - Business Process Improvement";
-  //           employment_type = ?"Full-time";
-  //           period = {
-  //             start = ?"2022-04"; // Changed format
-  //             end = ?"2022-12"; // Changed format
-  //           };
-  //           description = ?"Streamlined business workflows, automated processes, and optimized user account management to improve operational efficiency. Led system integration, user training, and data migration for a new outsourcing company, managing data for 500+ employees. Developed an AppSheet application to simplify the talent request process, reducing response time by 30%.";
-  //         },
-  //         {
-  //           company = "Bangkit Academy by Google, GoTo and Traveloka";
-  //           location = "Jakarta, Indonesia";
-  //           position = "Mobile Developer & Cloud Computing";
-  //           employment_type = ?"Internship";
-  //           period = {
-  //             start = ?"2021-08"; // Changed format
-  //             end = ?"2021-12"; // Changed format
-  //           };
-  //           description = ?"Developed and maintained mobile applications using Flutter and Kotlin, ensuring smooth performance and responsive UI/UX. Collaborated with cross-functional teams to design, build, and deploy user-friendly mobile apps using Figma. Designed, implemented, and managed cloud infrastructure on Google Cloud Platform, ensuring security and compliance. Applied agile methodologies for mobile and cloud-based solutions in Capstone projects.";
-  //         },
-  //         {
-  //           company = "HKBP Taman Mini";
-  //           location = "Jakarta, Indonesia";
-  //           position = "IT Support";
-  //           employment_type = ?"Part-time";
-  //           period = {
-  //             start = ?"2020-03"; // Changed format
-  //             end = ?"2020-12"; // Changed format
-  //           };
-  //           description = ?"Provided technical support for livestreaming events, including audio, video, and lighting setup. Managed livestreaming platforms such as YouTube, Zoom, and OBS for high-quality broadcasts. Edited videos and images using Adobe Premiere Pro, Illustrator, Photoshop, and Canva.";
-  //         },
-  //       ];
-  //       educations = [
-  //         {
-  //           institution = "University of Indonesia";
-  //           degree = "Bachelor of Science in Informatics";
-  //           study_period = {
-  //             start = ?"2018-08"; // Changed from { year = 2018; month = 8 } to ?Text
-  //             end = ?"2022-07"; // Changed from { year = 2022; month = 7 } to ?Text
-  //           };
-  //           score = "3.75 / 4.00";
-  //           description = ?"Specialized in Business Process Optimization, Software Development, and Data Analysis. Completed a final-year project on AI-powered workflow automation.";
-  //         },
-  //         {
-  //           institution = "Jakarta State Senior High School 1";
-  //           degree = "Science Major";
-  //           study_period = {
-  //             start = ?"2015-07"; // Changed format
-  //             end = ?"2018-05"; // Changed format
-  //           };
-  //           score = "91.25 / 100";
-  //           description = ?"Focused on mathematics, physics, and computer science.";
-  //         },
+  //   let resumeData : ResumeExtractTypes.ResumeDataInput = {
+  //     summary = {
+  //       content = "Results-driven Informatics graduate with a strong interest in Business Improvement Analysis. Experienced in optimizing workflows, automating processes, and implementing innovative digital solutions across multiple industries. Skilled in data analysis, system integration, project management, and cross-functional collaboration to deliver sustainable business growth.";
+  //     };
+  //     workExperiences = [
+  //       {
+  //         company = "Pharos Group";
+  //         location = "Jakarta, Indonesia";
+  //         position = "Business Process Excellence";
+  //         employment_type = ?"Full-time";
+  //         period = {
+  //           start = ?"2023-01";
+  //           end = ?"2024-06";
+  //         };
+  //         description = "Led the development of an integrated Change Control Phase 2 by aligning workflows with the Registration module, adding notification features, optimizing form structures, and providing real-time monitoring dashboards. Spearheaded the full digitization of the CAPA (Corrective and Preventive Action) process, streamlining root cause analysis and preventive action implementation across entities. Created comprehensive documentation including BRD, PRD, traceability matrix, and user requirements to ensure structured, scalable system implementation.";
+  //       },
+  //       {
+  //         company = "Sari Tirta Group (Subholding Melawai Group)";
+  //         location = "Jakarta, Indonesia";
+  //         position = "IT - Business Process Improvement";
+  //         employment_type = ?"Full-time";
+  //         period = {
+  //           start = ?"2022-04";
+  //           end = ?"2022-12";
+  //         };
+  //         description = "Streamlined business workflows, automated processes, and optimized user account management to improve operational efficiency. Led system integration, user training, and data migration for a new outsourcing company, managing data for 500+ employees. Developed an AppSheet application to simplify the talent request process, reducing response time by 30%.";
+  //       },
+  //       {
+  //         company = "Bangkit Academy by Google, GoTo and Traveloka";
+  //         location = "Jakarta, Indonesia";
+  //         position = "Mobile Developer & Cloud Computing";
+  //         employment_type = ?"Internship";
+  //         period = {
+  //           start = ?"2021-08";
+  //           end = ?"2021-12";
+  //         };
+  //         description = "Developed and maintained mobile applications using Flutter and Kotlin, ensuring smooth performance and responsive UI/UX. Collaborated with cross-functional teams to design, build, and deploy user-friendly mobile apps using Figma. Designed, implemented, and managed cloud infrastructure on Google Cloud Platform, ensuring security and compliance. Applied agile methodologies for mobile and cloud-based solutions in Capstone projects.";
+  //       },
+  //       {
+  //         company = "HKBP Taman Mini";
+  //         location = "Jakarta, Indonesia";
+  //         position = "IT Support";
+  //         employment_type = ?"Part-time";
+  //         period = {
+  //           start = ?"2020-03";
+  //           end = ?"2020-12";
+  //         };
+  //         description = "Provided technical support for livestreaming events, including audio, video, and lighting setup. Managed livestreaming platforms such as YouTube, Zoom, and OBS for high-quality broadcasts. Edited videos and images using Adobe Premiere Pro, Illustrator, Photoshop, and Canva.";
+  //       },
+  //     ];
+  //     educations = [
+  //       {
+  //         institution = "University of Indonesia";
+  //         degree = "Bachelor of Science in Informatics";
+  //         period = {
+  //           start = ?"2018-08";
+  //           end = ?"2022-07";
+  //         };
+  //         description = "Specialized in Business Process Optimization, Software Development, and Data Analysis. Completed a final-year project on AI-powered workflow automation. GPA: 3.75 / 4.00";
+  //       },
+  //       {
+  //         institution = "Jakarta State Senior High School 1";
+  //         degree = "Science Major";
+  //         period = {
+  //           start = ?"2015-07";
+  //           end = ?"2018-05";
+  //         };
+  //         description = "Focused on mathematics, physics, and computer science. Final Score: 91.25 / 100";
+  //       },
+  //     ];
+  //     skills = ?{
+  //       skills = [
+  //         "Business Process Optimization",
+  //         "Data Analysis",
+  //         "System Integration",
+  //         "Project Management",
+  //         "Flutter",
+  //         "Kotlin",
+  //         "Google Cloud Platform",
+  //         "Adobe Creative Suite",
+  //         "AppSheet",
+  //         "Workflow Automation",
+  //         "Digital Transformation",
+  //         "Root Cause Analysis",
   //       ];
   //     };
-
-  //     Debug.print("resumeData mock return " # debug_show (resumeData));
-  //     return ?resumeData;
   //   };
-  public func ExtractMock(resumeContent : Text) : async ?ResumeExtractTypes.ResumeDataInput {
-    Debug.print("ResumeExtractMock Request Content: " # resumeContent);
 
-    let resumeData : ResumeExtractTypes.ResumeDataInput = {
-      summary = {
-        content = "Results-driven Informatics graduate with a strong interest in Business Improvement Analysis. Experienced in optimizing workflows, automating processes, and implementing innovative digital solutions across multiple industries. Skilled in data analysis, system integration, project management, and cross-functional collaboration to deliver sustainable business growth.";
-      };
-      workExperiences = [
-        {
-          company = "Pharos Group";
-          location = "Jakarta, Indonesia";
-          position = "Business Process Excellence";
-          employment_type = ?"Full-time";
-          period = {
-            start = ?"2023-01";
-            end = ?"2024-06";
-          };
-          description = "Led the development of an integrated Change Control Phase 2 by aligning workflows with the Registration module, adding notification features, optimizing form structures, and providing real-time monitoring dashboards. Spearheaded the full digitization of the CAPA (Corrective and Preventive Action) process, streamlining root cause analysis and preventive action implementation across entities. Created comprehensive documentation including BRD, PRD, traceability matrix, and user requirements to ensure structured, scalable system implementation.";
-        },
-        {
-          company = "Sari Tirta Group (Subholding Melawai Group)";
-          location = "Jakarta, Indonesia";
-          position = "IT - Business Process Improvement";
-          employment_type = ?"Full-time";
-          period = {
-            start = ?"2022-04";
-            end = ?"2022-12";
-          };
-          description = "Streamlined business workflows, automated processes, and optimized user account management to improve operational efficiency. Led system integration, user training, and data migration for a new outsourcing company, managing data for 500+ employees. Developed an AppSheet application to simplify the talent request process, reducing response time by 30%.";
-        },
-        {
-          company = "Bangkit Academy by Google, GoTo and Traveloka";
-          location = "Jakarta, Indonesia";
-          position = "Mobile Developer & Cloud Computing";
-          employment_type = ?"Internship";
-          period = {
-            start = ?"2021-08";
-            end = ?"2021-12";
-          };
-          description = "Developed and maintained mobile applications using Flutter and Kotlin, ensuring smooth performance and responsive UI/UX. Collaborated with cross-functional teams to design, build, and deploy user-friendly mobile apps using Figma. Designed, implemented, and managed cloud infrastructure on Google Cloud Platform, ensuring security and compliance. Applied agile methodologies for mobile and cloud-based solutions in Capstone projects.";
-        },
-        {
-          company = "HKBP Taman Mini";
-          location = "Jakarta, Indonesia";
-          position = "IT Support";
-          employment_type = ?"Part-time";
-          period = {
-            start = ?"2020-03";
-            end = ?"2020-12";
-          };
-          description = "Provided technical support for livestreaming events, including audio, video, and lighting setup. Managed livestreaming platforms such as YouTube, Zoom, and OBS for high-quality broadcasts. Edited videos and images using Adobe Premiere Pro, Illustrator, Photoshop, and Canva.";
-        },
-      ];
-      educations = [
-        {
-          institution = "University of Indonesia";
-          degree = "Bachelor of Science in Informatics";
-          period = {
-            start = ?"2018-08";
-            end = ?"2022-07";
-          };
-          description = "Specialized in Business Process Optimization, Software Development, and Data Analysis. Completed a final-year project on AI-powered workflow automation. GPA: 3.75 / 4.00";
-        },
-        {
-          institution = "Jakarta State Senior High School 1";
-          degree = "Science Major";
-          period = {
-            start = ?"2015-07";
-            end = ?"2018-05";
-          };
-          description = "Focused on mathematics, physics, and computer science. Final Score: 91.25 / 100";
-        },
-      ];
-      skills = ?{
-        skills = [
-          "Business Process Optimization",
-          "Data Analysis",
-          "System Integration",
-          "Project Management",
-          "Flutter",
-          "Kotlin",
-          "Google Cloud Platform",
-          "Adobe Creative Suite",
-          "AppSheet",
-          "Workflow Automation",
-          "Digital Transformation",
-          "Root Cause Analysis",
-        ];
-      };
-    };
-
-    Debug.print("resumeData mock return " # debug_show (resumeData));
-    return ?resumeData;
-  };
+  //   Debug.print("resumeData mock return " # debug_show (resumeData));
+  //   return ?resumeData;
+  // };
 };

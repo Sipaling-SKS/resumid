@@ -42,9 +42,11 @@ module {
         content : [ContentItem];
         createdAt : Text;
     };
+
     public type HistoryIdInput = {
         historyId : Text;
     };
+    
     public type AddHistoryInput = {
         historycid : Text;
         fileName : Text;

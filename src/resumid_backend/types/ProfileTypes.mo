@@ -73,6 +73,7 @@ module ProfileTypes {
     educations : ?[Education];
     skills : ?Skills;
   };
+  
   public type SearchResult = {
     userId : Text;
     profileId : Text;

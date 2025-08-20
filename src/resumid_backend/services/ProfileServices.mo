@@ -128,16 +128,55 @@ module ProfileServices {
   };
 
   // create a new user profile
+  // public func createUserProfile(
+  //   profileMap : ProfileTypes.Profiles,
+  //   userId : Text,
+  //   profileDetailInput : ?{
+  //     name : ?Text;
+  //     profileCid : ?Text;
+  //     bannerCid : ?Text;
+  //     current_position : ?Text;
+  //     description : ?Text;
+  //   },
+  // ) : async Result.Result<Text, Text> {
+  //   switch (profileMap.get(userId)) {
+  //     case (?_) { return #err("Profile already exists for this user") };
+  //     case null {
+  //       let entropy = await Random.blob();
+  //       let profileId = UUID.generateV4(entropy);
+  //       let newProfile : ProfileTypes.Profile = {
+  //         userId = userId;
+  //         profileId = profileId;
+  //         profileDetail = switch (profileDetailInput) {
+  //           case null { null };
+  //           case (?input) {
+  //             ?{
+  //               name = input.name;
+  //               profileCid = input.profileCid;
+  //               bannerCid = input.bannerCid;
+  //               current_position = input.current_position;
+  //               description = input.description;
+  //             };
+  //           };
+  //         };
+  //         contact = null;
+  //         resume = null;
+  //         certificatons = null;
+  //         endorsements = null;
+  //         endorsedProfiles = null;
+  //         createdAt = DateHelper.formatTimestamp(Time.now());
+  //         updatedAt = DateHelper.formatTimestamp(Time.now());
+  //       };
+
+  //       profileMap.put(userId, newProfile);
+  //       return #ok("User profile created successfully");
+  //     };
+  //   };
+  // };
+
   public func createUserProfile(
     profileMap : ProfileTypes.Profiles,
     userId : Text,
-    profileDetailInput : ?{
-      name : ?Text;
-      profileCid : ?Text;
-      bannerCid : ?Text;
-      current_position : ?Text;
-      description : ?Text;
-    },
   ) : async Result.Result<Text, Text> {
     switch (profileMap.get(userId)) {
       case (?_) { return #err("Profile already exists for this user") };
@@ -147,17 +186,12 @@ module ProfileServices {
         let newProfile : ProfileTypes.Profile = {
           userId = userId;
           profileId = profileId;
-          profileDetail = switch (profileDetailInput) {
-            case null { null };
-            case (?input) {
-              ?{
-                name = input.name;
-                profileCid = input.profileCid;
-                bannerCid = input.bannerCid;
-                current_position = input.current_position;
-                description = input.description;
-              };
-            };
+          profileDetail = ?{
+            name = ?"Default User";
+            profileCid = null;
+            bannerCid = null;
+            current_position = null;
+            description = null;
           };
           contact = null;
           resume = null;
@@ -167,7 +201,6 @@ module ProfileServices {
           createdAt = DateHelper.formatTimestamp(Time.now());
           updatedAt = DateHelper.formatTimestamp(Time.now());
         };
-
         profileMap.put(userId, newProfile);
         return #ok("User profile created successfully");
       };
