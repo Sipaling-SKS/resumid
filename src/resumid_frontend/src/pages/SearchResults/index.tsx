@@ -1,7 +1,11 @@
-import { useSearchParams } from "react-router";
+import { useSearchParams, useNavigate } from "react-router";
 import { Helmet } from "react-helmet";
 import ProfileCard from "@/components/parts/ProfileCard";
-import { Search } from "lucide-react";
+import SkeletonProfileCard from "@/components/parts/skeleton/SkeletonProfileCard";
+import { Search, SearchX, RefreshCw } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { useRef, useEffect } from "react";
 
 // Static mock data for testing
 const MOCK_PEOPLE = [
@@ -42,17 +46,79 @@ const MOCK_PEOPLE = [
   }
 ];
 
+async function searchPeople(query: string) {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+  
+  if (Math.random() < 0.1) {
+    throw new Error('Search service temporarily unavailable');
+  }
+  
+  const filteredPeople = MOCK_PEOPLE.filter(person => 
+    person.name.toLowerCase().includes(query.toLowerCase()) ||
+    person.role.toLowerCase().includes(query.toLowerCase())
+  );
+  
+  return filteredPeople;
+}
+
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
-  const query = searchParams.get('q') || 'talented professionals';
+  const navigate = useNavigate();
+  const query = searchParams.get('q') || '';
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   
-  const people = MOCK_PEOPLE;
-  const isLoading = false;
-  const profileText = people.length === 1 ? 'profile' : 'profiles';
+  const {
+    data: people = [],
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['searchPeople', query],
+    queryFn: () => searchPeople(query),
+    enabled: !!query,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+  
+  const profileText = people.length <= 1 ? 'profile' : 'profiles';
 
   const handleProfileClick = (id: string) => {
-    console.log('Profile clicked:', id);
-    // TODO: Navigate to profile detail page
+    navigate(`/profile/${id}`);
+  };
+
+  const handleRetry = () => {
+    refetch();
+  };
+
+  const handleTryNewSearch = () => {   
+    setTimeout(() => {
+      const searchInput = document.querySelector('input[placeholder*="search"], input[placeholder*="Search"]') as HTMLInputElement;
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    }, 100);
+  };
+
+  const CountDisplay = () => {
+    if (isLoading) {
+      return (
+        <span className="inline-flex items-center">
+          <span className="text-2xl md:text-3xl font-bold text-primary-600 bg-gray-200 rounded animate-pulse" style={{width: '0.75em', height: '1em', display: 'inline-block'}}></span>
+        </span>
+      );
+    }
+    
+    if (error) {
+      return (
+        <span className="text-2xl md:text-3xl font-bold text-red-500">--</span>
+      );
+    }
+    
+    return (
+      <span className="text-2xl md:text-3xl font-bold text-primary-600">{people.length}</span>
+    );
   };
 
   return (
@@ -64,48 +130,76 @@ export default function SearchResults() {
 
       <main className="min-h-screen py-6 md:py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <section className="mb-8">
-          <h1 className="text-xl md:text-2xl font-semibold text-heading font-outfit text-center">
-            Search Results
-          </h1>
-          <p className="text-center text-paragraph font-inter">
-            Found <span className="text-2xl md:text-3xl font-bold text-primary-600">{people.length}</span> {profileText} with the keyword of <em className="italic text-heading">{query}</em>
-          </p>
-        </section>
-
-        <section>
-          {isLoading ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {Array.from({ length: 6 }).map((_, idx) => (
-                <div key={idx} className="animate-pulse">
-                  <div className="bg-neutral-200 rounded-lg h-20"></div>
-                </div>
-              ))}
-            </div>
-          ) : people.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {people.map((person) => (
-                <ProfileCard
-                  key={person.id}
-                  person={person}
-                  onClick={handleProfileClick}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="p-4 bg-neutral-50 rounded-lg inline-block mb-4">
-                <Search className="w-8 h-8 text-neutral-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-heading mb-2 font-outfit">
-                No results found
-              </h3>
-              <p className="text-paragraph font-inter">
-                Try adjusting your search terms or browse our featured professionals.
+          <section className="mb-8">
+            <h1 className="text-xl md:text-2xl font-semibold text-heading font-outfit text-center">
+              Search Results
+            </h1>
+             {(!error && people.length > 0) && (
+              <p className="text-center text-paragraph font-inter">
+                Found <CountDisplay /> {profileText} with the keyword of <em className="italic text-heading">{query}</em>
               </p>
-            </div>
-          )}
-        </section>
+            )}
+          </section>
+
+          <section>
+            {isLoading ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <SkeletonProfileCard key={idx} />
+                ))}
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="p-6 bg-red-50 rounded-full inline-block mb-6">
+                  <SearchX className="w-12 h-12 text-red-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-heading mb-3 font-outfit">
+                  Search Error
+                </h3>
+                <p className="text-paragraph font-inter text-center mb-6 max-w-md">
+                  {error.message || 'Something went wrong while searching. Please try again.'}
+                </p>
+                <Button 
+                  onClick={handleRetry}
+                  variant="gradient"
+                  className="inline-flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Try Again
+                </Button>
+              </div>
+            ) : people.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {people.map((person) => (
+                  <ProfileCard
+                    key={person.id}
+                    person={person}
+                    onClick={handleProfileClick}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="p-6 bg-neutral-50 rounded-full inline-block mb-6">
+                  <Search className="w-12 h-12 text-neutral-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-heading mb-3 font-outfit">
+                  No Results Found
+                </h3>
+                <p className="text-sm text-paragraph font-inter text-center mb-6">
+                  Please try again with another keyowrd.
+                </p>
+                <Button 
+                  onClick={handleTryNewSearch}
+                  variant="gradient"
+                  className="inline-flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Try Again
+                </Button>
+              </div>
+            )}
+          </section>
         </div>
       </main>
     </>
