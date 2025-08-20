@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import { Helmet } from "react-helmet";
 
 import useWindowSize from "@/hooks/useMediaQuery"
@@ -47,6 +47,10 @@ export default function ProfileDetail() {
   const { id } = useParams()
   const KEY = "profile"
   const isOwner = true;
+
+  const location = useLocation();
+  const { state } = location;
+  const isNewUser = state?.isNewUser || false;
 
   const [open, setOpen] = useState<OpenTypes>({
     sectionMenu: false,
@@ -112,8 +116,10 @@ export default function ProfileDetail() {
       <div className="min-h-screen">
         <ProfileHeader
           queryKey={[KEY, id]}
-          detail={profileDetail} 
+          detail={profileDetail}
+          // loading={true}
           isOwner={isOwner}
+          isNewUser={isNewUser}
           onSectionAdd={(key) => {
             handleOpen(key, true);
             if (Object.keys(selected).includes(key)) {
@@ -124,15 +130,28 @@ export default function ProfileDetail() {
         <div className="responsive-container my-8 flex flex-col-reverse sm:flex-row gap-8">
           <div className="flex-shrink-0 min-w-[180px] max-w-[280px] flex flex-col gap-6">
             {(profileDetail?.skills?.length ?? 0) > 0 && (
-              <ProfileSkills detail={profileDetail} isOwner={isOwner} onEdit={() => handleOpen("skills")} />
+              <ProfileSkills
+                detail={profileDetail} 
+                // loading={true} 
+                isOwner={isOwner} 
+                onEdit={() => handleOpen("skills")} 
+              />
             )}
             {isOwner && (
-              <ProfileAnalytics detail={profileDetail} />
+              <ProfileAnalytics
+                detail={profileDetail}
+                // loading={true}
+              />
             )}
           </div>
           <div className="flex-1 flex flex-col gap-6">
             {profileDetail?.about ? (
-              <ProfileAbout detail={profileDetail} isOwner={isOwner} onEdit={() => handleOpen("about")} />
+              <ProfileAbout
+                detail={profileDetail}
+                // loading={true}
+                isOwner={isOwner}
+                onEdit={() => handleOpen("about")}
+              />
             ) : (
               <Card>
                 <CardContent className="flex flex-col gap-3 justify-center items-center p-6 outline-dashed outline-2 outline-neutral-300 outline-offset-1 rounded-lg bg-neutral-50">
@@ -147,6 +166,7 @@ export default function ProfileDetail() {
               <ProfileExperience 
                 detail={profileDetail} 
                 isOwner={isOwner}
+                // loading={true}
                 onAdd={() => {
                   handleSelected("workExperiences", null)
                   handleOpen("workExperiences", true)
@@ -161,6 +181,7 @@ export default function ProfileDetail() {
               <ProfileEducation 
                 detail={profileDetail} 
                 isOwner={isOwner}
+                // loading={true}
                 onAdd={() => {
                   handleSelected("educations", null)
                   handleOpen("educations", true)
@@ -175,6 +196,7 @@ export default function ProfileDetail() {
               <ProfileCertification 
                 detail={profileDetail} 
                 isOwner={isOwner}
+                // loading={true}
                 onAdd={() => {
                   handleSelected("certifications", null)
                   handleOpen("certifications", true)

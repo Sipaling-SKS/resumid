@@ -33,7 +33,7 @@ export type ProfileDetailSectionType = {
   name: string
   currentPosition?: string
   description?: string
-  avatarCid?: string
+  profileCid?: string
   bannerCid?: string
 }
 

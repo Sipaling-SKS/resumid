@@ -5,6 +5,7 @@ import { Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router";
+import { ProfileAnalyticsSkeleton } from "./Skeleton/ProfileAnalyticsSkeleton";
 
 const dummyEndorses = [
   {
@@ -53,13 +54,18 @@ const dummyEndorses = [
 
 interface ProfileAnalyticsProps {
   detail: any
+  loading?: boolean
 }
 
-export default function ProfileAnalytics({ detail }: ProfileAnalyticsProps) {
+export default function ProfileAnalytics({ detail, loading = false }: ProfileAnalyticsProps) {
   const maxViewLength = 3;
   const analytics: any[] = detail?.analytics || [];
 
   const navigate = useNavigate();
+
+  if (loading) return (
+    <ProfileAnalyticsSkeleton />
+  )
 
   return (
     <Card className="p-0 overflow-hidden space-y-0">

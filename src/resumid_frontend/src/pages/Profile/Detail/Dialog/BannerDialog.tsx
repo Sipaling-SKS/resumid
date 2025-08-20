@@ -16,6 +16,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Camera, Check, Loader2, Save, Trash } from "lucide-react"
 import { useRef, useState } from "react"
 
+import BannerPlaceholder from "@/assets/banner_placeholder.jpg"
+import { base64ToFile } from "@/utils/base64ToFile"
+import { pinata } from "@/lib/pinata"
+
 interface BannerDialogProps {
   queryKey: (string | number)[] | string | number
   isOwner?: boolean
@@ -46,28 +50,45 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
 
   const { resumidActor } = useAuth();
 
-  async function handleUpdateBanner({ id, file }: { id: any, file: File }) {
-    try {
-      // TODO: Upload to pinata get url or cid
-
-      // TODO: Update banner cid/url on database
-    } catch (error) {
-      console.error(error);
-      throw error;
+  async function handleUpdateBanner({ file }: { file: File }) {
+      try {
+        const presignRes = await fetch(`${import.meta.env.VITE_SERVICE_URL}/presigned-url/true`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expires: 60 }),
+        });
+  
+        if (!presignRes.ok) {
+          throw new Error("Failed to request presigned URL");
+        }
+  
+        const data = await presignRes.json();
+  
+        const upload = await pinata.upload.public
+          .file(file)
+          .url(data.url)
+  
+        const cid = upload.cid;
+        const res = await resumidActor.updateBannerPicture(cid);
+  
+        if ("ok" in res) {
+          return { cid }
+        } else {
+          throw new Error(res.err ?? "Unknown error");
+        }
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        throw error;
+      }
     }
-  }
 
   const queryClient = useQueryClient();
 
   const { mutateAsync: updateBanner, isPending: isLoading } = useMutation({
     mutationFn: handleUpdateBanner,
-    onMutate: async ({ id, file }) => {
+    onMutate: async ({ file }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previousData = queryClient.getQueryData(finalQueryKey);
-      queryClient.setQueryData(finalQueryKey, (old: any) => ({
-        ...old,
-        banner: cropped,
-      }));
       return { previousData };
     },
     onError: (error, variables, context) => {
@@ -88,12 +109,14 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
     }
   });
 
-  console.log("isPending", isLoading);
-
   const handleSubmit = async () => {
-    // TODO: Add upload function here
-    // updateBanner()
-  }
+      if (!cropped) {
+        return toast({ variant: "destructive", title: "Error", description: "You need to choose a photo first to upload"})
+      }
+  
+      const file = base64ToFile(cropped)
+      updateBanner({ file })
+    }
 
   return (
     <>
@@ -105,7 +128,7 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[640px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[860px]">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">{isEditing ? "Upload " : ""}Profile Banner</DialogTitle>
             <DialogDescription className="font-inter text-paragraph">
@@ -113,11 +136,11 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
             </DialogDescription>
           </DialogHeader>
           {!cropped && isEditing ? (
-            <PhotoUploadCrop aspect={16 / 9} ref={cropperRef} onCropReady={setIsCropReady} />
+            <PhotoUploadCrop aspect={32 / 9} ref={cropperRef} onCropReady={setIsCropReady} />
           ) : (
-            <div className="flex justify-center items-center bg-black/5 aspect-[16/9] rounded-md shadow-sm overflow-clip">
+            <div className="flex justify-center items-center bg-black/5 aspect-[32/9] rounded-md shadow-sm overflow-clip">
               <img
-                src={cropped || url || "https://github.com/shadcn.png"}
+                src={cropped || url || BannerPlaceholder}
                 alt="profile-banner"
                 className="w-full h-full object-cover object-center"
               />
@@ -153,7 +176,7 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
                     Cancel
                   </Button>
                   {cropped ? (
-                    <Button size="sm" key="save-btn" disabled={isLoading}>
+                    <Button size="sm" key="save-btn" disabled={isLoading} onClick={handleSubmit}>
                       {!isLoading ? <Save /> : <Loader2 className="animate-spin" />}
                       {isLoading ? "Saving..." : "Save changes"}
                     </Button>

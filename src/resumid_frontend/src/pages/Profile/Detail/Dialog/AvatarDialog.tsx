@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "@/hooks/useToast"
+import { pinata } from "@/lib/pinata"
 import { cn } from "@/lib/utils"
+import { base64ToFile } from "@/utils/base64ToFile"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Camera, Check, Loader2, Save, Trash } from "lucide-react"
 import { useRef, useState } from "react"
@@ -20,11 +22,12 @@ interface AvatarDialogProps {
   queryKey: (string | number)[] | string | number
   isOwner?: boolean
   url?: string | undefined | null
+  name?: string | undefined | null
   open: boolean
   setOpen: (value: boolean) => void
 }
 
-export function AvatarDialog({ queryKey, url, open, setOpen, isOwner = false }: AvatarDialogProps) {
+export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = false }: AvatarDialogProps) {
   const finalQueryKey = Array.isArray(queryKey) ? queryKey : [queryKey];
 
   const [confirm, setConfirm] = useState<boolean>(false);
@@ -46,13 +49,34 @@ export function AvatarDialog({ queryKey, url, open, setOpen, isOwner = false }: 
 
   const { resumidActor } = useAuth();
 
-  async function handleUpdateAvatar({ id, file }: { id: any, file: File }) {
+  async function handleUpdateAvatar({ file }: { file: File }) {
     try {
-      // TODO: Upload to pinata get url or cid
+      const presignRes = await fetch(`${import.meta.env.VITE_SERVICE_URL}/presigned-url/true`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ expires: 60 }),
+      });
 
-      // TODO: Update avatar cid/url on database
+      if (!presignRes.ok) {
+        throw new Error("Failed to request presigned URL");
+      }
+
+      const data = await presignRes.json();
+
+      const upload = await pinata.upload.public
+        .file(file)
+        .url(data.url)
+
+      const cid = upload.cid;
+      const res = await resumidActor.updateProfilePicture(cid);
+
+      if ("ok" in res) {
+        return { cid }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Error uploading avatar:", error);
       throw error;
     }
   }
@@ -61,13 +85,9 @@ export function AvatarDialog({ queryKey, url, open, setOpen, isOwner = false }: 
 
   const { mutateAsync: updateAvatar, isPending: isLoading } = useMutation({
     mutationFn: handleUpdateAvatar,
-    onMutate: async ({ id, file }) => {
+    onMutate: async ({ file }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previousData = queryClient.getQueryData(finalQueryKey);
-      queryClient.setQueryData(finalQueryKey, (old: any) => ({
-        ...old,
-        avatar: cropped,
-      }));
       return { previousData };
     },
     onError: (error, variables, context) => {
@@ -89,8 +109,12 @@ export function AvatarDialog({ queryKey, url, open, setOpen, isOwner = false }: 
   });
 
   const handleSubmit = async () => {
-    // TODO: Add upload function here
-    // updateAvatar()
+    if (!cropped) {
+      return toast({ variant: "destructive", title: "Error", description: "You need to choose a photo first to upload"})
+    }
+
+    const file = base64ToFile(cropped)
+    updateAvatar({ file })
   }
 
   return (
@@ -115,7 +139,7 @@ export function AvatarDialog({ queryKey, url, open, setOpen, isOwner = false }: 
           ) : (
             <div className="flex justify-center items-center bg-black/5 aspect-square rounded-md shadow-sm overflow-clip">
               <img
-                src={cropped || url || "https://github.com/shadcn.png"}
+                src={cropped || url || `https://ui-avatars.com/api/?name=${name || "Resumid User"}&background=225adf&color=f4f4f4`}
                 alt="profile-avatar"
                 className="w-full h-full object-contain"
               />
@@ -151,7 +175,7 @@ export function AvatarDialog({ queryKey, url, open, setOpen, isOwner = false }: 
                     Cancel
                   </Button>
                   {cropped ? (
-                    <Button size="sm" key="save-btn" disabled={isLoading}>
+                    <Button size="sm" key="save-btn" disabled={isLoading} onClick={handleSubmit}>
                       {!isLoading ? <Save /> : <Loader2 className="animate-spin" />}
                       {isLoading ? "Saving..." : "Save changes"}
                     </Button>

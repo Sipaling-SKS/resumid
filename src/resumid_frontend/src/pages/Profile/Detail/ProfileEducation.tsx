@@ -3,17 +3,23 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BadgeInfo, Pencil, Plus } from "lucide-react";
 import { ProfileDetailType } from "@/types/profile-types";
 import { formatDate } from "@/lib/utils";
+import ProfileEducationSkeleton from "./Skeleton/ProfileEducationSkeleton";
 
 interface ProfileEducationType {
   isOwner?: boolean
+  loading?: boolean
   detail: ProfileDetailType
   onAdd?: () => void
   onEdit?: (id: string) => void
 }
 
-export default function ProfileEducation({ isOwner = false, detail, onEdit, onAdd }: ProfileEducationType) {
+export default function ProfileEducation({ isOwner = false, detail, loading = false, onEdit, onAdd }: ProfileEducationType) {
   const { educations } = detail;
   const maxEducation = 3;
+
+  if (loading) return (
+    <ProfileEducationSkeleton isOwner={isOwner} />
+  )
 
   return (
     <Card className="p-0 overflow-hidden space-y-0">

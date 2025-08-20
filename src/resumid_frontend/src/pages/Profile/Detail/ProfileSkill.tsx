@@ -3,17 +3,23 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { ProfileDetailType } from "@/types/profile-types";
+import { ProfileSkillsSkeleton } from "./Skeleton/ProfileSkillSkeleton";
 
 interface ProfileSkillProps {
   isOwner?: boolean
+  loading?: boolean
   detail: ProfileDetailType
   onEdit: () => void
 }
 
-export default function ProfileSkills({ isOwner = false, detail, onEdit }: ProfileSkillProps) {
+export default function ProfileSkills({ isOwner = false, detail, loading = false, onEdit }: ProfileSkillProps) {
   const [expand, setExpand] = useState(false);
   const { skills = [] } = detail; 
   const maxSkill = 12;
+
+  if (loading) return (
+    <ProfileSkillsSkeleton />
+  )
 
   return (
     <Card className="p-0 overflow-hidden space-y-0">

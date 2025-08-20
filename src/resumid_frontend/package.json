@@ -40,6 +40,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.468.0",
     "pdfjs-dist": "^4.8.69",
+    "pinata": "^2.4.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.3.8",

@@ -3,17 +3,23 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BadgeInfo, Pencil, Plus } from "lucide-react";
 import { ProfileDetailType } from "@/types/profile-types";
 import { formatDate, getPeriodLength } from "@/lib/utils";
+import ProfileExperienceSkeleton from "./Skeleton/ProfileExperienceSkeleton";
 
 interface ProfileExperienceProps {
   isOwner?: boolean
+  loading?: boolean
   detail: ProfileDetailType
   onAdd?: () => void
   onEdit?: (id: string) => void
 }
 
-export default function ProfileExperience({ isOwner = false, detail, onAdd, onEdit }: ProfileExperienceProps) {
+export default function ProfileExperience({ isOwner = false, detail, loading = false, onAdd, onEdit }: ProfileExperienceProps) {
   const { workExperiences } = detail;
   const maxWorkExperience = 3;
+
+  if (loading) return (
+    <ProfileExperienceSkeleton isOwner={isOwner} />
+  )
 
   return (
     <Card className="p-0 overflow-hidden space-y-0">

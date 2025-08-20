@@ -3,17 +3,23 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BadgeInfo, ExternalLink, Pencil, Plus } from "lucide-react";
 import { ProfileDetailType } from "@/types/profile-types";
 import { formatDate } from "@/lib/utils";
+import ProfileCertificationSkeleton from "./Skeleton/ProfileCertificationSkeleton";
 
 interface ProfileCertificationType {
   isOwner?: boolean
+  loading?: boolean
   detail: ProfileDetailType
   onAdd?: () => void
   onEdit?: (id: string) => void
 }
 
-export default function ProfileCertification({ isOwner = false, detail, onEdit, onAdd }: ProfileCertificationType) {
+export default function ProfileCertification({ isOwner = false, detail, loading = false, onEdit, onAdd }: ProfileCertificationType) {
   const { certifications } = detail;
   const maxCertification = 3;
+  
+  if (loading) return (
+    <ProfileCertificationSkeleton isOwner={isOwner} />
+  )
 
   return (
     <Card className="p-0 overflow-hidden space-y-0">

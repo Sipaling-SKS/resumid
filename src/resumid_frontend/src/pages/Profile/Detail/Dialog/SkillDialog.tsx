@@ -224,7 +224,7 @@ export function SkillDialog({ queryKey, detail, open, setOpen, isNew = false }: 
               <DialogClose asChild>
                 <Button size="sm" key="cancel-btn" variant="grey-outline">Cancel</Button>
               </DialogClose>
-              <Button size="sm" key="save-btn" disabled={isLoading || !isDirty}>
+              <Button size="sm" key="save-btn" type="submit" disabled={isLoading || !isDirty}>
                 {!isLoading ? <Save /> : <Loader2 className="animate-spin" />}
                 {isLoading ? "Saving..." : "Save changes"}
               </Button>
