@@ -3,7 +3,9 @@ import HashMap "mo:base/HashMap";
 import Result "mo:base/Result";
 import Text "mo:base/Text";
 import Debug "mo:base/Debug";
+import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
+import Int "mo:base/Int";
 import Time "mo:base/Time";
 import Array "mo:base/Array";
 import Float "mo:base/Float";
@@ -11,6 +13,8 @@ import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import { JSON } = "mo:serde";
 
+import GptTypes "types/GptTypes";
+import GptServices "services/GptServices";
 import HistoryTypes "types/HistoryTypes_new";
 import HistoryServices "services/HistoryServices_new";
 import UserTypes "types/UserTypes";
@@ -25,11 +29,12 @@ import DateHelper "helpers/DateHelper";
 import DraftServices "services/DraftServices";
 
 actor Resumid {
+  // Storage for user data and analysis histories
   private var users : UserTypes.User = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
   private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
   private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, [ResumeExtractTypes.ResumeHistoryItem]>(0, Text.equal, Text.hash);
-  
+
   // ==============================
   // Authentication and User Methods
   // ==============================
@@ -50,28 +55,23 @@ actor Resumid {
   public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
     let userId = msg.caller;
     Debug.print("Caller Principal for auth: " # Principal.toText(userId));
-    
+
     // First authenticate the user
     let authResult = await UserServices.authenticateUser(users, userId);
-    
+
     switch (authResult) {
       case (#err(errorMsg)) {
         return #err(errorMsg);
       };
       case (#ok(userData)) {
-        // If authentication successful, try to create profile
         let profileResult = await ProfileServices.createUserProfile(profiles, Principal.toText(userId));
-        
+
         switch (profileResult) {
           case (#err(profileError)) {
-            // Profile creation failed, but user auth succeeded
-            // You might want to handle this differently based on your requirements
             Debug.print("Profile creation failed: " # profileError);
-            // Return the user data anyway, or handle error as needed
             return #ok(userData);
           };
           case (#ok(_)) {
-            // Both user auth and profile creation successful
             return #ok(userData);
           };
         };
@@ -95,7 +95,7 @@ actor Resumid {
   };
 
   // ==============================
-  // Gemini Analyze Method
+  // Resume Analysis Methods
   // ==============================
 
   public shared (msg) func AnalyzeResumeV2(fileName : Text, historycid : Text, resumeContent : Text, jobTitle : Text) : async ?HistoryTypes.History {
@@ -111,11 +111,9 @@ actor Resumid {
         return null;
       };
       case (?result) {
-        // Dapatkan timestamp saat ini
         let timestamp = Time.now();
         let formattedTimestamp = DateHelper.formatTimestamp(timestamp);
 
-        // Konversi konten analisis ke tipe internal
         let convertedContent = Array.map<GeminiTypes.Section, HistoryTypes.ContentItem>(
           result.content,
           func(section) {
@@ -139,6 +137,7 @@ actor Resumid {
             };
           },
         );
+
         let convertedConclusion : HistoryTypes.Conclusion = {
           career_recomendation = result.conclusion.career_recomendation;
           keyword_matching = result.conclusion.keyword_matching;
@@ -182,6 +181,89 @@ actor Resumid {
   // Resume Extract Methods
   // ==============================
 
+  // public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
+  //   let userId = Principal.toText(msg.caller);
+  //   let rawJsonOpt = await GeminiServices.Extract(resumeContent);
+
+  //   switch (rawJsonOpt) {
+  //     case null {
+  //       Debug.print("Extract failed or empty");
+  //       return null;
+  //     };
+  //     case (?input) {
+  //       let now = Time.now();
+  //       let formatted = DateHelper.formatTimestamp(now);
+
+  //       // Build Work Experiences
+  //       let workExperiences = Array.tabulate<ResumeExtractTypes.WorkExperience>(
+  //         input.workExperiences.size(),
+  //         func(i : Nat) : ResumeExtractTypes.WorkExperience {
+  //           // let entropy = Random.blob();
+  //           // let id = UUID.generateV4();
+  //           let we = input.workExperiences[i];
+  //           {
+  //             id = "we-" # Int.toText(now);
+  //             company = we.company;
+  //             location = we.location;
+  //             position = we.position;
+  //             employment_type = we.employment_type;
+  //             period = we.period;
+  //             description = ?we.description;
+  //           };
+  //         },
+  //       );
+
+  //       // Build Educations
+  //       let educations = Array.tabulate<ResumeExtractTypes.Education>(
+  //         input.educations.size(),
+  //         func(i : Nat) : ResumeExtractTypes.Education {
+  //           // let entropy = Random.blob();
+  //           // let id = UUID.generateV4();
+  //           let ed = input.educations[i];
+  //           {
+  //             id = "edu" # Int.toText(now);
+  //             institution = ed.institution;
+  //             degree = ed.degree;
+  //             period = ed.period;
+  //             description = ?ed.description;
+  //           };
+  //         },
+  //       );
+
+  //       let summary : ResumeExtractTypes.Summary = {
+  //         content = input.summary.content;
+  //       };
+
+  //       let skillsRecord : ResumeExtractTypes.Skills = switch (input.skills) {
+  //         case null { { skills = [] } };
+  //         case (?s) { { skills = s.skills } };
+  //       };
+
+  //       let resumeData : ResumeExtractTypes.ResumeData = {
+  //         summary = ?summary;
+  //         workExperiences = ?workExperiences;
+  //         educations = ?educations;
+  //         skills = ?skillsRecord;
+  //       };
+
+  //       let entropy = await Random.blob();
+  //       let draftId = UUID.generateV4(entropy);
+
+  //       let historyItem : ResumeExtractTypes.ResumeHistoryItem = {
+  //         userId = userId;
+  //         draftId = "draftId1";
+  //         data = resumeData;
+  //         createdAt = formatted;
+  //         updatedAt = formatted;
+  //       };
+
+  //       draftMap.put(userId, [historyItem]);
+
+  //       return ?resumeData;
+  //     };
+  //   };
+  // };
+  // Fixed extractResumeToDraft function
   public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
     let userId = Principal.toText(msg.caller);
     let rawJsonOpt = await GeminiServices.Extract(resumeContent);
@@ -195,37 +277,33 @@ actor Resumid {
         let now = Time.now();
         let formatted = DateHelper.formatTimestamp(now);
 
-        // Build Work Experiences
+        // Build Work Experiences - periods already in correct format
         let workExperiences = Array.tabulate<ResumeExtractTypes.WorkExperience>(
           input.workExperiences.size(),
           func(i : Nat) : ResumeExtractTypes.WorkExperience {
-            // let entropy = Random.blob();
-            // let id = UUID.generateV4();
             let we = input.workExperiences[i];
             {
-              id = "we-" # Int.toText(now);
+              id = "we-" # Int.toText(now) # "-" # Int.toText(i);
               company = we.company;
               location = we.location;
               position = we.position;
               employment_type = we.employment_type;
-              period = we.period;
+              period = we.period; // Direct assignment - already correct structure!
               description = ?we.description;
             };
           },
         );
 
-        // Build Educations
+        // Build Educations - periods already in correct format
         let educations = Array.tabulate<ResumeExtractTypes.Education>(
           input.educations.size(),
           func(i : Nat) : ResumeExtractTypes.Education {
-            // let entropy = Random.blob();
-            // let id = UUID.generateV4();
             let ed = input.educations[i];
             {
-              id = "edu" # Int.toText(now);
+              id = "edu-" # Int.toText(now) # "-" # Int.toText(i);
               institution = ed.institution;
               degree = ed.degree;
-              period = ed.period;
+              period = ed.period; // Direct assignment - already correct structure!
               description = ?ed.description;
             };
           },
@@ -235,16 +313,11 @@ actor Resumid {
           content = input.summary.content;
         };
 
-        let skillsRecord : ResumeExtractTypes.Skills = switch (input.skills) {
-          case null { { skills = [] } };
-          case (?s) { { skills = s.skills } };
-        };
-
         let resumeData : ResumeExtractTypes.ResumeData = {
           summary = ?summary;
           workExperiences = ?workExperiences;
           educations = ?educations;
-          skills = ?skillsRecord;
+          skills = input.skills;
         };
 
         let entropy = await Random.blob();
@@ -252,12 +325,11 @@ actor Resumid {
 
         let historyItem : ResumeExtractTypes.ResumeHistoryItem = {
           userId = userId;
-          draftId = "draftId1";
+          draftId = draftId;
           data = resumeData;
           createdAt = formatted;
           updatedAt = formatted;
         };
-
 
         draftMap.put(userId, [historyItem]);
 
@@ -270,8 +342,8 @@ actor Resumid {
     let userId = Principal.toText(msg.caller);
 
     switch (draftMap.get(userId)) {
-      case null { [] }; 
-      case (?arr) { arr }; 
+      case null { [] };
+      case (?arr) { arr };
     };
   };
 
@@ -293,32 +365,6 @@ actor Resumid {
           profile = null;
           endorsementInfo = [];
         };
-        let convertedSummary : HistoryTypes.Summary = {
-          score = result.summary.score;
-          value = result.summary.value;
-        };
-        // Siapkan input untuk addHistory
-        let input : HistoryTypes.AddHistoryInput = {
-          fileName = fileName;
-          jobTitle = jobTitle;
-          summary = convertedSummary;
-          conclusion = convertedConclusion;
-          content = convertedContent;
-          createdAt = formattedTimestamp;
-        };
-        // Simpan menggunakan service
-        let addResult = await HistoryServices.addHistory(histories, userId, input);
-        switch (addResult) {
-          case (#ok(history)) {
-            Debug.print("Berhasil menambahkan history ID: " # history.historyId);
-            ?history;
-          };
-          case (#err(errMsg)) {
-            Debug.print("Gagal menambahkan history: " # errMsg);
-            null;
-          };
-        };
-
       };
     };
   };
@@ -394,7 +440,7 @@ actor Resumid {
   };
 
   //saveDraftToProfile
-  public shared (msg) func saveDraftToProfile( draftId : Text) : async Result.Result<Text, Text> {
+  public shared (msg) func saveDraftToProfile(draftId : Text) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     return await DraftServices.saveDraftToProfile(draftMap, profiles, draftId, userId);
   };
@@ -402,18 +448,18 @@ actor Resumid {
   // ==============================
   // Profile Management Methods
   // ==============================
-  public shared (msg) func createProfile(
-    profileData : ?{
-      name : ?Text;
-      profileCid : ?Text;
-      bannerCid : ?Text;
-      current_position : ?Text;
-      description : ?Text;
-    },
-  ) : async Result.Result<Text, Text> {
-    let userId = Principal.toText(msg.caller);
-    return await ProfileServices.createUserProfile(profiles, userId, profileData);
-  };
+  // public shared (msg) func createProfile(
+  //   profileData : ?{
+  //     name : ?Text;
+  //     profileCid : ?Text;
+  //     bannerCid : ?Text;
+  //     current_position : ?Text;
+  //     description : ?Text;
+  //   }
+  // ) : async Result.Result<Text, Text> {
+  //   let userId = Principal.toText(msg.caller);
+  //   return await ProfileServices.createUserProfile(profiles, userId, profileData);
+  // };
 
   public shared (msg) func getProfileById(profileId : Text) : async {
     profile : ?ProfileTypes.Profile;
@@ -422,7 +468,7 @@ actor Resumid {
     switch (await ProfileServices.getProfileByProfileId(profiles, profileId)) {
       case (?data) {
         {
-          profile = ?data.profile; 
+          profile = ?data.profile;
           endorsementInfo = data.endorsementInfo;
         };
       };
@@ -469,7 +515,7 @@ actor Resumid {
         end : ?Text;
       };
       description : ?Text;
-    },
+    }
   ) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     return await ProfileServices.addWorkExperience(profiles, userId, newWorkExperience);
@@ -503,8 +549,9 @@ actor Resumid {
         end : ?Text;
       };
       description : ?Text;
-    },
+    }
   ) : async Result.Result<Text, Text> {
+    let userId = Principal.toText(msg.caller);
     return await ProfileServices.addEducation(profiles, userId, newEducation);
   };
 
@@ -526,7 +573,7 @@ actor Resumid {
 
   // --- Summary ---
   public shared (msg) func editSummaryShared(
-    updatedSummary : ?Text,
+    updatedSummary : ?Text
   ) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     return await ProfileServices.editSummary(profiles, userId, updatedSummary);
@@ -557,7 +604,7 @@ actor Resumid {
       title : Text;
       issuer : ?Text;
       credential_url : ?Text;
-    },
+    }
   ) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     return await ProfileServices.addCertification(profiles, userId, certInput);
@@ -576,7 +623,7 @@ actor Resumid {
   };
 
   public shared (msg) func deleteCertificationShared(
-    certificationId : ?Text,
+    certificationId : ?Text
   ) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     return await ProfileServices.deleteCertification(profiles, userId, certificationId);
@@ -592,28 +639,30 @@ actor Resumid {
   // -------------------------
   // ENDORSEMENT
   // -------------------------
-  public shared (msg) func endorseProfile( targetUserId : Text) : async Result.Result<Text, Text> {
+  public shared (msg) func endorseProfile(targetUserId : Text) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     return await ProfileServices.addEndorsedProfile(profiles, userId, targetUserId);
   };
 
-  public shared (msg) func unendorseProfile( targetUserId : Text) : async Result.Result<Text, Text> {
+  public shared (msg) func unendorseProfile(targetUserId : Text) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     return await ProfileServices.removeEndorsedProfile(profiles, userId, targetUserId);
   };
+
   // ==============================
   // History Management Methods
   // ==============================
+
   public shared (msg) func addHistory(input : HistoryTypes.AddHistoryInput, historycid : Text) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     let result = await HistoryServices.addHistory(histories, userId, input);
 
     switch (result) {
       case (#ok(history)) {
-        return #ok(history.historyId);
+        return #ok(history.historyId); // hanya kirim ID-nya
       };
       case (#err(errMsg)) {
-        return #err(errMsg);
+        return #err(errMsg); // kirim error asli dari service
       };
     };
   };
