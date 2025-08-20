@@ -7,18 +7,23 @@ import Nat "mo:base/Nat";
 import Time "mo:base/Time";
 import Array "mo:base/Array";
 import Float "mo:base/Float";
+import Iter "mo:base/Iter";
 
 import HistoryTypes "types/HistoryTypes_new";
 import HistoryServices "services/HistoryServices_new";
 import UserTypes "types/UserTypes";
-import UserServices "services/UserServices";
+import PackageTypes "types/PackageTypes";
 import GeminiTypes "types/GeminiTypes";
+
+import UserServices "services/UserServices";
+import PackageServices "services/PackageServices";
 import GeminiServices "services/GeminiServices";
 import DateHelper "helpers/DateHelper";
 
 actor Resumid {
   private var users : UserTypes.User = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
+  private var packages : PackageTypes.Packages = HashMap.HashMap<Text, PackageTypes.Package>(0, Text.equal, Text.hash);
 
   // ==============================
   // Authentication and User Methods
@@ -177,4 +182,14 @@ actor Resumid {
     return HistoryServices.deleteHistory(histories, userId, input.historyId);
   };
 
+  // ==============================
+  // Master Package Methods
+  // ==============================
+  public shared (msg) func getPackages(): async [PackageTypes.Package] {
+    return Iter.toArray(packages.vals());
+  };
+
+  public shared (msg) func initPackages() : async [PackageTypes.Package] {
+    return PackageServices.initDefaultPackage();
+  };
 };
