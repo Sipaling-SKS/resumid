@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { AuthClient } from "@dfinity/auth-client";
+import { AccountIdentifier } from '@dfinity/ledger-icp';
+
 import { createActor, canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid_backend";
 import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declarations/internet_identity";
 import { toast } from "@/hooks/useToast";
@@ -179,8 +181,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               agentOptions: { identity },
             });
 
+            const accountIdentifier = AccountIdentifier.fromPrincipal({
+              principal,
+              subAccount: undefined,
+            });
+
             await actor.whoami();
-            await actor.authenticateUser();
+            await actor.authenticateUser(accountIdentifier.toHex());
 
             setResumidActor(actor);
 
