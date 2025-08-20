@@ -44,9 +44,11 @@ type SelectedTypes = {
 }
 
 export default function ProfileDetail() {
-  const { id } = useParams()
   const KEY = "profile"
   const isOwner = true;
+
+  const { id } = useParams()
+  const { resumidActor } = useAuth();
 
   const location = useLocation();
   const { state } = location;
@@ -75,11 +77,52 @@ export default function ProfileDetail() {
     setSelected((prev) => ({ ...prev, [key]: value }))
   }
 
-  if (!id) return;
+  if (!id || !resumidActor) return;
 
-  const profileDetail: ProfileDetailType = profileDetailData;
+  async function handleGetProfileDetail(id: string | number): Promise<any> {
+    const result = await resumidActor.getProfileById(id)
+    const { profile } = result;
 
-  const selectedExperience = profileDetail?.workExperiences?.find((exp) => exp.id === selected.workExperiences) ?? {
+    if (profile) {
+      return result;
+    } else {
+      throw new Error("Profile not found")
+    }
+  }
+
+  const {
+    data = {},
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['historyDetail', id],
+    queryFn: () => handleGetProfileDetail(id),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
+  const { profile: profileDetail, endorsementInfo = [] } = data;
+  // const profileDetail: ProfileDetailType = profile;
+
+  if (error) {
+    return (
+      <>
+        <Helmet>
+          <meta charSet="utf-8" />
+          <title>{"{Name Placeholder} | Resumid"}</title>
+          <meta name="description" content={`Analysis details for {Name Placeholder}`} />
+        </Helmet>
+
+        <div className="min-h-screen flex justify-center items-center">
+          <h2 className="text-xl font-outfit font-semibold text-heading">
+            {error?.message || "Error, something happened."}
+          </h2>
+        </div>
+      </>
+    )
+  }
+
+  const selectedExperience = profileDetail?.workExperiences?.find((exp: any) => exp.id === selected.workExperiences) ?? {
     id: "",
     company: "",
     position: "",
@@ -89,7 +132,7 @@ export default function ProfileDetail() {
     period: { start: "", end: "" }
   }
 
-  const selectedEducation = profileDetail?.educations?.find((ed) => ed.id === selected.educations) ?? {
+  const selectedEducation = profileDetail?.educations?.find((ed: any) => ed.id === selected.educations) ?? {
     id: "",
     institution: "",
     degree: "",
@@ -98,7 +141,7 @@ export default function ProfileDetail() {
     period: { start: "", end: "" }
   }
 
-  const selectedCertification = profileDetail?.certifications?.find((cert) => cert.id === selected.certifications) ?? {
+  const selectedCertification = profileDetail?.certifications?.find((cert: any) => cert.id === selected.certifications) ?? {
     id: "",
     title: "",
     issuer: "",
@@ -117,7 +160,7 @@ export default function ProfileDetail() {
         <ProfileHeader
           queryKey={[KEY, id]}
           detail={profileDetail}
-          // loading={true}
+          loading={isLoading}
           isOwner={isOwner}
           isNewUser={isNewUser}
           onSectionAdd={(key) => {
@@ -131,16 +174,16 @@ export default function ProfileDetail() {
           <div className="flex-shrink-0 min-w-[180px] max-w-[280px] flex flex-col gap-6">
             {(profileDetail?.skills?.length ?? 0) > 0 && (
               <ProfileSkills
-                detail={profileDetail} 
-                // loading={true} 
-                isOwner={isOwner} 
-                onEdit={() => handleOpen("skills")} 
+                detail={profileDetail}
+                loading={isLoading} 
+                isOwner={isOwner}
+                onEdit={() => handleOpen("skills")}
               />
             )}
             {isOwner && (
               <ProfileAnalytics
-                detail={profileDetail}
-                // loading={true}
+                detail={endorsementInfo}
+              loading={isLoading}
               />
             )}
           </div>
@@ -148,7 +191,7 @@ export default function ProfileDetail() {
             {profileDetail?.about ? (
               <ProfileAbout
                 detail={profileDetail}
-                // loading={true}
+                loading={isLoading}
                 isOwner={isOwner}
                 onEdit={() => handleOpen("about")}
               />
@@ -163,10 +206,10 @@ export default function ProfileDetail() {
               </Card>
             )}
             {(profileDetail?.workExperiences?.length ?? 0) > 0 && (
-              <ProfileExperience 
-                detail={profileDetail} 
+              <ProfileExperience
+                detail={profileDetail}
                 isOwner={isOwner}
-                // loading={true}
+                loading={isLoading}
                 onAdd={() => {
                   handleSelected("workExperiences", null)
                   handleOpen("workExperiences", true)
@@ -178,10 +221,10 @@ export default function ProfileDetail() {
               />
             )}
             {(profileDetail?.educations?.length ?? 0) > 0 && (
-              <ProfileEducation 
-                detail={profileDetail} 
+              <ProfileEducation
+                detail={profileDetail}
                 isOwner={isOwner}
-                // loading={true}
+                loading={isLoading}
                 onAdd={() => {
                   handleSelected("educations", null)
                   handleOpen("educations", true)
@@ -193,10 +236,10 @@ export default function ProfileDetail() {
               />
             )}
             {(profileDetail?.certifications?.length ?? 0) > 0 && (
-              <ProfileCertification 
-                detail={profileDetail} 
+              <ProfileCertification
+                detail={profileDetail}
                 isOwner={isOwner}
-                // loading={true}
+                loading={isLoading}
                 onAdd={() => {
                   handleSelected("certifications", null)
                   handleOpen("certifications", true)
@@ -209,18 +252,18 @@ export default function ProfileDetail() {
             )}
           </div>
         </div>
-        <SkillDialog 
-          open={open.skills} 
-          setOpen={() => handleOpen("skills")} 
+        <SkillDialog
+          open={open.skills}
+          setOpen={() => handleOpen("skills")}
           queryKey={[KEY, id]}
-          detail={profileDetail} 
+          detail={profileDetail}
           isNew={!profileDetail?.skills}
         />
-        <AboutDialog 
-          open={open.about} 
-          setOpen={() => handleOpen("about")} 
-          queryKey={[KEY, id]} 
-          detail={profileDetail} 
+        <AboutDialog
+          open={open.about}
+          setOpen={() => handleOpen("about")}
+          queryKey={[KEY, id]}
+          detail={profileDetail}
           isNew={!profileDetail?.about}
         />
         <ExperienceDialog

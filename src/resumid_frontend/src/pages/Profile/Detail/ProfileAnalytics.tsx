@@ -59,7 +59,7 @@ interface ProfileAnalyticsProps {
 
 export default function ProfileAnalytics({ detail, loading = false }: ProfileAnalyticsProps) {
   const maxViewLength = 3;
-  const analytics: any[] = detail?.analytics || [];
+  const analytics: any[] = detail || [];
 
   const navigate = useNavigate();
 
