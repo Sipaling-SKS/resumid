@@ -1,10 +1,10 @@
-import express from 'express';
-import presignedUrlRouter from './routes/PresignedUrlRouter.js';
-import geminiRouter from './routes/GeminiRouter.js';
+const express = require('express');
+const presignedUrlRouter = require('./PresignedUrlRouter');
+const geminiRouter = require('./GeminiRouter');
 
 const router = express.Router();
 
 router.use('/upload', presignedUrlRouter);
 router.use('/analyze', geminiRouter);
 
-export default router;
+module.exports = router;

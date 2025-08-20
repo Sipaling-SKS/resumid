@@ -1,9 +1,8 @@
-import express from "express";
-
-import { CreatePresignedUrl } from "../controllers/PresignedUrlController"; 
+const express = require("express");
+const { CreatePresignedUrl } = require("../controllers/PresignedUrlController.js"); 
 
 const router = express.Router();
 
 router.get("presigned_url", CreatePresignedUrl);
 
-export default router;
+module.exports = router;

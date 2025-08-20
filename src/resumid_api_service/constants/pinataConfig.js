@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+const dotenv = require("dotenv");
 dotenv.config();
 
 const cfg = {
@@ -6,4 +6,4 @@ const cfg = {
   PINATA_GATEWAY_URL: process.env.EXPRESS_PINATA_GATEWAY_URL
 }
 
-export default cfg;
+module.exports = cfg

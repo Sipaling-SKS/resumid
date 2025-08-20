@@ -1,5 +1,5 @@
-import express from 'express';
-import { CreateAnalyzeResume, CreateMockupAnalyzeResume } from "../controllers/GptRequestController";
+const express = require('express');
+const { CreateAnalyzeResume, CreateMockupAnalyzeResume } = require("../controllers/GptRequestController");
 
 const router = express.Router();
 
@@ -9,4 +9,4 @@ router.post('/gpt-service', CreateAnalyzeResume);
 // Mockup endpoint to return open ai gpt response mockup (static response)
 router.post('/gpt-mockup', CreateMockupAnalyzeResume);
 
-export default router;
+module.exports = router;
