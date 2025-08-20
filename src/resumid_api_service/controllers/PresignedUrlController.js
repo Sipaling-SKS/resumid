@@ -2,10 +2,8 @@ const pinataConfig = require("../constants/pinataConfig");
 const { PinataSDK } = require('pinata');
 
 async function CreatePresignedUrl(req, res) {
-  const { private } = req.params;
-
   try {
-    const { expires = 60 } = req.body;
+    const { expires = 60, private } = req.body;
 
     const pinata = new PinataSDK({
       pinataJwt: pinataConfig.PINATA_JWT,
