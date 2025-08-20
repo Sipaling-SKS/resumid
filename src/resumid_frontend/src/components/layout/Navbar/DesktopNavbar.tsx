@@ -233,7 +233,7 @@ function DesktopNavbar({ navigate }: any) {
             <DropdownMenuContent className="text-paragraph">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/profile/fadil-hisyam")}>
                 <ProfileIcon />
                 Profile
               </DropdownMenuItem>
