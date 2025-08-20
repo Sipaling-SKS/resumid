@@ -34,11 +34,11 @@ actor Resumid {
     return msg.caller;
   };
 
-  public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
+  public shared (msg) func authenticateUser(depositAddr: Text) : async Result.Result<UserTypes.UserData, Text> {
     let userId = msg.caller;
 
     Debug.print("Caller Principal for auth: " # Principal.toText(userId));
-    return await UserServices.authenticateUser(users, userId);
+    return await UserServices.authenticateUser(users, depositAddr, userId);
   };
 
   public shared (msg) func getUserById() : async Result.Result<UserTypes.UserData, Text> {
@@ -185,11 +185,15 @@ actor Resumid {
   // ==============================
   // Master Package Methods
   // ==============================
-  public shared (msg) func getPackages(): async [PackageTypes.Package] {
+  public shared (msg) func getPackages() : async [PackageTypes.Package] {
     return Iter.toArray(packages.vals());
   };
 
   public shared (msg) func initPackages() : async [PackageTypes.Package] {
     return await PackageServices.initDefaultPackage(packages);
   };
+
+  // ==============================
+  // Transaction Package Methods
+  // ==============================
 };

@@ -10,6 +10,7 @@ import DateHelper "../helpers/DateHelper";
 module UserService {
   public func authenticateUser(
     users : UserTypes.User,
+    depositAddr: Text,
     userId : Principal,
   ) : async Result.Result<UserTypes.UserData, Text> {
     if (Principal.isAnonymous(userId)) {
@@ -32,7 +33,8 @@ module UserService {
           id = userId;
           name = name;
           role = #user;
-          available_token = 0;
+          depositAddr = depositAddr;
+          token = 3;
           createdAt = createdAt;
         };
 

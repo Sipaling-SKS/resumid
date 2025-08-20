@@ -10,7 +10,8 @@ module {
     name : Text;
     role : Role;
     createdAt : Text;
-    available_token : Nat;
+    depositAddr: Text;
+    token : Nat;
   };
 
   public type Role = {
