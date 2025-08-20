@@ -1,7 +1,7 @@
 import Logo from "@/assets/logo-black.svg";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn, scrollTo, scrollToTop } from "@/lib/utils";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { LogIn, LogOut, User2 as ProfileIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useData } from "@/contexts/DataContext";
 
 function DesktopNavbar({ navigate }: any) {
   const { isAuthenticated, login, logout, userData } = useAuth();
@@ -152,7 +151,7 @@ function DesktopNavbar({ navigate }: any) {
             <DropdownMenuContent className="text-paragraph">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/profile/fadil-hisyam")}>
                 <ProfileIcon />
                 Profile
               </DropdownMenuItem>
