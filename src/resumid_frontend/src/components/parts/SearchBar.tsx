@@ -1,0 +1,231 @@
+import React, { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import { Search, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useNavigate, useSearchParams } from "react-router";
+
+type SearchBarProps = {
+  className?: string;
+  onSearch?: (query: string) => void;
+  placeholderHints?: string[];
+};
+
+export interface SearchBarRef {
+  reset: () => void;
+}
+
+const DEFAULT_HINTS = [
+  "Discover talented professionals",
+  "Find your next team member",
+  "Connect with industry experts",
+  "Explore professional networks",
+  "Meet passionate innovators",
+];
+
+const SearchBar = forwardRef<SearchBarRef, SearchBarProps>((
+  {
+    className,
+    onSearch,
+    placeholderHints,
+  },
+  ref
+) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const hints = useMemo(
+    () => (placeholderHints && placeholderHints.length > 0 ? placeholderHints : DEFAULT_HINTS),
+    [placeholderHints]
+  );
+
+  const [value, setValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const [hintIndex, setHintIndex] = useState(0);
+  const intervalRef = useRef<number | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const isActive = isFocused || value.length > 0;
+  const hasValue = value.length > 0;
+
+  useEffect(() => {
+    const queryParam = searchParams.get('q');
+    if (queryParam) {
+      setValue(queryParam);
+    }
+  }, [searchParams]);
+
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      setValue("");
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    }
+  }));
+
+  useEffect(() => {
+    if (!isActive) {
+      intervalRef.current = window.setInterval(() => {
+        setHintIndex((prev) => (prev + 1) % hints.length);
+      }, 3000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isActive, hints.length]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = value.trim();
+    if (query) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+      onSearch?.(query);
+    }
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+  };
+
+  const clear = () => {
+    setValue("");
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+  };
+
+  const handleContainerClick = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "w-full font-inter",
+        className
+      )}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className={cn(
+          "group w-full h-10 sm:h-11 rounded-lg border md:border-2 bg-white",
+          hasValue ? "border-primary-500" : "border-neutral-300 focus-within:border-primary-500",
+          "transition-colors inline-flex items-center cursor-text"
+        )}
+        onClick={handleContainerClick}
+      >
+        {!hasValue && (
+         <button
+            type="button"
+            className="inline-flex items-center justify-center ml-3 text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+            aria-label="Search"
+            title="Search"
+            onClick={(e) => {
+              e.preventDefault();
+              handleContainerClick();
+            }}
+          >
+            <Search className="w-4 h-4" />
+          </button>
+        )}
+
+        <div className="flex-1 relative min-w-0 mx-3">
+          <input
+            ref={inputRef}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder="Type to search..."
+            className={cn(
+              "w-full bg-transparent outline-none text-xs sm:text-sm text-paragraph placeholder:text-placeholder",
+              !isActive && "opacity-0 pointer-events-none absolute inset-0"
+            )}
+            aria-label="Search"
+          />
+          
+          {!isActive && (
+            <div className="relative h-5 sm:h-6 flex items-center overflow-hidden">
+              <div className="absolute inset-0 flex flex-col justify-center">
+                {hints.map((hint, i) => {
+                  const isCurrentHint = i === hintIndex;
+                  const isPrevHint = i === (hintIndex - 1 + hints.length) % hints.length;
+                  const isNextHint = i === (hintIndex + 1) % hints.length;
+                  
+                  let translateY = '100%';
+                  let opacity = 0;
+                  
+                  if (isCurrentHint) {
+                    translateY = '0%';
+                    opacity = 1;
+                  } else if (isPrevHint) {
+                    translateY = '-100%';
+                    opacity = 0;
+                  } else if (isNextHint) {
+                    translateY = '100%';
+                    opacity = 0;
+                  }
+                  
+                  return (
+                    <div
+                      key={`${hint}-${i}`}
+                      className={cn(
+                        "absolute inset-0 flex items-center text-xs sm:text-sm text-placeholder transition-all duration-500 ease-in-out",
+                        "truncate"
+                      )}
+                      style={{
+                        transform: `translateY(${translateY})`,
+                        opacity: opacity
+                      }}
+                    >
+                      {hint}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {hasValue && (
+          <div className="inline-flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clear();
+              }}
+              className="inline-flex items-center justify-center rounded-tr-md rounded-br-md text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center w-9 h-10 sm:h-11 rounded-tr-medium rounded-br-font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+              aria-label="Search"
+              title="Search"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </form>
+    </div>
+  );
+});
+
+SearchBar.displayName = "SearchBar";
+
+export default SearchBar;
