@@ -79,7 +79,7 @@ module ResumeExtractTypes {
     summary : ?Summary;
     workExperiences : ?[WorkExperience];
     educations : ?[Education];
-    skills : ?Skills;  
+    skills : ?[Text]; 
   };
 
   public type ResumeHistoryItem = {

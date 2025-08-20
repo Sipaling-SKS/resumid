@@ -228,6 +228,51 @@ module DraftServices {
 
   //edit skills
 
+  // public func editSkillsDraft(
+  //   draftMap : ResumeExtractTypes.Draft,
+  //   draftId : Text,
+  //   userId : Text,
+  //   updatedSkills : [Text],
+  // ) : async Result.Result<Text, Text> {
+  //   let draftItems = switch (draftMap.get(userId)) {
+  //     case null { return #err("Draft not found") };
+  //     case (?arr) arr;
+  //   };
+
+  //   let maybeResumeItem = Array.find<ResumeExtractTypes.ResumeHistoryItem>(
+  //     draftItems,
+  //     func(item : ResumeExtractTypes.ResumeHistoryItem) : Bool {
+  //       item.draftId == draftId;
+  //     },
+  //   );
+
+  //   switch (maybeResumeItem) {
+  //     case null { return #err("Draft ID not found") };
+  //     case (?resumeItem) {
+  //       let skillsValue : ResumeExtractTypes.Skills = { skills = updatedSkills };
+
+  //       let updatedData : ResumeExtractTypes.ResumeData = {
+  //         resumeItem.data with skills = ?skillsValue
+  //       };
+
+  //       let updatedResumeItem : ResumeExtractTypes.ResumeHistoryItem = {
+  //         resumeItem with
+  //         data = updatedData;
+  //         updatedAt = DateHelper.formatTimestamp(Time.now());
+  //       };
+
+  //       let updatedDraftItems : [ResumeExtractTypes.ResumeHistoryItem] = Array.map(
+  //         draftItems,
+  //         func(item : ResumeExtractTypes.ResumeHistoryItem) : ResumeExtractTypes.ResumeHistoryItem {
+  //           if (item.draftId == draftId) updatedResumeItem else item;
+  //         },
+  //       );
+
+  //       draftMap.put(userId, updatedDraftItems);
+  //       return #ok("Skills updated successfully");
+  //     };
+  //   };
+  // };
   public func editSkillsDraft(
     draftMap : ResumeExtractTypes.Draft,
     draftId : Text,
@@ -249,10 +294,9 @@ module DraftServices {
     switch (maybeResumeItem) {
       case null { return #err("Draft ID not found") };
       case (?resumeItem) {
-        let skillsValue : ResumeExtractTypes.Skills = { skills = updatedSkills };
-
+        // Direct assignment since ResumeData.skills expects ?[Text]
         let updatedData : ResumeExtractTypes.ResumeData = {
-          resumeItem.data with skills = ?skillsValue
+          resumeItem.data with skills = ?updatedSkills
         };
 
         let updatedResumeItem : ResumeExtractTypes.ResumeHistoryItem = {
@@ -407,6 +451,103 @@ module DraftServices {
 
   // Save draft to profile
 
+  // public func saveDraftToProfile(
+  //   draftMap : ResumeExtractTypes.Draft,
+  //   profileMap : ProfileTypes.Profiles,
+  //   draftId : Text,
+  //   userId : Text,
+  // ) : async Result.Result<Text, Text> {
+
+  //   let existingProfile = switch (profileMap.get(userId)) {
+  //     case null { return #err("Profile not found for user") };
+  //     case (?profile) profile;
+  //   };
+
+  //   let draftItems = switch (draftMap.get(userId)) {
+  //     case null { return #err("Draft not found for user") };
+  //     case (?arr) arr;
+  //   };
+
+  //   let draftItem = switch (
+  //     Array.find<ResumeExtractTypes.ResumeHistoryItem>(
+  //       draftItems,
+  //       func(item : ResumeExtractTypes.ResumeHistoryItem) : Bool {
+  //         item.draftId == draftId;
+  //       },
+  //     )
+  //   ) {
+  //     case null { return #err("Draft ID not found") };
+  //     case (?item) item;
+  //   };
+
+  //   let profileResumeData : ProfileTypes.ResumeData = {
+  //     summary = switch (draftItem.data.summary) {
+  //       case null null;
+  //       case (?summaryObj) ?{ content = ?summaryObj.content };
+  //     };
+
+  //     skills = switch (draftItem.data.skills) {
+  //       case null null;
+  //       case (?skillsObj) ?{ skills = skillsObj.skills };
+  //     };
+
+  //     workExperiences = switch (draftItem.data.workExperiences) {
+  //       case null null;
+  //       case (?workExpArray) {
+  //         let convertedWorkExp = Array.map<ResumeExtractTypes.WorkExperience, ProfileTypes.WorkExperience>(
+  //           workExpArray,
+  //           func(we : ResumeExtractTypes.WorkExperience) : ProfileTypes.WorkExperience {
+  //             {
+  //               id = we.id;
+  //               company = we.company;
+  //               location = ?we.location;
+  //               position = we.position;
+  //               employment_type = we.employment_type;
+  //               period = {
+  //                 start = we.period.start;
+  //                 end = we.period.end;
+  //               };
+  //               description = we.description;
+  //             };
+  //           },
+  //         );
+  //         ?convertedWorkExp;
+  //       };
+  //     };
+
+  //     educations = switch (draftItem.data.educations) {
+  //       case null null;
+  //       case (?educationArray) {
+  //         let convertedEducations = Array.map<ResumeExtractTypes.Education, ProfileTypes.Education>(
+  //           educationArray,
+  //           func(edu : ResumeExtractTypes.Education) : ProfileTypes.Education {
+  //             {
+  //               id = edu.id;
+  //               institution = ?edu.institution;
+  //               degree = ?edu.degree;
+  //               period = {
+  //                 start = edu.period.start;
+  //                 end = edu.period.end;
+  //               };
+  //               description = edu.description;
+  //             };
+  //           },
+  //         );
+  //         ?convertedEducations;
+  //       };
+  //     };
+  //   };
+
+  //   let updatedProfile : ProfileTypes.Profile = {
+  //     existingProfile with
+  //     resume = ?profileResumeData;
+  //     updatedAt = DateHelper.formatTimestamp(Time.now());
+  //   };
+
+  //   profileMap.put(userId, updatedProfile);
+  //   return #ok("Draft successfully saved to profile");
+  // };
+
   public func saveDraftToProfile(
     draftMap : ResumeExtractTypes.Draft,
     profileMap : ProfileTypes.Profiles,
@@ -438,17 +579,28 @@ module DraftServices {
 
     let profileResumeData : ProfileTypes.ResumeData = {
       summary = switch (draftItem.data.summary) {
-        case null null;
-        case (?summaryObj) ?{ content = ?summaryObj.content };
+        case null { null };
+        case (?summaryObj) {
+          // Check what ProfileTypes.Summary expects - adjust accordingly
+          ?{ content = ?summaryObj.content }; // If ProfileTypes.Summary.content is ?Text
+          // OR use this if ProfileTypes.Summary.content is Text:
+          // ?{ content = summaryObj.content };
+        };
       };
 
       skills = switch (draftItem.data.skills) {
-        case null null;
-        case (?skillsObj) ?{ skills = skillsObj.skills };
+        case null { null };
+        case (?skillsArray) {
+          // Since draftItem.data.skills is ?[Text], we need to wrap it properly
+          // Check your ProfileTypes.Skills structure and adjust accordingly:
+          ?{ skills = skillsArray }; // If ProfileTypes.Skills has a skills field
+          // OR if ProfileTypes expects just the array:
+          // ?skillsArray;
+        };
       };
 
       workExperiences = switch (draftItem.data.workExperiences) {
-        case null null;
+        case null { null };
         case (?workExpArray) {
           let convertedWorkExp = Array.map<ResumeExtractTypes.WorkExperience, ProfileTypes.WorkExperience>(
             workExpArray,
@@ -456,7 +608,7 @@ module DraftServices {
               {
                 id = we.id;
                 company = we.company;
-                location = ?we.location;
+                location = ?we.location; // Wrapping in optional
                 position = we.position;
                 employment_type = we.employment_type;
                 period = {
@@ -472,15 +624,15 @@ module DraftServices {
       };
 
       educations = switch (draftItem.data.educations) {
-        case null null;
+        case null { null };
         case (?educationArray) {
           let convertedEducations = Array.map<ResumeExtractTypes.Education, ProfileTypes.Education>(
             educationArray,
             func(edu : ResumeExtractTypes.Education) : ProfileTypes.Education {
               {
                 id = edu.id;
-                institution = ?edu.institution;
-                degree = ?edu.degree;
+                institution = ?edu.institution; // Wrapping in optional
+                degree = ?edu.degree; // Wrapping in optional
                 period = {
                   start = edu.period.start;
                   end = edu.period.end;
