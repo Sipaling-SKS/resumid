@@ -34,7 +34,7 @@ actor Resumid {
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
   private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
   private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, [ResumeExtractTypes.ResumeHistoryItem]>(0, Text.equal, Text.hash);
-
+  
   // ==============================
   // Authentication and User Methods
   // ==============================
@@ -55,10 +55,10 @@ actor Resumid {
   public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
     let userId = msg.caller;
     Debug.print("Caller Principal for auth: " # Principal.toText(userId));
-
+    
     // First authenticate the user
     let authResult = await UserServices.authenticateUser(users, userId);
-
+    
     switch (authResult) {
       case (#err(errorMsg)) {
         return #err(errorMsg);
@@ -66,7 +66,7 @@ actor Resumid {
       case (#ok(userData)) {
         // If authentication successful, try to create profile
         let profileResult = await ProfileServices.createUserProfile(profiles, Principal.toText(userId));
-
+        
         switch (profileResult) {
           case (#err(profileError)) {
             // Profile creation failed, but user auth succeeded
@@ -262,6 +262,7 @@ actor Resumid {
           updatedAt = formatted;
         };
 
+
         draftMap.put(userId, [historyItem]);
 
         return ?resumeData;
@@ -273,8 +274,8 @@ actor Resumid {
     let userId = Principal.toText(msg.caller);
 
     switch (draftMap.get(userId)) {
-      case null { [] };
-      case (?arr) { arr };
+      case null { [] }; 
+      case (?arr) { arr }; 
     };
   };
 
@@ -371,7 +372,7 @@ actor Resumid {
   };
 
   //saveDraftToProfile
-  public shared (msg) func saveDraftToProfile(draftId : Text) : async Result.Result<Text, Text> {
+  public shared (msg) func saveDraftToProfile( draftId : Text) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
     return await DraftServices.saveDraftToProfile(draftMap, profiles, draftId, userId);
   };
@@ -379,19 +380,18 @@ actor Resumid {
   // ==============================
   // Profile Management Methods
   // ==============================
-  // public shared (msg) func createProfile(
-  //   userId : Text,
-  //   profileData : ?{
-  //     name : ?Text;
-  //     profileCid : ?Text;
-  //     bannerCid : ?Text;
-  //     current_position : ?Text;
-  //     description : ?Text;
-  //   },
-  // ) : async Result.Result<Text, Text> {
-  //   // let userId = Principal.toText(msg.caller);
-  //   return await ProfileServices.createUserProfile(profiles, userId, profileData);
-  // };
+  public shared (msg) func createProfile(
+    profileData : ?{
+      name : ?Text;
+      profileCid : ?Text;
+      bannerCid : ?Text;
+      current_position : ?Text;
+      description : ?Text;
+    },
+  ) : async Result.Result<Text, Text> {
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.createUserProfile(profiles, userId, profileData);
+  };
 
   public shared (msg) func getProfileById(profileId : Text) : async {
     profile : ?ProfileTypes.Profile;
@@ -400,7 +400,7 @@ actor Resumid {
     switch (await ProfileServices.getProfileByProfileId(profiles, profileId)) {
       case (?data) {
         {
-          profile = ?data.profile;
+          profile = ?data.profile; 
           endorsementInfo = data.endorsementInfo;
         };
       };
@@ -483,7 +483,6 @@ actor Resumid {
       description : ?Text;
     },
   ) : async Result.Result<Text, Text> {
-    let userId = Principal.toText(msg.caller);
     return await ProfileServices.addEducation(profiles, userId, newEducation);
   };
 
@@ -513,6 +512,7 @@ actor Resumid {
 
   // --- Skills ---
   public shared (msg) func editSkillsShared(
+    // userId : Text,
     updatedSkills : [Text],
   ) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
@@ -521,6 +521,7 @@ actor Resumid {
 
   // --- Resume Item Deletion ---
   public shared (msg) func deleteResumeItemShared(
+    // userId : Text,
     itemType : Text,
     itemId : ?Text,
   ) : async Result.Result<Text, Text> {
