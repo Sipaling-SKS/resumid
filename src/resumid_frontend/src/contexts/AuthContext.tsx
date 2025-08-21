@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { AuthClient } from "@dfinity/auth-client";
-import { AccountIdentifier } from '@dfinity/ledger-icp';
-
 import { createActor, canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid_backend";
 import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declarations/internet_identity";
 import { toast } from "@/hooks/useToast";
 import { useNavigate } from "react-router";
 import { LoaderCircle } from "lucide-react";
+import { AccountIdentifier } from '@dfinity/ledger-icp';
 
 type AuthLoginOptions = {
   onSuccessNavigate?: () => void;
@@ -212,6 +211,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       },
     });
+
+    setLoading(false);
   };
 
 
