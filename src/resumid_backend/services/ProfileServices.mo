@@ -4,6 +4,7 @@ import Result "mo:base/Result";
 import Text "mo:base/Text";
 import Random "mo:base/Random";
 import UUID "mo:idempotency-keys/idempotency-keys";
+import Error "mo:base/Error";
 
 import DateHelper "../helpers/DateHelper";
 import ProfileTypes "../types/ProfileTypes";
@@ -270,8 +271,14 @@ module ProfileServices {
       updatedAt = DateHelper.formatTimestamp(Time.now());
     };
 
-    profileMap.put(userId, updatedProfile);
-    return #ok("Profile detail and contact info updated successfully");
+    try {
+      profileMap.put(userId, updatedProfile);
+      return #ok("Profile updated successfully");
+    } catch (error) {
+      return #err("Failed to update profile: " # Error.message(error));
+    };
+
+    
   };
 
   public func updateProfilePicture(
@@ -323,7 +330,6 @@ module ProfileServices {
 
     let updatedProfileDetail = switch (profile.profileDetail) {
       case null {
-        // Create new profileDetail if it doesn't exist
         ?{
           name = null;
           profileCid = null;
@@ -333,7 +339,6 @@ module ProfileServices {
         };
       };
       case (?existingDetail) {
-        // Update existing profileDetail
         ?{
           existingDetail with bannerCid = ?bannerCid
         };

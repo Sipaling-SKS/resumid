@@ -80,6 +80,7 @@ module ProfileTypes {
     profileDetail : ?ProfileTypes.ProfileDetail;
     endorsements : ?[Text];
   };
+  
   public type Profile = {
     userId : Text;
     profileId : Text;
