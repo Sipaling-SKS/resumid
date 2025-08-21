@@ -12,6 +12,8 @@ import Float "mo:base/Float";
 import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import { JSON } = "mo:serde";
+import DateHelper "helpers/DateHelper";
+
 
 import GptTypes "types/GptTypes";
 import GptServices "services/GptServices";
@@ -24,8 +26,6 @@ import GeminiServices "services/GeminiServices";
 import ProfileTypes "types/ProfileTypes";
 import ProfileServices "services/ProfileServices";
 import ResumeExtractTypes "types/ResumeExtractTypes";
-
-import DateHelper "helpers/DateHelper";
 import DraftServices "services/DraftServices";
 
 actor Resumid {
@@ -181,90 +181,12 @@ actor Resumid {
   // Resume Extract Methods
   // ==============================
 
-  // public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
-  //   let userId = Principal.toText(msg.caller);
-  //   let rawJsonOpt = await GeminiServices.Extract(resumeContent);
-
-  //   switch (rawJsonOpt) {
-  //     case null {
-  //       Debug.print("Extract failed or empty");
-  //       return null;
-  //     };
-  //     case (?input) {
-  //       let now = Time.now();
-  //       let formatted = DateHelper.formatTimestamp(now);
-
-  //       // Build Work Experiences
-  //       let workExperiences = Array.tabulate<ResumeExtractTypes.WorkExperience>(
-  //         input.workExperiences.size(),
-  //         func(i : Nat) : ResumeExtractTypes.WorkExperience {
-  //           // let entropy = Random.blob();
-  //           // let id = UUID.generateV4();
-  //           let we = input.workExperiences[i];
-  //           {
-  //             id = "we-" # Int.toText(now);
-  //             company = we.company;
-  //             location = we.location;
-  //             position = we.position;
-  //             employment_type = we.employment_type;
-  //             period = we.period;
-  //             description = ?we.description;
-  //           };
-  //         },
-  //       );
-
-  //       // Build Educations
-  //       let educations = Array.tabulate<ResumeExtractTypes.Education>(
-  //         input.educations.size(),
-  //         func(i : Nat) : ResumeExtractTypes.Education {
-  //           // let entropy = Random.blob();
-  //           // let id = UUID.generateV4();
-  //           let ed = input.educations[i];
-  //           {
-  //             id = "edu" # Int.toText(now);
-  //             institution = ed.institution;
-  //             degree = ed.degree;
-  //             period = ed.period;
-  //             description = ?ed.description;
-  //           };
-  //         },
-  //       );
-
-  //       let summary : ResumeExtractTypes.Summary = {
-  //         content = input.summary.content;
-  //       };
-
-  //       let skillsRecord : ResumeExtractTypes.Skills = switch (input.skills) {
-  //         case null { { skills = [] } };
-  //         case (?s) { { skills = s.skills } };
-  //       };
-
-  //       let resumeData : ResumeExtractTypes.ResumeData = {
-  //         summary = ?summary;
-  //         workExperiences = ?workExperiences;
-  //         educations = ?educations;
-  //         skills = ?skillsRecord;
-  //       };
-
-  //       let entropy = await Random.blob();
-  //       let draftId = UUID.generateV4(entropy);
-
-  //       let historyItem : ResumeExtractTypes.ResumeHistoryItem = {
-  //         userId = userId;
-  //         draftId = "draftId1";
-  //         data = resumeData;
-  //         createdAt = formatted;
-  //         updatedAt = formatted;
-  //       };
-
-  //       draftMap.put(userId, [historyItem]);
-
-  //       return ?resumeData;
-  //     };
-  //   };
-  // };
   // Fixed extractResumeToDraft function
   public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
+    if (Principal.isAnonymous(msg.caller)) {
+      Debug.print("Anonymous users cannot extract resumes");
+      return null;
+    };
     let userId = Principal.toText(msg.caller);
     let rawJsonOpt = await GeminiServices.Extract(resumeContent);
 
@@ -277,7 +199,6 @@ actor Resumid {
         let now = Time.now();
         let formatted = DateHelper.formatTimestamp(now);
 
-        // Build Work Experiences - periods already in correct format
         let workExperiences = Array.tabulate<ResumeExtractTypes.WorkExperience>(
           input.workExperiences.size(),
           func(i : Nat) : ResumeExtractTypes.WorkExperience {
@@ -294,7 +215,6 @@ actor Resumid {
           },
         );
 
-        // Build Educations - periods already in correct format
         let educations = Array.tabulate<ResumeExtractTypes.Education>(
           input.educations.size(),
           func(i : Nat) : ResumeExtractTypes.Education {
@@ -337,6 +257,7 @@ actor Resumid {
       };
     };
   };
+
 
   public shared (msg) func GetDraftByUserId() : async [ResumeExtractTypes.ResumeHistoryItem] {
     let userId = Principal.toText(msg.caller);
@@ -389,9 +310,20 @@ actor Resumid {
       description : ?Text;
     },
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot edit drafts");
+    };
     let userId = Principal.toText(msg.caller);
 
-    return await DraftServices.editWorkExperienceDraft(draftMap, draftId, userId, workExpId, updatedFields);
+    let result = await DraftServices.editWorkExperienceDraft(draftMap, draftId, userId, workExpId, updatedFields);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Work experience draft updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update work experience draft for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // editEducationDraft
@@ -409,9 +341,20 @@ actor Resumid {
       description : ?Text;
     },
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot edit drafts");
+    };
     let userId = Principal.toText(msg.caller);
 
-    return await DraftServices.editEducationDraft(draftMap, draftId, userId, educationId, updatedFields);
+    let result = await DraftServices.editEducationDraft(draftMap, draftId, userId, educationId, updatedFields);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Education draft updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update education draft for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // editSkillsDraft
@@ -419,9 +362,20 @@ actor Resumid {
     draftId : Text,
     skills : [Text],
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot edit drafts");
+    };
     let userId = Principal.toText(msg.caller);
 
-    return await DraftServices.editSkillsDraft(draftMap, draftId, userId, skills);
+    let result = await DraftServices.editSkillsDraft(draftMap, draftId, userId, skills);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Skills draft updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update skills draft for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   public shared (msg) func removeDraftItem(
@@ -429,20 +383,42 @@ actor Resumid {
     itemType : Text,
     itemId : ?Text,
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot delete draft items");
+    };
     let userId = Principal.toText(msg.caller);
-    return await DraftServices.deleteDraftItem(
+    let result = await DraftServices.deleteDraftItem(
       draftMap,
       draftId,
       userId,
       itemType,
       itemId,
     );
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Draft item deleted successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to delete draft item for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   //saveDraftToProfile
   public shared (msg) func saveDraftToProfile(draftId : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot save drafts to profiles");
+    };
     let userId = Principal.toText(msg.caller);
-    return await DraftServices.saveDraftToProfile(draftMap, profiles, draftId, userId);
+    let result = await DraftServices.saveDraftToProfile(draftMap, profiles, draftId, userId);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Draft saved to profile successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to save draft to profile for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // ==============================
@@ -476,6 +452,33 @@ actor Resumid {
     };
   };
 
+  // public shared (msg) func updateProfileDetail(
+  //   profileDetailInput : ?{
+  //     name : ?Text;
+  //     current_position : ?Text;
+  //     description : ?Text;
+  //   },
+  //   contactInfo : ?ProfileTypes.ContactInfo,
+  // ) : async Text {
+  //   let userId = Principal.toText(msg.caller);
+
+  //   let result = await ProfileServices.updateProfileDetailAndContact(
+  //     profiles,
+  //     userId,
+  //     profileDetailInput,
+  //     contactInfo,
+  //   );
+
+  //   switch (result) {
+  //     case (#ok(_)) {
+  //       return "Profile for user " # userId # " updated successfully";
+  //     };
+  //     case (#err(errMsg)) {
+  //       return "Failed to update profile: " # errMsg;
+  //     };
+  //   };
+  // };
+
   public shared (msg) func updateProfileDetail(
     profileDetailInput : ?{
       name : ?Text;
@@ -483,7 +486,11 @@ actor Resumid {
       description : ?Text;
     },
     contactInfo : ?ProfileTypes.ContactInfo,
-  ) : async Text {
+  ) : async Result.Result<Text, Text> {
+
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profiles");
+    };
     let userId = Principal.toText(msg.caller);
 
     let result = await ProfileServices.updateProfileDetailAndContact(
@@ -494,16 +501,32 @@ actor Resumid {
     );
 
     switch (result) {
-      case (#ok(_)) {
-        return "Profile for user " # userId # " updated successfully";
+      case (#ok(successMsg)) {
+        #ok("Profile for user " # userId # " updated successfully");
       };
       case (#err(errMsg)) {
-        return "Failed to update profile: " # errMsg;
+        #err("Failed to update profile for user " # userId # ": " # errMsg);
       };
     };
   };
 
   // --- Work Experience ---
+  // public shared (msg) func addWorkExperienceShared(
+  //   newWorkExperience : {
+  //     company : Text;
+  //     location : ?Text;
+  //     position : Text;
+  //     employment_type : ?Text;
+  //     period : {
+  //       start : ?Text;
+  //       end : ?Text;
+  //     };
+  //     description : ?Text;
+  //   }
+  // ) : async Result.Result<Text, Text> {
+  //   let userId = Principal.toText(msg.caller);
+  //   return await ProfileServices.addWorkExperience(profiles, userId, newWorkExperience);
+  // };
   public shared (msg) func addWorkExperienceShared(
     newWorkExperience : {
       company : Text;
@@ -517,8 +540,23 @@ actor Resumid {
       description : ?Text;
     }
   ) : async Result.Result<Text, Text> {
+
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profiles");
+    };
+
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.addWorkExperience(profiles, userId, newWorkExperience);
+
+    let result = await ProfileServices.addWorkExperience(profiles, userId, newWorkExperience);
+
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Work experience added successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to add Work Experience for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   public shared (msg) func editWorkExperienceShared(
@@ -535,8 +573,19 @@ actor Resumid {
       description : ?Text;
     },
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profiles");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.editWorkExperience(profiles, userId, workExpId, updatedFields);
+    let result = await ProfileServices.editWorkExperience(profiles, userId, workExpId, updatedFields);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Work experience updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update Work Experience for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // --- Education ---
@@ -551,8 +600,19 @@ actor Resumid {
       description : ?Text;
     }
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profiles");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.addEducation(profiles, userId, newEducation);
+    let result = await ProfileServices.addEducation(profiles, userId, newEducation);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Education added successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to add Education for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   public shared (msg) func editEducationShared(
@@ -567,16 +627,38 @@ actor Resumid {
       description : ?Text;
     },
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profiles");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.editEducation(profiles, userId, educationId, updatedFields);
+    let result = await ProfileServices.editEducation(profiles, userId, educationId, updatedFields);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Education updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update Education for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // --- Summary ---
   public shared (msg) func editSummaryShared(
     updatedSummary : ?Text
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profiles");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.editSummary(profiles, userId, updatedSummary);
+    let result = await ProfileServices.editSummary(profiles, userId, updatedSummary);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Summary updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update Summary for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // --- Skills ---
@@ -584,8 +666,19 @@ actor Resumid {
     // userId : Text,
     updatedSkills : [Text],
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profiles");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.editSkills(profiles, userId, updatedSkills);
+    let result = await ProfileServices.editSkills(profiles, userId, updatedSkills);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Skills updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update Skills for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // --- Resume Item Deletion ---
@@ -594,8 +687,19 @@ actor Resumid {
     itemType : Text,
     itemId : ?Text,
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot delete resume items");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.deleteResumeItem(profiles, userId, itemType, itemId);
+    let result = await ProfileServices.deleteResumeItem(profiles, userId, itemType, itemId);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Resume item deleted successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to delete Resume item for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // --- Certification Management ---
@@ -606,8 +710,19 @@ actor Resumid {
       credential_url : ?Text;
     }
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot add certifications");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.addCertification(profiles, userId, certInput);
+    let result = await ProfileServices.addCertification(profiles, userId, certInput);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Certification added successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to add Certification for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   public shared (msg) func updateCertificationShared(
@@ -618,35 +733,80 @@ actor Resumid {
       credential_url : ?Text;
     },
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update certifications");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.updateCertification(profiles, userId, certificationId, updatedFields);
+    let result = await ProfileServices.updateCertification(profiles, userId, certificationId, updatedFields);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Certification updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update Certification for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   public shared (msg) func deleteCertificationShared(
     certificationId : ?Text
   ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot delete certifications");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.deleteCertification(profiles, userId, certificationId);
+    let result = await ProfileServices.deleteCertification(profiles, userId, certificationId);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Certification deleted successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to delete Certification for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // -------------------------
   // SEARCH
   // -------------------------
   public shared (msg) func searchProfiles(searchInput : Text) : async [ProfileTypes.SearchResult] {
-    return await ProfileServices.globalSearch(profiles, searchInput);
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.globalSearch(userId, profiles, searchInput);
   };
 
   // -------------------------
   // ENDORSEMENT
   // -------------------------
   public shared (msg) func endorseProfile(targetUserId : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot endorse profiles");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.addEndorsedProfile(profiles, userId, targetUserId);
+    let result = await ProfileServices.addEndorsedProfile(profiles, userId, targetUserId);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Profile endorsed successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to endorse profile for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   public shared (msg) func unendorseProfile(targetUserId : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot unendorse profiles");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.removeEndorsedProfile(profiles, userId, targetUserId);
+    let result = await ProfileServices.removeEndorsedProfile(profiles, userId, targetUserId);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Profile unendorsed successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to unendorse profile for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // ==============================
