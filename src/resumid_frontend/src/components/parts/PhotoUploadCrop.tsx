@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
 
 export interface PhotoUploadCropRef {
-  cropImage: () => Promise<string | null>
+  cropImage: () => Promise<{ file: Blob, url: string } | null>
 }
 
 interface PhotoUploadCropProps {
@@ -71,7 +71,7 @@ const PhotoUploadCrop = forwardRef<PhotoUploadCropRef, PhotoUploadCropProps>(
         pixelCrop: { x: number; y: number; width: number; height: number },
         rotation = 0,
         flip = { horizontal: false, vertical: false }
-      ): Promise<string | null> => {
+      ): Promise<{ file: Blob, url: string } | null> => {
         const image = await createImage(imageSrc)
         const canvas = document.createElement("canvas")
         const ctx = canvas.getContext("2d")
@@ -114,7 +114,7 @@ const PhotoUploadCrop = forwardRef<PhotoUploadCropRef, PhotoUploadCropProps>(
 
         return new Promise((resolve, reject) => {
           croppedCanvas.toBlob((file) => {
-            if (file) resolve(URL.createObjectURL(file))
+            if (file) resolve({ file, url: URL.createObjectURL(file) })
             else reject(new Error("Failed to create blob"))
           }, "image/jpeg")
         })
@@ -122,7 +122,7 @@ const PhotoUploadCrop = forwardRef<PhotoUploadCropRef, PhotoUploadCropProps>(
       [createImage]
     )
 
-    const cropImage = useCallback(async (): Promise<string | null> => {
+    const cropImage = useCallback(async (): Promise<{ file: Blob, url: string } | null> => {
       if (!imageSrc || !croppedAreaPixels) return null
       return getCroppedImg(imageSrc, croppedAreaPixels, rotation)
     }, [imageSrc, croppedAreaPixels, rotation, getCroppedImg])

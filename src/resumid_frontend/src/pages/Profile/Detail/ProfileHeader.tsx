@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { BannerDialog } from "./Dialog/BannerDialog";
 import { DetailDialog } from "./Dialog/DetailDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ProfileDetailType } from "@/types/profile-types";
+import { ProfileType } from "@/types/profile-types";
 import { ProfileHeaderSkeleton } from "./Skeleton/ProfileHeaderSkeleton";
 
 import BannerPlaceholder from "@/assets/banner_placeholder.jpg"
@@ -21,7 +21,7 @@ type OpenTypes = {
 
 interface ProfileHeaderProps {
   queryKey: (string | number)[],
-  detail: ProfileDetailType,
+  detail: ProfileType,
   loading?: boolean,
   isOwner?: boolean,
   isNewUser?: boolean,
@@ -29,13 +29,15 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({ queryKey, detail, loading = false, isOwner = false, isNewUser = false, onSectionAdd }: ProfileHeaderProps) {
-  const basePinataUrl = `${import.meta.env.VITE_PINATA_GATEWAY_URL}/ipfs`
+  const basePinataUrl = import.meta.env.VITE_PINATA_GATEWAY_URL
 
   const avatarCid = detail?.profileDetail?.profileCid || null;
-  const avatarUrl = avatarCid ? `${basePinataUrl}/${avatarCid}` : null;
+  const avatarUrl = avatarCid ? `${basePinataUrl}/ipfs/${avatarCid}` : null;
+  console.log(avatarUrl);
 
   const bannerCid = detail?.profileDetail?.bannerCid || null;
-  const bannerUrl = bannerCid ? `${basePinataUrl}/${bannerCid}` : null;
+  const bannerUrl = bannerCid ? `${basePinataUrl}/ipfs/${bannerCid}` : null;
+  console.log(bannerUrl);
 
   const [open, setOpen] = useState<OpenTypes>({
     avatar: false,
@@ -48,18 +50,20 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
   }
 
   const availableSections = [
-    { key: "about", label: "About" },
+    { key: "summary", label: "About" },
     { key: "workExperiences", label: "Work Experiences" },
     { key: "educations", label: "Educations" },
     { key: "skills", label: "Skills" },
     { key: "certifications", label: "Certifications" }
   ];
 
+  console.log(detail);
+
   const addedSections = availableSections.filter(
-    section => (detail as Record<string, unknown>)?.[section.key]
+    section => ({...detail?.resume, certifications: detail?.certifications } as Record<string, unknown>)?.[section.key]
   );
   const notAddedSections = availableSections.filter(
-    section => !(detail as Record<string, unknown>)?.[section.key]
+    section => !({...detail?.resume, certifications: detail?.certifications }  as Record<string, unknown>)?.[section.key]
   );
 
   useEffect(() => {
@@ -131,13 +135,13 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
                         {detail?.profileDetail?.name}
                       </h2>
                       {/* Role Badge */}
-                      {detail?.profileDetail?.currentPosition && (
+                      {detail?.profileDetail?.current_position && (
                         <div>
                           <span
                             className="inline-flex items-center px-3 py-1 gap-1 rounded-full text-sm font-inter font-semibold text-primary-500 border-2 border-primary-500"
                           >
                             <Briefcase className="w-[18px] h-[18px] text-primary-500" />
-                            {detail?.profileDetail.currentPosition}
+                            {detail?.profileDetail.current_position}
                           </span>
                         </div>
                       )}
@@ -185,7 +189,9 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
                               <DropdownMenuItem
                                 key={section.key}
                                 className="cursor-pointer"
-                                onClick={() => onSectionAdd && onSectionAdd(section.key)}
+                                onClick={() => {
+                                  setTimeout(() => onSectionAdd && onSectionAdd?.(section.key), 0);
+                                }}
                               >
                                 <PlusIcon />
                                 {section.label}

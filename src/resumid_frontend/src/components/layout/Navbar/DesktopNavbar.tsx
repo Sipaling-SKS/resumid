@@ -40,7 +40,7 @@ function DesktopNavbar({ navigate }: any) {
             alt="Resumid Logo"
           />
         </div>
-        
+
         <div className="flex-1 flex justify-center px-4">
           <div className="w-4/5 flex items-center gap-3">
             <button
@@ -55,15 +55,12 @@ function DesktopNavbar({ navigate }: any) {
             </div>
           </div>
         </div>
-        
+
         {isAuthenticated && (
-          <div className="inline-flex gap-4 items-center">
+          <div className="inline-flex gap-3 items-center">
             <div className="inline-flex gap-2 items-center">
-              <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">
-                ID
-              </div>
               <p className="text-paragraph font-medium">
-                {String(userData?.ok?.name).split("-").splice(0, 2).join("-")}
+                {userData?.profile?.name}
               </p>
             </div>
             <DropdownMenu>
@@ -78,7 +75,7 @@ function DesktopNavbar({ navigate }: any) {
               <DropdownMenuContent className="text-paragraph">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/profile/${userData?.profile.profileId}`)}>
                   <ProfileIcon />
                   Profile
                 </DropdownMenuItem>
@@ -212,13 +209,10 @@ function DesktopNavbar({ navigate }: any) {
         </div>
       )}
       {isAuthenticated ? (
-        <div className="inline-flex gap-4 items-center">
+        <div className="inline-flex gap-3 items-center">
           <div className="inline-flex gap-2 items-center">
-            <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">
-              ID
-            </div>
             <p className="text-paragraph font-medium">
-              {String(userData?.ok?.name).split("-").splice(0, 2).join("-")}
+              {userData?.profile?.name}
             </p>
           </div>
           <DropdownMenu>
@@ -228,12 +222,12 @@ function DesktopNavbar({ navigate }: any) {
                   <AvatarImage src="https://github.com/shadcn.png" />
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
-                </div>
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="text-paragraph">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/profile/fadil-hisyam")}>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/profile/${userData?.profile.profileId}`)}>
                 <ProfileIcon />
                 Profile
               </DropdownMenuItem>

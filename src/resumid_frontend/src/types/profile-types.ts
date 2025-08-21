@@ -1,58 +1,82 @@
-export type PeriodType = {
-  start: string
-  end?: string
+export interface ProfileType {
+  userId: string;
+  profileId: string;
+  createdAt: string;
+  updatedAt: string;
+
+  resume?: ResumeDataType;
+  contact?: ContactInfoType;
+  endorsedProfiles?: string[];
+  endorsements?: string[];
+  certifications?: CertificateType[];
+  profileDetail?: ProfileDetailType;
 }
 
-export type EducationType = {
-  id: string
-  institution: string
-  degree: string
-  description?: string
-  location?: string
-  period: PeriodType
+// Resume
+export interface ResumeDataType {
+  educations?: EducationType[];
+  summary?: string;
+  skills?: string[];
+  workExperiences?: WorkExperienceType[];
 }
 
-export type WorkExperienceType = {
-  id: string
-  company: string
-  location?: string
-  employementType?: string
-  description?: string
-  position: string
-  period: PeriodType
+// Profile detail
+export interface ProfileDetailType {
+  name?: string;
+  description?: string;
+  current_position?: string;
+  bannerCid?: string;
+  profileCid?: string;
 }
 
-export type CertificationType = {
-  id: string
-  title: string
-  issuer: string
-  url?: string
+// Contact info
+export interface ContactInfoType {
+  twitter?: string;
+  instagram?: string;
+  email?: string;
+  website?: string;
+  facebook?: string;
+  address?: string;
+  phone?: string;
 }
 
-export type ProfileDetailSectionType = {
-  name: string
-  currentPosition?: string
-  description?: string
-  profileCid?: string
-  bannerCid?: string
+// Skills and summary
+export interface SkillsType {
+  skills: string[];
 }
 
-export type ContactType = {
-  email?: string
-  phoneNumber?: string
-  facebook?: string
-  instagram?: string
-  x?: string
-  website?: string
+// Work experience
+export interface WorkExperienceType {
+  id: string;
+  period: {
+    start?: string;
+    end?: string;
+  };
+  employment_type?: string;
+  description?: string;
+  company: string;
+  position: string;
+  location?: string;
 }
 
-export type ProfileDetailType = {
-  id: string | number
-  profileDetail?: ProfileDetailSectionType
-  contactDetail?: ContactType
-  about?: string
-  workExperiences?: WorkExperienceType[]
-  educations?: EducationType[]
-  skills?: string[]
-  certifications?: CertificationType[]
+// Education
+export interface EducationType {
+  id: string;
+  period: {
+    start?: string;
+    end?: string;
+  };
+  institution?: string;
+  description?: string;
+  degree?: string;
+}
+
+// Certificates
+export interface CertificateType {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  credential_url?: string;
+  issuer?: string;
 }

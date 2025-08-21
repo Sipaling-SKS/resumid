@@ -11,24 +11,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/useToast";
-import { ProfileDetailType, CertificationType } from "@/types/profile-types";
+import { CertificateType, ProfileType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { List, ListOrdered, Loader2, Plus, Save, Trash } from "lucide-react";
+import { Loader2, Plus, Save, Trash } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Resolver, useForm, Controller } from "react-hook-form";
-import { format, isAfter, parseISO } from "date-fns";
-
-import { useEditor, EditorContent, useEditorState, Editor } from "@tiptap/react";
-import { Extension } from "@tiptap/core"
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import BulletList from "@tiptap/extension-bullet-list";
-import OrderedList from "@tiptap/extension-ordered-list";
-import ListItem from "@tiptap/extension-list-item";
-
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Resolver, useForm } from "react-hook-form";
+import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export type PeriodType = {
   start?: string;
@@ -38,7 +27,7 @@ export type PeriodType = {
 export type CertificationFormValues = {
   title?: string;
   issuer?: string;
-  url?: string;
+  credential_url?: string;
   isNew: boolean;
 };
 
@@ -49,11 +38,11 @@ type ConfirmTypes = {
 
 interface CertificationDialogProps {
   queryKey: (string | number)[] | string | number;
-  detail: ProfileDetailType;
+  detail: ProfileType;
   open: boolean;
   setOpen: (value: boolean) => void;
   isNew?: boolean;
-  initial: CertificationType
+  initial: CertificateType
 }
 
 const resolver: Resolver<CertificationFormValues> = async (values) => {
@@ -97,7 +86,7 @@ export function CertificationDialog({
     () => ({
       title: initial?.title,
       issuer: initial?.issuer,
-      url: initial?.url,
+      credential_url: initial?.credential_url,
       isNew,
     }),
     [initial, isNew]
@@ -236,7 +225,7 @@ export function CertificationDialog({
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">
               {isNew ? "Add Certification" : "Edit Certification"}
@@ -258,7 +247,7 @@ export function CertificationDialog({
           >
             <Label htmlFor="title" className="space-y-2">
               <p>Certification Title<span className="text-red-500">*</span></p>
-              <Input className="font-normal" id="company" {...register("title")} placeholder="Company name" />
+              <Input className="font-normal" id="title" {...register("title")} placeholder="Company name" />
               {errors?.title && (
                 <p className="text-sm text-red-500">{errors.title.message}</p>
               )}
@@ -266,14 +255,14 @@ export function CertificationDialog({
 
             <Label htmlFor="issuer" className="space-y-2">
               <p>Issuer</p>
-              <Input className="font-normal" id="position" {...register("issuer")} placeholder="e.g., Frontend Engineer" />
+              <Input className="font-normal" id="issuer" {...register("issuer")} placeholder="e.g., Frontend Engineer" />
             </Label>
 
-            <Label htmlFor="url" className="space-y-2">
+            <Label htmlFor="credential_url" className="space-y-2">
               <p>URL to Certification</p>
-              <Input className="font-normal" id="position" {...register("url")} placeholder="e.g., Frontend Engineer" />
-              {errors?.url && (
-                <p className="text-sm text-red-500">{errors.url.message}</p>
+              <Input className="font-normal" id="credential_url" {...register("credential_url")} placeholder="e.g., Frontend Engineer" />
+              {errors?.credential_url && (
+                <p className="text-sm text-red-500">{errors.credential_url.message}</p>
               )}
             </Label>
 

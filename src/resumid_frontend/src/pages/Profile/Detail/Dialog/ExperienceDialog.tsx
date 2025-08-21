@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/useToast";
-import { ProfileDetailType, WorkExperienceType } from "@/types/profile-types";
+import { ProfileDetailType, ProfileType, WorkExperienceType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { List, ListOrdered, Loader2, Plus, Save, Trash } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -39,7 +39,7 @@ export type PeriodType = {
 export type ExperienceFormValues = {
   company?: string;
   location?: string;
-  employementType?: string;
+  employment_type?: string;
   position?: string;
   description?: string;
   period?: PeriodType;
@@ -53,7 +53,7 @@ type ConfirmTypes = {
 
 interface ExperienceDialogProps {
   queryKey: (string | number)[] | string | number;
-  detail: ProfileDetailType;
+  detail: ProfileType;
   open: boolean;
   setOpen: (value: boolean) => void;
   isNew?: boolean;
@@ -121,7 +121,7 @@ export function ExperienceDialog({
     () => ({
       company: initial?.company,
       location: initial?.location,
-      employementType: initial?.employementType,
+      employment_type: initial?.employment_type,
       position: initial?.position,
       description: initial?.description,
       period: {
@@ -430,7 +430,7 @@ export function ExperienceDialog({
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">
               {isNew ? "Add Experience" : "Edit Experience"}
@@ -471,10 +471,10 @@ export function ExperienceDialog({
               <Input className="font-normal" id="location" {...register("location")} placeholder="City, Country (optional)" />
             </Label>
 
-            <Label htmlFor="employementType" className="space-y-2 col-span-1">
+            <Label htmlFor="employment_type" className="space-y-2 col-span-1">
               <p>Employment Type</p>
               <Controller
-                name="employementType"
+                name="employment_type"
                 control={control}
                 defaultValue=""
                 render={({ field }) => {

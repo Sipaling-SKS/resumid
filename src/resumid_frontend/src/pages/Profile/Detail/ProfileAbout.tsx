@@ -1,21 +1,32 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BadgeInfo, Pencil } from "lucide-react";
-import { ProfileDetailType } from "@/types/profile-types";
+import { ProfileType } from "@/types/profile-types";
 import ProfileAboutSkeleton from "./Skeleton/ProfileAboutSkeleton";
 
 interface ProfileAboutProps {
   isOwner?: boolean
   loading?: boolean
-  detail: ProfileDetailType
+  detail: ProfileType
   onEdit: () => void
 }
 
 export default function ProfileAbout({ isOwner = false, detail, loading = false, onEdit }: ProfileAboutProps) {
-  const { about } = detail;
-  
+  const summary = detail?.resume?.summary;
+
   if (loading) return (
     <ProfileAboutSkeleton isOwner={isOwner} />
+  )
+
+  if (!summary) return (
+    <Card>
+      <CardContent className="flex flex-col gap-3 justify-center items-center p-6 outline-dashed outline-2 outline-neutral-300 outline-offset-1 rounded-lg bg-neutral-50">
+        <p className="font-inter font-paragraph text-sm text-center text-balance">You haven't added about section to your profile, share a brief overview of your professional journey, experience, and skills so people can get to know your strengths and capabilities at a glance.</p>
+        <button className="text-blue-600 font-inter text-sm font-medium hover:underline" onClick={onEdit}>
+          Start adding about section
+        </button>
+      </CardContent>
+    </Card>
   )
 
   return (
@@ -35,7 +46,7 @@ export default function ProfileAbout({ isOwner = false, detail, loading = false,
       </CardTitle>
       <CardContent className="relative flex flex-col gap-4 p-6">
         <p className="font-inter text-sm text-paragraph leading-normal">
-          {about}
+          {summary}
         </p>
         {isOwner && (
           <div className="inline-flex items-center w-full gap-2 border border-accent-600 p-3 rounded-lg text-[#333] font-medium font-inter text-xs bg-accent-950">

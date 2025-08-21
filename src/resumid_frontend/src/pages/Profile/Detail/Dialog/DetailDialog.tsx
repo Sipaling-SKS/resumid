@@ -13,20 +13,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/useToast";
-import { ProfileDetailType } from "@/types/profile-types";
+import { ProfileType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save } from "lucide-react";
 import { Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toNullable } from "@/lib/optionalField";
 
 export type DetailFormValues = {
   name: string;
-  currentPosition?: string;
+  current_position?: string;
   description?: string;
   email?: string;
-  phoneNumber?: string;
+  phone?: string;
   website?: string;
-  x?: string;
+  twitter?: string;
   instagram?: string;
   facebook?: string;
 };
@@ -54,7 +56,7 @@ type ConfirmTypes = {
 
 interface DetailDialogProps {
   queryKey: (string | number)[] | string | number;
-  detail: ProfileDetailType;
+  detail: ProfileType;
   open: boolean;
   setOpen: (value: boolean) => void;
 }
@@ -67,6 +69,8 @@ export function DetailDialog({
 }: DetailDialogProps) {
   const finalQueryKey = Array.isArray(queryKey) ? queryKey : [queryKey];
 
+  const { resumidActor, userData } = useAuth();
+
   const [confirm, setConfirm] = useState<ConfirmTypes>({
     remove: false,
     leave: false
@@ -78,14 +82,14 @@ export function DetailDialog({
 
   const initialValues: DetailFormValues = {
     name: detail?.profileDetail?.name || "",
-    currentPosition: detail?.profileDetail?.currentPosition,
+    current_position: detail?.profileDetail?.current_position,
     description: detail?.profileDetail?.description,
-    email: detail?.contactDetail?.email,
-    phoneNumber: detail?.contactDetail?.phoneNumber,
-    facebook: detail?.contactDetail?.facebook,
-    instagram: detail?.contactDetail?.instagram,
-    website: detail?.contactDetail?.website,
-    x: detail?.contactDetail?.x,
+    email: detail?.contact?.email,
+    phone: detail?.contact?.phone,
+    facebook: detail?.contact?.facebook,
+    instagram: detail?.contact?.instagram,
+    website: detail?.contact?.website,
+    twitter: detail?.contact?.twitter,
   };
 
   const {
@@ -105,10 +109,60 @@ export function DetailDialog({
     id,
     data,
   }: {
-    id: string | number;
+    id: string;
     data: DetailFormValues;
   }) {
     try {
+      if (!userData) throw new Error("Error, user data is undefined");
+
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      if (!id) throw new Error("Error, id is invalid or undefined");
+
+      if (userData?.ok?.id.__principal__ !== id) {
+        throw new Error("Error, user is not the owner of this profile");
+      }
+
+      const { name, description, current_position, email, facebook, instagram, phone, website, twitter } = data;
+
+      if (!name || (typeof name === "string" && name.trim() === "")) {
+        throw new Error("Error, name is required");
+      }
+
+      type ProfileDetailInput = {
+        name: [string] | []
+        current_position: [string] | []
+        description: [string] | []
+      }
+
+      const profileDetailInput: ProfileDetailInput = {
+        name: [name],
+        current_position: current_position ? [current_position] : [],
+        description: description ? [description] : [],
+      };
+
+      type ContactInfoInput = {
+        email: [string] | []
+        facebook: [string] | []
+        instagram: [string] | []
+        address: [string] | []
+        phone: [string] | []
+        website: [string] | []
+        twitter: [string] | []
+      }
+
+      const contactInfoInput: ContactInfoInput = {
+        email: email ? [email] : [],
+        facebook: facebook ? [facebook] : [],
+        instagram: instagram ? [instagram] : [],
+        address: [],
+        phone: phone ? [phone] : [],
+        website: website ? [website] : [],
+        twitter: twitter ? [twitter] : []
+      }
+
+      const res = await resumidActor.updateProfileDetail([profileDetailInput], [contactInfoInput])
+
       console.log({ id, data });
     } catch (error) {
       console.error(error);
@@ -123,6 +177,42 @@ export function DetailDialog({
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previousData = queryClient.getQueryData(finalQueryKey);
+      queryClient.setQueryData(finalQueryKey, (old: any) => {
+        const { name, description, current_position, email, facebook, instagram, phone, website, twitter } = data;
+
+        const newProfileDetail = {
+          name,
+          description,
+          current_position
+        }
+
+        const newContactInfo = {
+          email,
+          facebook,
+          instagram,
+          phone,
+          website,
+          twitter
+        }
+
+        const newData = {
+          ...old,
+          profile: {
+            ...old.profile,
+            profileDetail: {
+              ...old?.profile?.profileDetail,
+              ...newProfileDetail
+            },
+            contact: {
+              ...old?.profile?.contact,
+              ...newContactInfo
+            }
+          }
+        }
+
+        return newData;
+      })
+
       return { previousData };
     },
     onError: (error, variables, context) => {
@@ -141,6 +231,7 @@ export function DetailDialog({
       toast({
         title: "Success",
         description: "Your profile detail has been updated!",
+        variant: "success"
       });
       setOpen(false);
     },
@@ -158,7 +249,7 @@ export function DetailDialog({
         <DialogPortal>
           <DialogContent
             onOpenAutoFocus={(e) => e.preventDefault()}
-            className="sm:max-w-[640px]"
+            className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto scrollbar"
           >
             <DialogHeader>
               <DialogTitle className="font-inter text-lg leading-none text-heading">Profile Detail</DialogTitle>
@@ -168,9 +259,7 @@ export function DetailDialog({
             </DialogHeader>
 
             <form
-              onSubmit={handleSubmit(async (values) =>
-                updateDetail({ id: detail.id, data: values })
-              )}
+              // onSubmit={}
               className="grid grid-cols-1 md:grid-cols-2 gap-5 text-paragraph font-inter"
             >
               <Label
@@ -197,7 +286,7 @@ export function DetailDialog({
               >
                 <p>Current Job Position</p>
                 <Input
-                  {...register("currentPosition")}
+                  {...register("current_position")}
                   id="current-position"
                   className="font-normal"
                   type="text"
@@ -225,11 +314,11 @@ export function DetailDialog({
                   placeholder="Input your email address"
                 />
               </Label>
-              <Label htmlFor="x" className="space-y-2">
+              <Label htmlFor="phone" className="space-y-2">
                 <p>Phone Number</p>
                 <Input
-                  {...register("phoneNumber")}
-                  id="phoneNumber"
+                  {...register("phone")}
+                  id="phone"
                   className="font-normal"
                   type="text"
                   placeholder="Input your phone number"
@@ -245,11 +334,11 @@ export function DetailDialog({
                   placeholder="Input your website or portfolio"
                 />
               </Label>
-              <Label htmlFor="x" className="space-y-2">
+              <Label htmlFor="twitter" className="space-y-2">
                 <p>X (Twitter)</p>
                 <Input
-                  {...register("x")}
-                  id="x"
+                  {...register("twitter")}
+                  id="twitter"
                   className="font-normal"
                   type="text"
                   placeholder="Input your x handle"
@@ -277,7 +366,7 @@ export function DetailDialog({
               </Label>
             </form>
 
-            <DialogFooter>
+            <DialogFooter className="">
               <DialogClose asChild>
                 <Button
                   size="sm"
@@ -287,7 +376,9 @@ export function DetailDialog({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button size="sm" key="save-btn" disabled={isLoading}>
+              <Button size="sm" key="save-btn" disabled={isLoading} onClick={handleSubmit(async (values) => {
+                await updateDetail({ id: detail.userId, data: values })
+              })}>
                 {!isLoading ? <Save /> : <Loader2 className="animate-spin" />}
                 {isLoading ? "Saving..." : "Save changes"}
               </Button>

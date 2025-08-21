@@ -3,23 +3,25 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/useToast";
-import { ProfileDetailType } from "@/types/profile-types";
+import { cn } from "@/lib/utils";
+import { ProfileType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Resolver, SubmitHandler, useForm } from "react-hook-form"
 
 export type AboutFormValues = {
-  about?: string
+  summary?: string
   isNew: boolean
 }
 
 const resolver: Resolver<AboutFormValues> = async (values) => {
   const errors: Record<string, { type: string; message: string }> = {};
 
-  if (!values.isNew && !values.about) {
-    errors.about = {
+  if (!values.isNew && !values.summary) {
+    errors.summary = {
       type: "required",
       message: "You can't leave your about profile blank.",
     };
@@ -38,7 +40,7 @@ type ConfirmTypes = {
 
 interface AboutDialogProps {
   queryKey: (string | number)[] | string | number
-  detail: ProfileDetailType,
+  detail: ProfileType,
   open: boolean
   setOpen: (value: boolean) => void
   isNew?: boolean
@@ -46,6 +48,8 @@ interface AboutDialogProps {
 
 export function AboutDialog({ queryKey, detail, open, setOpen, isNew = false }: AboutDialogProps) {
   const finalQueryKey = Array.isArray(queryKey) ? queryKey : [queryKey];
+
+  const { resumidActor, userData } = useAuth();
 
   const [confirm, setConfirm] = useState<ConfirmTypes>({
     remove: false,
@@ -57,7 +61,7 @@ export function AboutDialog({ queryKey, detail, open, setOpen, isNew = false }: 
   }
 
   const initialValues: AboutFormValues = {
-    about: detail?.about,
+    summary: detail?.resume?.summary,
     isNew
   }
 
@@ -75,9 +79,33 @@ export function AboutDialog({ queryKey, detail, open, setOpen, isNew = false }: 
   }, [open])
 
 
-  async function handleUpdateAbout({ id, data }: { id: string | number, data: AboutFormValues }) {
+  async function handleUpdateAbout({ id, data }: { id: string, data: AboutFormValues }) {
     try {
-      // TODO: Update profile detail
+      if (!userData) throw new Error("Error, user data is undefined");
+
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      if (!id) throw new Error("Error, id is invalid or undefined");
+
+      if (userData?.ok?.id.__principal__ !== id) {
+        throw new Error("Error, user is not the owner of this profile");
+      }
+
+      const { summary } = data;
+
+      if (!summary || (typeof summary === "string" && summary.trim() === "")) {
+        throw new Error("Error, about profile is required");
+      }
+
+      const newSummary: [] | [string] = summary ? [summary] : []; 
+
+      const res = await resumidActor.editSummaryShared(newSummary);
+
+      if ("ok" in res) {
+        return { summary }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
       console.error(error);
       throw error;
@@ -91,7 +119,24 @@ export function AboutDialog({ queryKey, detail, open, setOpen, isNew = false }: 
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previousData = queryClient.getQueryData(finalQueryKey);
-      // TODO: optimistic update
+      queryClient.setQueryData(finalQueryKey, (old: any) => {
+        const { summary } = data;
+        
+        const newData = {
+          ...old,
+          profile: {
+            ...old?.profile,
+            resume: {
+              ...old?.profile?.resume,
+              summary
+            }
+          }
+        }
+
+        console.log(newData);
+
+        return newData;
+      })
       return { previousData };
     },
     onError: (error, variables, context) => {
@@ -124,7 +169,7 @@ export function AboutDialog({ queryKey, detail, open, setOpen, isNew = false }: 
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[640px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">About Profile</DialogTitle>
             <DialogDescription className="font-inter text-paragraph">
@@ -132,22 +177,22 @@ export function AboutDialog({ queryKey, detail, open, setOpen, isNew = false }: 
             </DialogDescription>
           </DialogHeader>
           <form
-            onSubmit={handleSubmit(async (values) => updateAbout({ id: detail.id, data: values }))}
+            onSubmit={handleSubmit(async (values) => updateAbout({ id: detail.userId, data: values }))}
             className="grid grid-cols-1 md:grid-cols-2 gap-5 font-inter"
           >
-            <Label htmlFor="about" className="space-y-2 col-span-1 md:col-span-2">
+            <Label htmlFor="summary" className="space-y-2 col-span-1 md:col-span-2">
               <p className="text-heading w-full text-left">Summary</p>
               <Textarea
-                {...register("about")}
+                {...register("summary")}
                 placeholder="Input the summary of your about profile"
                 className="min-h-36 max-h-48 py-2 text-paragraph font-normal scrollbar focus-visible:ring-1 focus-visible:ring-primary-500 focus-visible:ring-offset-0 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-neutral-950 placeholder:text-neutral-300 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:border-neutral-800 dark:bg-neutral-950 dark:ring-offset-neutral-950 dark:file:text-neutral-50 dark:placeholder:text-neutral-400 dark:focus-visible:ring-primary-500"
               />
-              {errors?.about && (
-                <p className="text-sm text-red-500">{errors.about.message}</p>
+              {errors?.summary && (
+                <p className="text-sm text-red-500">{errors.summary.message}</p>
               )}
             </Label>
           </form>
-          <DialogFooter className="sm:justify-between gap-2">
+          <DialogFooter className={cn(isNew ? "sm:justify-end" : "sm:justify-between", "gap-2")}>
             {!isNew && (
               <Button
                 variant="destructive"
@@ -163,7 +208,9 @@ export function AboutDialog({ queryKey, detail, open, setOpen, isNew = false }: 
               <DialogClose asChild>
                 <Button size="sm" key="cancel-btn" variant="grey-outline">Cancel</Button>
               </DialogClose>
-              <Button size="sm" key="save-btn" disabled={isLoading}>
+              <Button size="sm" key="save-btn" disabled={isLoading || !isDirty} onClick={handleSubmit(async (values) => {
+                await updateAbout({ id: detail.userId, data: values })
+              })}>
                 {!isLoading ? <Save /> : <Loader2 className="animate-spin" />}
                 {isLoading ? "Saving..." : "Save changes"}
               </Button>

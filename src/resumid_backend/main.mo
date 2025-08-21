@@ -503,6 +503,20 @@ actor Resumid {
     };
   };
 
+  public shared (msg) func updateProfilePicture(
+    profileCid: Text
+  ) : async Result.Result<Text, Text> {
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.updateProfilePicture(profiles, userId, profileCid)
+  };
+
+  public shared (msg) func updateBannerPicture(
+    bannerCid: Text
+  ) : async Result.Result<Text, Text> {
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.updateBannerPicture(profiles, userId, bannerCid)
+  };
+
   // --- Work Experience ---
   public shared (msg) func addWorkExperienceShared(
     newWorkExperience : {

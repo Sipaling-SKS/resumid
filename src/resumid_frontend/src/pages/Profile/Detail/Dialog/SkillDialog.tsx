@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/useToast";
 import { capitalize, cn } from "@/lib/utils";
-import { ProfileDetailType } from "@/types/profile-types";
+import { ProfileType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save, Trash, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -37,7 +37,7 @@ type ConfirmTypes = {
 
 interface SkillDialogProps {
   queryKey: (string | number)[] | string | number
-  detail: ProfileDetailType,
+  detail: ProfileType,
   open: boolean
   setOpen: (value: boolean) => void
   isNew?: boolean
@@ -45,6 +45,8 @@ interface SkillDialogProps {
 
 export function SkillDialog({ queryKey, detail, open, setOpen, isNew = false }: SkillDialogProps) {
   const finalQueryKey = Array.isArray(queryKey) ? queryKey : [queryKey];
+
+  const { resumidActor, userData } = useAuth();
 
   const [confirm, setConfirm] = useState<ConfirmTypes>({
     remove: false,
@@ -58,7 +60,7 @@ export function SkillDialog({ queryKey, detail, open, setOpen, isNew = false }: 
   const [inputValue, setInputValue] = useState("");
 
   const initialValues: SkillFormValues = {
-    skills: detail?.skills || [],
+    skills: detail?.resume?.skills || [],
     isNew
   };
 
@@ -112,7 +114,24 @@ export function SkillDialog({ queryKey, detail, open, setOpen, isNew = false }: 
 
   async function handleUpdateSkill({ id, data }: { id: string | number, data: SkillFormValues }) {
     try {
-      // TODO: Update profile detail with data.skills
+      if (!userData) throw new Error("Error, user data is undefined");
+
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      if (!id) throw new Error("Error, id is invalid or undefined");
+
+      if (userData?.ok?.id.__principal__ !== id) {
+        throw new Error("Error, user is not the owner of this profile");
+      }
+
+      const { skills } = data;
+
+      const res = await resumidActor.editSkillsShared(skills);
+      if ("ok" in res) {
+        return { skills }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
       console.error(error);
       throw error;
@@ -126,6 +145,22 @@ export function SkillDialog({ queryKey, detail, open, setOpen, isNew = false }: 
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previousData = queryClient.getQueryData(finalQueryKey);
+      queryClient.setQueryData(finalQueryKey, (old: any) => {
+        const { skills } = data;
+
+        const newData = {
+          ...old,
+          profile: {
+            ...old?.profile,
+            resume: {
+              ...old?.profile?.resume,
+              skills
+            }
+          }
+        }
+
+        return newData;
+      })
       return { previousData };
     },
     onError: (error, variables, context) => {
@@ -158,7 +193,7 @@ export function SkillDialog({ queryKey, detail, open, setOpen, isNew = false }: 
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[640px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">
               Skills
@@ -170,7 +205,7 @@ export function SkillDialog({ queryKey, detail, open, setOpen, isNew = false }: 
 
           <form
             onSubmit={handleSubmit(async (values) =>
-              updateSkill({ id: detail.id, data: values })
+              updateSkill({ id: detail.userId, data: values })
             )}
             className="space-y-4"
           >
@@ -224,7 +259,9 @@ export function SkillDialog({ queryKey, detail, open, setOpen, isNew = false }: 
               <DialogClose asChild>
                 <Button size="sm" key="cancel-btn" variant="grey-outline">Cancel</Button>
               </DialogClose>
-              <Button size="sm" key="save-btn" type="submit" disabled={isLoading || !isDirty}>
+              <Button size="sm" key="save-btn" type="submit" disabled={isLoading || !isDirty} onClick={handleSubmit(async (values) => {
+                await updateSkill({ id: detail?.userId, data: values })
+              })}>
                 {!isLoading ? <Save /> : <Loader2 className="animate-spin" />}
                 {isLoading ? "Saving..." : "Save changes"}
               </Button>

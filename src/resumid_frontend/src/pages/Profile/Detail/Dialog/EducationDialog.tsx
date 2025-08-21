@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/useToast";
-import { ProfileDetailType, EducationType } from "@/types/profile-types";
+import { EducationType, ProfileType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { List, ListOrdered, Loader2, Plus, Save, Trash } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -37,7 +37,6 @@ export type PeriodType = {
 
 export type EducationFormValues = {
   institution?: string;
-  location?: string;
   degree?: string;
   description?: string;
   period?: PeriodType;
@@ -51,7 +50,7 @@ type ConfirmTypes = {
 
 interface EducationDialogProps {
   queryKey: (string | number)[] | string | number;
-  detail: ProfileDetailType;
+  detail: ProfileType;
   open: boolean;
   setOpen: (value: boolean) => void;
   isNew?: boolean;
@@ -119,7 +118,6 @@ export function EducationDialog({
   const initialValues: EducationFormValues = useMemo(
     () => ({
       institution: initial?.institution,
-      location: initial?.location,
       degree: initial?.degree,
       description: initial?.description,
       period: {
@@ -428,7 +426,7 @@ export function EducationDialog({
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">
               {isNew ? "Add Education" : "Edit Education"}
@@ -456,19 +454,14 @@ export function EducationDialog({
               )}
             </Label>
 
-            <Label htmlFor="degree" className="space-y-2 col-span-1">
+            <Label htmlFor="degree" className="space-y-2 col-span-2">
               <p>Degree<span className="text-red-500">*</span></p>
               <Input className="font-normal" id="position" {...register("degree")} placeholder="e.g., Frontend Engineer" />
               {errors?.degree && (
                 <p className="text-sm text-red-500">{errors.degree.message}</p>
               )}
             </Label>
-
-            <Label htmlFor="location" className="space-y-2 col-span-1">
-              <p>Location</p>
-              <Input className="font-normal" id="location" {...register("location")} placeholder="City, Country (optional)" />
-            </Label>
-
+          
             <div className="col-span-1">
               <Label htmlFor="period.start" className="space-y-2">
                 <p>Start Date<span className="text-red-500">*</span></p>

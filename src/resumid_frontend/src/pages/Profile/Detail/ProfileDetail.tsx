@@ -20,13 +20,13 @@ import ProfileSkills from "./ProfileSkill";
 import ProfileAnalytics from "./ProfileAnalytics";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProfileDetailType } from "@/types/profile-types";
-import { profileDetailData } from "@/data/profile-detail-data";
 import { AboutDialog } from "./Dialog/AboutDialog";
 import { SkillDialog } from "./Dialog/SkillDialog";
 import { ExperienceDialog } from "./Dialog/ExperienceDialog";
 import { EducationDialog } from "./Dialog/EducationDialog";
 import ProfileCertification from "./ProfileCertification";
 import { CertificationDialog } from "./Dialog/CertificationDialog";
+import { fromNullable } from "@/lib/optionalField";
 
 type OpenTypes = {
   sectionMenu: boolean
@@ -45,10 +45,9 @@ type SelectedTypes = {
 
 export default function ProfileDetail() {
   const KEY = "profile"
-  const isOwner = true;
 
   const { id } = useParams()
-  const { resumidActor } = useAuth();
+  const { resumidActor, userData } = useAuth();
 
   const location = useLocation();
   const { state } = location;
@@ -77,14 +76,106 @@ export default function ProfileDetail() {
     setSelected((prev) => ({ ...prev, [key]: value }))
   }
 
-  if (!id || !resumidActor) return;
+  if (!id) return;
 
-  async function handleGetProfileDetail(id: string | number): Promise<any> {
+  async function handleGetProfileDetail(id: string): Promise<any> {
+    if (!resumidActor) throw new Error("Actor is undefined");
+
     const result = await resumidActor.getProfileById(id)
-    const { profile } = result;
+    const { profile: profileRaw, endorsementInfo = [] } = result;
 
-    if (profile) {
-      return result;
+    const _profile = fromNullable(profileRaw)
+
+    if (_profile) {
+      const profile = {
+        profileId: _profile.profileId,
+        userId: _profile.userId,
+        createdAt: _profile.createdAt,
+        updatedAt: _profile.updatedAt,
+
+        // unwrap contact
+        contact: (() => {
+          const contact = fromNullable(_profile.contact)
+          if (!contact) return null
+          return {
+            twitter: fromNullable(contact.twitter),
+            instagram: fromNullable(contact.instagram),
+            email: fromNullable(contact.email),
+            website: fromNullable(contact.website),
+            facebook: fromNullable(contact.facebook),
+            address: fromNullable(contact.address),
+            phone: fromNullable(contact.phone),
+          }
+        })(),
+
+        // unwrap profileDetail
+        profileDetail: (() => {
+          const detail = fromNullable(_profile.profileDetail)
+          if (!detail) return null
+          return {
+            name: fromNullable(detail.name),
+            description: fromNullable(detail.description),
+            current_position: fromNullable(detail.current_position),
+            bannerCid: fromNullable(detail.bannerCid),
+            profileCid: fromNullable(detail.profileCid),
+          }
+        })(),
+
+        // unwrap resume
+        resume: (() => {
+          const resume = fromNullable(_profile.resume)
+          if (!resume) return null
+
+          return {
+            summary: (() => {
+              const content = fromNullable(resume.summary)?.content;
+              if (!content) return null;
+              return fromNullable(content) || null;
+            })(),
+            skills: fromNullable(resume.skills)?.skills ?? undefined,
+
+            educations: fromNullable(resume.educations)?.map((edu) => ({
+              id: edu.id,
+              period: {
+                start: fromNullable(edu.period.start),
+                end: fromNullable(edu.period.end),
+              },
+              institution: fromNullable(edu.institution),
+              description: fromNullable(edu.description),
+              degree: fromNullable(edu.degree),
+            })) ?? undefined,
+
+            workExperiences: fromNullable(resume.workExperiences)?.map((we) => ({
+              id: we.id,
+              period: {
+                start: fromNullable(we.period.start),
+                end: fromNullable(we.period.end),
+              },
+              employment_type: fromNullable(we.employment_type),
+              description: fromNullable(we.description),
+              company: we.company,
+              position: we.position,
+              location: fromNullable(we.location),
+            })) ?? undefined,
+          }
+        })(),
+
+        // unwrap endorsements & endorsedProfiles
+        endorsements: fromNullable(_profile.endorsedProfiles) ?? [],
+        endorsedProfiles: fromNullable(_profile.endorsedProfiles) ?? [],
+
+        // unwrap certifications
+        certificatons: fromNullable(_profile.certificatons)?.map((cert) => ({
+          id: cert.id,
+          title: cert.title,
+          createdAt: cert.createdAt,
+          updatedAt: cert.updatedAt,
+          credential_url: fromNullable(cert.credential_url),
+          issuer: fromNullable(cert.issuer),
+        })) ?? undefined,
+      }
+
+      return { profile, endorsementInfo };
     } else {
       throw new Error("Profile not found")
     }
@@ -95,14 +186,16 @@ export default function ProfileDetail() {
     isLoading,
     error
   } = useQuery({
-    queryKey: ['historyDetail', id],
+    queryKey: [KEY, id],
     queryFn: () => handleGetProfileDetail(id),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    retry: 2,
+    refetchOnWindowFocus: false
   });
 
   const { profile: profileDetail, endorsementInfo = [] } = data;
-  // const profileDetail: ProfileDetailType = profile;
+  const isOwner = !isLoading ? profileDetail.userId === userData?.ok?.id?.__principal__ : false;
+
+  console.log(profileDetail);
 
   if (error) {
     return (
@@ -152,7 +245,7 @@ export default function ProfileDetail() {
     <>
       <Helmet>
         <meta charSet="utf-8" />
-        <title>{"{Name Placeholder} | Resumid"}</title>
+        <title>{`${isLoading ? "Profile" : profileDetail.profileDetail.name} | Resumid`}</title>
         <meta name="description" content={`Analysis details for {Name Placeholder}`} />
       </Helmet>
 
@@ -170,12 +263,12 @@ export default function ProfileDetail() {
             }
           }}
         />
-        <div className="responsive-container my-8 flex flex-col-reverse sm:flex-row gap-8">
+        <div className="responsive-container py-8 flex flex-col-reverse sm:flex-row gap-8">
           <div className="flex-shrink-0 min-w-[180px] max-w-[280px] flex flex-col gap-6">
-            {(profileDetail?.skills?.length ?? 0) > 0 && (
+            {(profileDetail?.resume?.skills?.length ?? 0) > 0 && (
               <ProfileSkills
                 detail={profileDetail}
-                loading={isLoading} 
+                loading={isLoading}
                 isOwner={isOwner}
                 onEdit={() => handleOpen("skills")}
               />
@@ -183,29 +276,18 @@ export default function ProfileDetail() {
             {isOwner && (
               <ProfileAnalytics
                 detail={endorsementInfo}
-              loading={isLoading}
+                loading={isLoading}
               />
             )}
           </div>
           <div className="flex-1 flex flex-col gap-6">
-            {profileDetail?.about ? (
-              <ProfileAbout
-                detail={profileDetail}
-                loading={isLoading}
-                isOwner={isOwner}
-                onEdit={() => handleOpen("about")}
-              />
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col gap-3 justify-center items-center p-6 outline-dashed outline-2 outline-neutral-300 outline-offset-1 rounded-lg bg-neutral-50">
-                  <p className="font-inter font-paragraph text-sm text-center text-balance">You haven't added about section to your profile, share a brief overview of your professional journey, experience, and skills so people can get to know your strengths and capabilities at a glance.</p>
-                  <button className="text-blue-600 font-inter text-sm font-medium hover:underline">
-                    Start adding about section
-                  </button>
-                </CardContent>
-              </Card>
-            )}
-            {(profileDetail?.workExperiences?.length ?? 0) > 0 && (
+            <ProfileAbout
+              detail={profileDetail}
+              loading={isLoading}
+              isOwner={isOwner}
+              onEdit={() => handleOpen("about")}
+            />
+            {(profileDetail?.resume?.workExperiences?.length ?? 0) > 0 && (
               <ProfileExperience
                 detail={profileDetail}
                 isOwner={isOwner}
@@ -220,7 +302,7 @@ export default function ProfileDetail() {
                 }}
               />
             )}
-            {(profileDetail?.educations?.length ?? 0) > 0 && (
+            {(profileDetail?.resume?.educations?.length ?? 0) > 0 && (
               <ProfileEducation
                 detail={profileDetail}
                 isOwner={isOwner}
@@ -257,14 +339,14 @@ export default function ProfileDetail() {
           setOpen={() => handleOpen("skills")}
           queryKey={[KEY, id]}
           detail={profileDetail}
-          isNew={!profileDetail?.skills}
+          isNew={!profileDetail?.resume?.skills}
         />
         <AboutDialog
           open={open.about}
           setOpen={() => handleOpen("about")}
           queryKey={[KEY, id]}
           detail={profileDetail}
-          isNew={!profileDetail?.about}
+          isNew={!profileDetail?.resume?.summary}
         />
         <ExperienceDialog
           open={open.workExperiences}
