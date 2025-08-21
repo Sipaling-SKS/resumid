@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { AuthClient } from "@dfinity/auth-client";
-import { AccountIdentifier } from '@dfinity/ledger-icp';
+//import { AccountIdentifier } from '@dfinity/ledger-icp';
 
-import { createActor, canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid_backend";
-import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declarations/internet_identity";
+//import { createActor, canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid_backend";
+//import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declarations/internet_identity";
 import { toast } from "@/hooks/useToast";
 import { useNavigate } from "react-router";
 import { LoaderCircle } from "lucide-react";
@@ -33,11 +33,11 @@ export const getIdentityProvider = (): string | undefined => {
   if (typeof window !== "undefined") {
     const isLocal = import.meta.env.VITE_DFX_NETWORK !== "ic";
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    if (isLocal && isSafari) {
-      return `http://localhost:4943/?canisterId=${CANISTER_ID_INTERNET_IDENTITY}`;
-    } else if (isLocal) {
-      return `http://${CANISTER_ID_INTERNET_IDENTITY}.localhost:4943`;
-    }
+    // if (isLocal && isSafari) {
+    //   return `http://localhost:4943/?canisterId=${CANISTER_ID_INTERNET_IDENTITY}`;
+    // } else if (isLocal) {
+    //   return `http://${CANISTER_ID_INTERNET_IDENTITY}.localhost:4943`;
+    // }
   }
   return undefined;
 };
@@ -75,9 +75,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     setLoading(true);
 
-    const resumidActor = createActor(CANISTER_ID_BACKEND, {
-      agentOptions: { identity: authClient.getIdentity() },
-    });
+    // const resumidActor = createActor(CANISTER_ID_BACKEND, {
+    //   agentOptions: { identity: authClient.getIdentity() },
+    // });
 
     try {
       const data = await resumidActor.getUserById();
@@ -121,13 +121,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (isAuthenticated) {
         const identity = client.getIdentity();
         const principal = identity.getPrincipal();
-        const actor = createActor(CANISTER_ID_BACKEND, {
-          agentOptions: { identity },
-        });
+        // const actor = createActor(CANISTER_ID_BACKEND, {
+        //   agentOptions: { identity },
+        // });
 
         setIdentity(identity);
         setPrincipal(principal);
-        setResumidActor(actor);
+        // setResumidActor(actor);
 
         await fetchUserData();
       } else {
@@ -177,19 +177,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const principal = identity.getPrincipal();
             setPrincipal(principal);
 
-            const actor = createActor(CANISTER_ID_BACKEND, {
-              agentOptions: { identity },
-            });
+            // const actor = createActor(CANISTER_ID_BACKEND, {
+            //   agentOptions: { identity },
+            // });
 
-            const accountIdentifier = AccountIdentifier.fromPrincipal({
-              principal,
-              subAccount: undefined,
-            });
+            // const accountIdentifier = AccountIdentifier.fromPrincipal({
+            //   principal,
+            //   subAccount: undefined,
+            // });
 
-            await actor.whoami();
-            await actor.authenticateUser(accountIdentifier.toHex());
+            // await actor.whoami();
+            // await actor.authenticateUser(accountIdentifier.toHex());
 
-            setResumidActor(actor);
+            // setResumidActor(actor);
 
             await fetchUserData();
 
