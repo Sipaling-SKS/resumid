@@ -5,7 +5,7 @@ import PackageTypes "PackageTypes";
 
 module TransactionTypes {
   public type Transactions = HashMap.HashMap<Principal, Transaction>;
-  public type TokenEntries = HashMap.HashMap<Principal, TokenEntry>;
+  public type TokenEntries = HashMap.HashMap<Principal, [TokenEntry]>;
 
   public type Transaction = {
     id : Text;
@@ -17,6 +17,7 @@ module TransactionTypes {
   };
 
   public type TokenEntry = {
+    entryNo: Nat;
     description : Text;
     timestamp: Text;
     quantity: Nat;

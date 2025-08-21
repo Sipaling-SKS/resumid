@@ -4,13 +4,17 @@ import Principal "mo:base/Principal";
 import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import Int "mo:base/Int";
+import Array "mo:base/Array";
 import Result "mo:base/Result";
 import DateHelper "../helpers/DateHelper";
+import TransactionTypes "../types/TransactionTypes";
+import GlobalHelper "../helpers/GlobalHelper";
 
 module UserService {
   public func authenticateUser(
     users : UserTypes.User,
-    depositAddr: Text,
+    tokenEntries : TransactionTypes.TokenEntries,
+    depositAddr : Text,
     userId : Principal,
   ) : async Result.Result<UserTypes.UserData, Text> {
     if (Principal.isAnonymous(userId)) {
@@ -36,6 +40,24 @@ module UserService {
           depositAddr = depositAddr;
           token = 3;
           createdAt = createdAt;
+        };
+
+        // let entryId = await GlobalHelper.GenerateUUID();
+        let entryNo = GlobalHelper.GetNextEntryNo(tokenEntries, userId);
+        let newEntry : TransactionTypes.TokenEntry = {
+          entryNo = entryNo;
+          description = "Initial trial token";
+          timestamp = DateHelper.formatTimestamp(timestamp);
+          quantity = 3;
+        };
+        switch (tokenEntries.get(userId)) {
+          case (null) {
+            tokenEntries.put(userId, [newEntry]);
+          };
+          case (?entries) {
+            let updated = Array.append<TransactionTypes.TokenEntry>(entries, [newEntry]);
+            tokenEntries.put(userId, updated);
+          };
         };
 
         // Create new user data

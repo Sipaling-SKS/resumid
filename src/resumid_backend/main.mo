@@ -19,11 +19,13 @@ import UserServices "services/UserServices";
 import PackageServices "services/PackageServices";
 import GeminiServices "services/GeminiServices";
 import DateHelper "helpers/DateHelper";
+import TransactionTypes "types/TransactionTypes";
 
 actor Resumid {
   private var users : UserTypes.User = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
   private var packages : PackageTypes.Packages = HashMap.HashMap<Text, PackageTypes.Package>(0, Text.equal, Text.hash);
+  private var tokenEntries : TransactionTypes.TokenEntries = HashMap.HashMap<Principal, [TransactionTypes.TokenEntry]>(0, Principal.equal, Principal.hash);
 
   // ==============================
   // Authentication and User Methods
@@ -34,11 +36,17 @@ actor Resumid {
     return msg.caller;
   };
 
-  public shared (msg) func authenticateUser(depositAddr: Text) : async Result.Result<UserTypes.UserData, Text> {
+  public shared (msg) func authenticateUser(depositAddr : Text) : async Result.Result<UserTypes.UserData, Text> {
     let userId = msg.caller;
 
     Debug.print("Caller Principal for auth: " # Principal.toText(userId));
-    return await UserServices.authenticateUser(users, depositAddr, userId);
+    return await UserServices.authenticateUser(users, tokenEntries, depositAddr, userId);
+  };
+
+  public shared func getAllUser() : async [UserTypes.UserData] {
+    let allUsers : [UserTypes.UserData] = Iter.toArray(users.vals());
+
+    return allUsers;
   };
 
   public shared (msg) func getUserById() : async Result.Result<UserTypes.UserData, Text> {
@@ -196,4 +204,18 @@ actor Resumid {
   // ==============================
   // Transaction Package Methods
   // ==============================
+
+  public shared (msg) func getAllTokenEntries() : async [TransactionTypes.TokenEntry] {
+    let arrays : [[TransactionTypes.TokenEntry]] = Iter.toArray(tokenEntries.vals());
+    Array.flatten<TransactionTypes.TokenEntry>(arrays);
+  };
+
+  public shared (msg) func getUserTokenEntries() : async [TransactionTypes.TokenEntry] {
+    let userId = Principal.toText(msg.caller);
+
+    switch (tokenEntries.get(msg.caller)) {
+      case (null) { [] };
+      case (?entries) { entries };
+    };
+  };
 };

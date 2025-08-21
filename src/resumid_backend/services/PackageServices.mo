@@ -6,8 +6,6 @@ module PackageServices {
   public func initDefaultPackage(
     packages : PackagesTypes.Packages
   ) : async [PackagesTypes.Package] {
-    let result: [PackagesTypes.Package] = [];
-
     let package1 : PackagesTypes.Package = {
       title = "Starter";
       subtitle = "For individuals";
