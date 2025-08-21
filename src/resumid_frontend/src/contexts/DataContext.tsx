@@ -1,5 +1,7 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createActor } from "../../../declarations/resumid_backend";
 import { useAuth } from "./AuthContext";
+import { canisterId as CANISTER_ID_BACKEND } from "../../../declarations/resumid_backend";
 import { LoaderCircle } from "lucide-react";
 
 interface DataContextType {
@@ -12,7 +14,7 @@ const DataContext = createContext<DataContextType | null>(null);
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const { principal, loading: authLoading, authClient } = useAuth();
+  const { principal, authClient, loading: authLoading } = useAuth();
 
   const fetchUserData = async () => {
     if (!authClient) {
@@ -22,18 +24,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setLoading(true);
 
-    // ✅ FE-only: ganti call ke backend dengan dummy data
+    const resumidActor = createActor(CANISTER_ID_BACKEND, {
+      agentOptions: { identity: authClient.getIdentity() },
+    });
+
     try {
-      const mockData = {
-        id: principal,
-        name: "Mock User",
-        email: "mock@example.com",
-      };
+      const data = await resumidActor.getUserById();
 
-      console.log("Serialized user data (mock):", mockData);
+      if (!data || Object.keys(data).length === 0) {
+        console.error("No user data found");
+        setUserData(null);
+        setLoading(false);
+        return;
+      }
 
-      setUserData(mockData);
-      localStorage.setItem("userData", JSON.stringify(mockData));
+      const serializedData = JSON.parse(
+        JSON.stringify(data, (key, value) =>
+          typeof value === "bigint" ? value.toString() : value
+        )
+      );
+
+      console.log("Serialized user data:", serializedData);
+
+      setUserData(serializedData);
+      localStorage.setItem("userData", JSON.stringify(serializedData));
     } catch (error) {
       console.error("Error fetching user data:", error);
       setUserData(null);
