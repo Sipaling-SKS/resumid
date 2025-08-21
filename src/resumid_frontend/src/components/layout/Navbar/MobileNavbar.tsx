@@ -5,7 +5,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn, scrollToTop, scrollTo } from "@/lib/utils";
-import { Menu, X as Close, LogOut, User2 as ProfileIcon, Search, ArrowLeft } from "lucide-react";
+import { Menu, X as Close, LogOut, User2 as ProfileIcon, Search, ArrowLeft, Wallet } from "lucide-react";
 import { NavLink } from "react-router";
 import { useState, useRef } from "react";
 import { shouldShowSearch, isSearchMode } from "./searchConfig";
@@ -232,6 +232,13 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
                   <ProfileIcon />
                   Profile
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => navigate("/wallet")}
+              >
+                <Wallet />
+                Wallet
+              </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-500" >
                   <LogOut />
                   Sign out
