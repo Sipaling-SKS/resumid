@@ -2,7 +2,7 @@ import Logo from "@/assets/logo-black.svg";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn, scrollTo, scrollToTop } from "@/lib/utils";
 import { NavLink, replace } from "react-router";
-import { LogIn, LogOut, User2 as ProfileIcon, ArrowLeft } from "lucide-react";
+import { LogIn, LogOut, User2 as ProfileIcon, ArrowLeft, Wallet} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -28,6 +28,16 @@ function DesktopNavbar({ navigate }: any) {
     navigate("/", { replace: true });
     searchBarRef.current?.reset();
   };
+
+  // // 🔹 Tambahan: cek apakah user baru pertama kali login (belum punya name)
+  // useEffect(() => {
+  //   if (isAuthenticated && !userData?.name) {
+  //     navigate(`/profile/${userData?.id}`, {
+  //       state: { isNewUser: true },
+  //       replace: true,
+  //     });
+  //   }
+  // }, [isAuthenticated, userData, navigate]);
 
   if (searchMode && isAuthenticated) {
     return (
@@ -82,6 +92,12 @@ function DesktopNavbar({ navigate }: any) {
                   <ProfileIcon />
                   Profile
                 </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer"
+                onClick={() => navigate("/wallet")}
+              >
+                <Wallet />
+                Wallet
+              </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-500" onClick={logout}>
                   <LogOut />
                   Sign out
@@ -233,9 +249,16 @@ function DesktopNavbar({ navigate }: any) {
             <DropdownMenuContent className="text-paragraph">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/profile/fadil-hisyam")}>
                 <ProfileIcon />
                 Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => navigate("/wallet")}
+              >
+                <Wallet />
+                Wallet
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-500" onClick={logout}>
                 <LogOut />

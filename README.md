@@ -13,10 +13,10 @@ Demo Video: [Youtube](https://youtu.be/HEiYWsDFzQ8)
 
 | **Name** | **Role** |
 |---|---|
-| Muhammad Fadil Hisyam | Lead, UI/UX Designer, Frontend Developer |
+| Calvin Danyalson | Lead, Backend Developer |
+| Muhammad Fadil Hisyam | UI/UX Designer, Frontend Developer |
+| Muhammad Rafli Rayhan K. | Frontend Developer |
 | Agustina Puspita Sari | UI/UX Designer, Frontend Developer |
-| Calvin Danyalson | Backend Developer |
-| Muhammad Rafli Rayhan K. | Backend Developer |
 | Tiara Puspita | Backend Developer |
 
 ---
@@ -24,7 +24,7 @@ Demo Video: [Youtube](https://youtu.be/HEiYWsDFzQ8)
 ## 🚀 Features
 
 - **Internet Identity Authentication:** provides personalized access to users keeping their data private and secure using Internet Identity.
-- **Resume Analyzer:** performs in-depth resume analysis with AI technology, provides a match score, outlines resume strengths and weaknesses, and provides personalized recommendations to improve the resume according to the position applied for.
+- **Resume Analyzer:** performs in-depth resume analysis with AI technology, provides a match score, outlines resume strengths and weaknesses, and provides personalized recommendations to improve the resume according to the position applied for. The analysis delivers a compatibility score with the targeted job position, detailed feedback, and specific improvement pointers for every section. In addition, users receive personalized job recommendations to help them tailor their resumes to better match employer requirements and stand out in the recruitment process
 - **History:** all analyzes performed are saved in history so users can easily track the development of their resume over time.
 
 ---
@@ -87,9 +87,8 @@ dfx deploy
 ```env
 # START EXPRESS ENVIRONMENT VARIABLES
 EXPRESS_MONGODB_URI='mongodb+srv://<user>:<password>@cluster0.afxyv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-EXPRESS_GPT_BASE_URL = 'https://api.openai.com/v1'
 EXPRESS_API_KEY = 'EXPRESS_API_KEY'
-EXPRESS_GPT_API_KEY = 'GPT_API_KEY'
+EXPRESS_GEMINI_API_KEY = 'GEMINI_API_KEY'
 EXPRESS_PORT = 5000
 # END EXPRESS ENVIRONMENT VARIABLES
 ```
