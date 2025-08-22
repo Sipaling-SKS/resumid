@@ -157,7 +157,7 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
                 Buy Package
               </Button>
             ) : (
-              <Button onClick={login} className="w-full shadow-md" size="lg" variant="gradient">
+              <Button onClick={() => login()} className="w-full shadow-md" size="lg" variant="gradient">
                 Sign in to Buy
               </Button>
             )}

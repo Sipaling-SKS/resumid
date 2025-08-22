@@ -2,7 +2,7 @@ import Logo from "@/assets/logo-black.svg";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn, scrollTo, scrollToTop } from "@/lib/utils";
 import { NavLink, replace } from "react-router";
-import { LogIn, LogOut, User2 as ProfileIcon, ArrowLeft, Wallet} from "lucide-react";
+import { LogIn, LogOut, User2 as ProfileIcon, ArrowLeft, Wallet } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -29,16 +29,6 @@ function DesktopNavbar({ navigate }: any) {
     searchBarRef.current?.reset();
   };
 
-  // // 🔹 Tambahan: cek apakah user baru pertama kali login (belum punya name)
-  // useEffect(() => {
-  //   if (isAuthenticated && !userData?.name) {
-  //     navigate(`/profile/${userData?.id}`, {
-  //       state: { isNewUser: true },
-  //       replace: true,
-  //     });
-  //   }
-  // }, [isAuthenticated, userData, navigate]);
-
   if (searchMode && isAuthenticated) {
     return (
       <>
@@ -50,7 +40,7 @@ function DesktopNavbar({ navigate }: any) {
             alt="Resumid Logo"
           />
         </div>
-        
+
         <div className="flex-1 flex justify-center px-4">
           <div className="w-4/5 flex items-center gap-3">
             <button
@@ -65,7 +55,7 @@ function DesktopNavbar({ navigate }: any) {
             </div>
           </div>
         </div>
-        
+
         {isAuthenticated && (
           <div className="inline-flex gap-4 items-center">
             <div className="inline-flex gap-2 items-center">
@@ -92,12 +82,13 @@ function DesktopNavbar({ navigate }: any) {
                   <ProfileIcon />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer"
-                onClick={() => navigate("/wallet")}
-              >
-                <Wallet />
-                Wallet
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => navigate("/wallet")}
+                >
+                  <Wallet />
+                  Wallet
+                </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-500" onClick={logout}>
                   <LogOut />
                   Sign out
@@ -244,12 +235,12 @@ function DesktopNavbar({ navigate }: any) {
                   <AvatarImage src="https://github.com/shadcn.png" />
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
-                </div>
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="text-paragraph">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/profile/fadil-hisyam")}>
+              <DropdownMenuItem className="cursor-pointer">
                 <ProfileIcon />
                 Profile
               </DropdownMenuItem>
