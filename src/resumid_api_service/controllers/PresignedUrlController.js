@@ -25,8 +25,6 @@ async function CreatePresignedUrl(req, res) {
       isPrivate = false
     } = req.body;
 
-    console.log("TESTTTT");
-
     const mimeTypes = buildMimeTypes(uploadFileType);
     if (mimeTypes.length === 0) {
       return res.status(400).json({ message: `Unsupported fileType: ${fileType}` });

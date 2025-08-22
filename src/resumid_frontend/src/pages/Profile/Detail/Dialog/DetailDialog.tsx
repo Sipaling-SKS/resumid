@@ -16,10 +16,9 @@ import { toast } from "@/hooks/useToast";
 import { ProfileType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save } from "lucide-react";
-import { Resolver, SubmitHandler, useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { toNullable } from "@/lib/optionalField";
 
 export type DetailFormValues = {
   name: string;
@@ -259,7 +258,6 @@ export function DetailDialog({
             </DialogHeader>
 
             <form
-              // onSubmit={}
               className="grid grid-cols-1 md:grid-cols-2 gap-5 text-paragraph font-inter"
             >
               <Label
@@ -272,7 +270,7 @@ export function DetailDialog({
                 <Input
                   {...register("name", { required: true })}
                   id="name"
-                  className="font-normal"
+                  className="font-normal text-sm"
                   type="text"
                   placeholder="John Doe"
                 />
@@ -288,7 +286,7 @@ export function DetailDialog({
                 <Input
                   {...register("current_position")}
                   id="current-position"
-                  className="font-normal"
+                  className="font-normal text-sm"
                   type="text"
                   placeholder="Input your current job position"
                 />
@@ -301,7 +299,7 @@ export function DetailDialog({
                 <Textarea
                   {...register("description")}
                   placeholder="Input your profile description"
-                  className="min-h-24 max-h-36 py-2 font-normal scrollbar"
+                  className="text-sm min-h-24 max-h-36 py-2 font-normal scrollbar"
                 />
               </Label>
               <Label htmlFor="website" className="space-y-2">
@@ -309,7 +307,7 @@ export function DetailDialog({
                 <Input
                   {...register("email")}
                   id="email"
-                  className="font-normal"
+                  className="font-normal text-sm"
                   type="text"
                   placeholder="Input your email address"
                 />
@@ -319,7 +317,7 @@ export function DetailDialog({
                 <Input
                   {...register("phone")}
                   id="phone"
-                  className="font-normal"
+                  className="font-normal text-sm"
                   type="text"
                   placeholder="Input your phone number"
                 />
@@ -329,7 +327,7 @@ export function DetailDialog({
                 <Input
                   {...register("website")}
                   id="website"
-                  className="font-normal"
+                  className="font-normal text-sm"
                   type="text"
                   placeholder="Input your website or portfolio"
                 />
@@ -339,7 +337,7 @@ export function DetailDialog({
                 <Input
                   {...register("twitter")}
                   id="twitter"
-                  className="font-normal"
+                  className="font-normal text-sm"
                   type="text"
                   placeholder="Input your x handle"
                 />
@@ -349,7 +347,7 @@ export function DetailDialog({
                 <Input
                   {...register("instagram")}
                   id="instagram"
-                  className="font-normal"
+                  className="font-normal text-sm"
                   type="text"
                   placeholder="Input your instagram handle"
                 />
@@ -359,14 +357,14 @@ export function DetailDialog({
                 <Input
                   {...register("facebook")}
                   id="facebook"
-                  className="font-normal"
+                  className="font-normal text-sm"
                   type="text"
                   placeholder="Input your facebook handle"
                 />
               </Label>
             </form>
 
-            <DialogFooter className="">
+            <DialogFooter className="gap-2">
               <DialogClose asChild>
                 <Button
                   size="sm"
@@ -376,7 +374,7 @@ export function DetailDialog({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button size="sm" key="save-btn" disabled={isLoading} onClick={handleSubmit(async (values) => {
+              <Button size="sm" key="save-btn" disabled={isLoading || !isDirty} onClick={handleSubmit(async (values) => {
                 await updateDetail({ id: detail.userId, data: values })
               })}>
                 {!isLoading ? <Save /> : <Loader2 className="animate-spin" />}
@@ -396,7 +394,7 @@ export function DetailDialog({
               You have unsaved changes, are you sure you want to discard your changes?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" key="cancel-btn" variant="grey-outline">Cancel</Button>
             </DialogClose>

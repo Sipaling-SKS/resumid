@@ -31,20 +31,20 @@ export default function ProfileAbout({ isOwner = false, detail, loading = false,
 
   return (
     <Card className="p-0 overflow-hidden space-y-0">
-      <CardTitle className="relative inline-flex gap-3 justify-between items-center px-6 py-5 w-full border-b border-neutral-200">
+      <CardTitle className="relative inline-flex gap-3 justify-between items-center p-4 sm:px-6 sm:py-5 w-full border-b border-neutral-200">
         <h3 className="font-outfit text-lg text-heading font-semibold">About</h3>
         {isOwner && (
           <Button
             variant="grey-outline"
             size="icon"
-            className="absolute top-[1/2] right-6 h-8 w-8"
+            className="absolute top-[1/2] right-4 sm:right-6 h-8 w-8"
             onClick={onEdit}
           >
             <Pencil />
           </Button>
         )}
       </CardTitle>
-      <CardContent className="relative flex flex-col gap-4 p-6">
+      <CardContent className="relative flex flex-col gap-4 p-4 sm:p-6">
         <p className="font-inter text-sm text-paragraph leading-normal">
           {summary}
         </p>

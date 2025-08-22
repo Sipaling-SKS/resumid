@@ -139,7 +139,7 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[860px] max-h-[90vh] overflow-y-auto scrollbar">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[860px] max-h-[80vh] sm:max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">{isEditing ? "Upload " : ""}Profile Banner</DialogTitle>
             <DialogDescription className="font-inter text-paragraph">
@@ -213,7 +213,7 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
               This action cannot be undone. Are you sure you want to remove your profile banner?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" key="cancel-btn" variant="grey-outline">Cancel</Button>
             </DialogClose>

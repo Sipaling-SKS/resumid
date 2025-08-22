@@ -75,8 +75,6 @@ export interface EducationType {
 export interface CertificateType {
   id: string;
   title: string;
-  createdAt: string;
-  updatedAt: string;
   credential_url?: string;
   issuer?: string;
 }

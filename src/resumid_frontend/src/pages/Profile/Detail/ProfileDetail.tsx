@@ -2,14 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router";
 import { Helmet } from "react-helmet";
 
-import useWindowSize from "@/hooks/useMediaQuery"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileHeader from "./ProfileHeader";
@@ -18,8 +10,7 @@ import ProfileExperience from "./ProfileExperience";
 import ProfileEducation from "./ProfileEducation";
 import ProfileSkills from "./ProfileSkill";
 import ProfileAnalytics from "./ProfileAnalytics";
-import { Card, CardContent } from "@/components/ui/card";
-import { ProfileDetailType } from "@/types/profile-types";
+import { EducationType, ProfileType, WorkExperienceType } from "@/types/profile-types";
 import { AboutDialog } from "./Dialog/AboutDialog";
 import { SkillDialog } from "./Dialog/SkillDialog";
 import { ExperienceDialog } from "./Dialog/ExperienceDialog";
@@ -27,10 +18,11 @@ import { EducationDialog } from "./Dialog/EducationDialog";
 import ProfileCertification from "./ProfileCertification";
 import { CertificationDialog } from "./Dialog/CertificationDialog";
 import { fromNullable } from "@/lib/optionalField";
+import { sortByPeriod } from "@/utils/sortByPeriod";
 
 type OpenTypes = {
   sectionMenu: boolean
-  about: boolean
+  summary: boolean
   workExperiences: boolean
   educations: boolean
   skills: boolean
@@ -42,6 +34,11 @@ type SelectedTypes = {
   educations: string | null
   certifications: string | null
 }
+
+type ProfileDetailResponse = {
+  profile: ProfileType | null;
+  endorsementInfo: any[];
+};
 
 export default function ProfileDetail() {
   const KEY = "profile"
@@ -55,7 +52,7 @@ export default function ProfileDetail() {
 
   const [open, setOpen] = useState<OpenTypes>({
     sectionMenu: false,
-    about: false,
+    summary: false,
     workExperiences: false,
     educations: false,
     skills: false,
@@ -78,94 +75,96 @@ export default function ProfileDetail() {
 
   if (!id) return;
 
-  async function handleGetProfileDetail(id: string): Promise<any> {
+  async function handleGetProfileDetail(id: string): Promise<ProfileDetailResponse> {
     if (!resumidActor) throw new Error("Actor is undefined");
 
-    const result = await resumidActor.getProfileById(id)
+    const result = await resumidActor.getProfileById(id);
     const { profile: profileRaw, endorsementInfo = [] } = result;
+    const _profile = fromNullable(profileRaw);
 
-    const _profile = fromNullable(profileRaw)
+    if (!_profile) return { profile: null, endorsementInfo };
 
-    if (_profile) {
-      const profile = {
-        profileId: _profile.profileId,
-        userId: _profile.userId,
-        createdAt: _profile.createdAt,
-        updatedAt: _profile.updatedAt,
-
-        // unwrap contact
-        contact: (() => {
-          const contact = fromNullable(_profile.contact)
-          if (!contact) return null
-          return {
-            twitter: fromNullable(contact.twitter),
-            instagram: fromNullable(contact.instagram),
-            email: fromNullable(contact.email),
-            website: fromNullable(contact.website),
-            facebook: fromNullable(contact.facebook),
-            address: fromNullable(contact.address),
-            phone: fromNullable(contact.phone),
+    const profile: ProfileType = {
+      profileId: _profile.profileId,
+      userId: _profile.userId,
+      createdAt: _profile.createdAt,
+      updatedAt: _profile.updatedAt,
+      contact: (() => {
+        const c = fromNullable(_profile.contact);
+        return c
+          ? {
+            twitter: fromNullable(c.twitter),
+            instagram: fromNullable(c.instagram),
+            email: fromNullable(c.email),
+            website: fromNullable(c.website),
+            facebook: fromNullable(c.facebook),
+            address: fromNullable(c.address),
+            phone: fromNullable(c.phone),
           }
-        })(),
-
-        // unwrap profileDetail
-        profileDetail: (() => {
-          const detail = fromNullable(_profile.profileDetail)
-          if (!detail) return null
-          return {
-            name: fromNullable(detail.name),
-            description: fromNullable(detail.description),
-            current_position: fromNullable(detail.current_position),
-            bannerCid: fromNullable(detail.bannerCid),
-            profileCid: fromNullable(detail.profileCid),
+          : undefined;
+      })(),
+      profileDetail: (() => {
+        const d = fromNullable(_profile.profileDetail);
+        return d
+          ? {
+            name: fromNullable(d.name),
+            description: fromNullable(d.description),
+            current_position: fromNullable(d.current_position),
+            bannerCid: fromNullable(d.bannerCid),
+            profileCid: fromNullable(d.profileCid),
           }
-        })(),
-
-        // unwrap resume
-        resume: (() => {
-          const resume = fromNullable(_profile.resume)
-          if (!resume) return null
-
-          return {
+          : undefined;
+      })(),
+      resume: (() => {
+        const r = fromNullable(_profile.resume);
+        return r
+          ? {
             summary: (() => {
-              const content = fromNullable(resume.summary)?.content;
-              if (!content) return null;
-              return fromNullable(content) || null;
+              const content = fromNullable(r.summary)?.content;
+              if (!content) return undefined;
+              return fromNullable(content) || undefined;
             })(),
-            skills: fromNullable(resume.skills)?.skills ?? undefined,
 
-            educations: fromNullable(resume.educations)?.map((edu) => ({
-              id: edu.id,
-              period: {
-                start: fromNullable(edu.period.start),
-                end: fromNullable(edu.period.end),
-              },
-              institution: fromNullable(edu.institution),
-              description: fromNullable(edu.description),
-              degree: fromNullable(edu.degree),
-            })) ?? undefined,
+            skills: fromNullable(r.skills)?.skills ?? undefined,
 
-            workExperiences: fromNullable(resume.workExperiences)?.map((we) => ({
-              id: we.id,
-              period: {
-                start: fromNullable(we.period.start),
-                end: fromNullable(we.period.end),
-              },
-              employment_type: fromNullable(we.employment_type),
-              description: fromNullable(we.description),
-              company: we.company,
-              position: we.position,
-              location: fromNullable(we.location),
-            })) ?? undefined,
+            educations: (() => {
+              const mapped =
+                fromNullable(r.educations)?.map((ed) => ({
+                  id: ed.id,
+                  period: {
+                    start: fromNullable(ed.period.start),
+                    end: fromNullable(ed.period.end),
+                  },
+                  institution: fromNullable(ed.institution),
+                  description: fromNullable(ed.description),
+                  degree: fromNullable(ed.degree),
+                })) ?? [];
+              return mapped.length ? sortByPeriod<EducationType>(mapped) : undefined;
+            })(),
+
+            workExperiences: (() => {
+              const mapped =
+                fromNullable(r.workExperiences)?.map((we) => ({
+                  id: we.id,
+                  period: {
+                    start: fromNullable(we.period.start),
+                    end: fromNullable(we.period.end),
+                  },
+                  employment_type: fromNullable(we.employment_type),
+                  description: fromNullable(we.description),
+                  company: we.company,
+                  position: we.position,
+                  location: fromNullable(we.location),
+                })) ?? [];
+              return mapped.length ? sortByPeriod<WorkExperienceType>(mapped) : undefined;
+            })(),
           }
-        })(),
-
-        // unwrap endorsements & endorsedProfiles
-        endorsements: fromNullable(_profile.endorsedProfiles) ?? [],
-        endorsedProfiles: fromNullable(_profile.endorsedProfiles) ?? [],
-
-        // unwrap certifications
-        certificatons: fromNullable(_profile.certificatons)?.map((cert) => ({
+          : undefined;
+      })(),
+      endorsements: fromNullable(_profile.endorsedProfiles) ?? [],
+      endorsedProfiles: fromNullable(_profile.endorsedProfiles) ?? [],
+      certifications:
+        fromNullable(_profile.certificatons)?.map((cert) => ({
           id: cert.id,
           title: cert.title,
           createdAt: cert.createdAt,
@@ -173,26 +172,44 @@ export default function ProfileDetail() {
           credential_url: fromNullable(cert.credential_url),
           issuer: fromNullable(cert.issuer),
         })) ?? undefined,
-      }
+    };
 
-      return { profile, endorsementInfo };
-    } else {
-      throw new Error("Profile not found")
-    }
+    return { profile, endorsementInfo };
   }
 
   const {
-    data = {},
+    data,
     isLoading,
     error
-  } = useQuery({
+  } = useQuery<ProfileDetailResponse>({
     queryKey: [KEY, id],
     queryFn: () => handleGetProfileDetail(id),
     retry: 2,
     refetchOnWindowFocus: false
   });
 
-  const { profile: profileDetail, endorsementInfo = [] } = data;
+  const { profile: profileDetail, endorsementInfo } = data ?? { profile: null, endorsementInfo: [] };
+
+  if (!isLoading && !profileDetail) {
+    return (
+      <>
+        <Helmet>
+          <meta charSet="utf-8" />
+          <title>{"Profile Not Found | Resumid"}</title>
+          <meta name="description" content={`Analysis details for {Name Placeholder}`} />
+        </Helmet>
+
+        <div className="min-h-screen flex justify-center items-center">
+          <h2 className="text-xl font-outfit font-semibold text-heading">
+            This profile does not exists, sorry!
+          </h2>
+        </div>
+      </>
+    )
+  }
+
+  if (!profileDetail) return null;
+
   const isOwner = !isLoading ? profileDetail.userId === userData?.ok?.id?.__principal__ : false;
 
   console.log(profileDetail);
@@ -202,7 +219,7 @@ export default function ProfileDetail() {
       <>
         <Helmet>
           <meta charSet="utf-8" />
-          <title>{"{Name Placeholder} | Resumid"}</title>
+          <title>{"Profile | Resumid"}</title>
           <meta name="description" content={`Analysis details for {Name Placeholder}`} />
         </Helmet>
 
@@ -215,37 +232,16 @@ export default function ProfileDetail() {
     )
   }
 
-  const selectedExperience = profileDetail?.workExperiences?.find((exp: any) => exp.id === selected.workExperiences) ?? {
-    id: "",
-    company: "",
-    position: "",
-    description: "",
-    employementType: "",
-    location: "",
-    period: { start: "", end: "" }
-  }
+  const selectedExperience = profileDetail?.resume?.workExperiences?.find((exp: any) => exp.id === selected.workExperiences) ?? null
 
-  const selectedEducation = profileDetail?.educations?.find((ed: any) => ed.id === selected.educations) ?? {
-    id: "",
-    institution: "",
-    degree: "",
-    description: "",
-    location: "",
-    period: { start: "", end: "" }
-  }
-
-  const selectedCertification = profileDetail?.certifications?.find((cert: any) => cert.id === selected.certifications) ?? {
-    id: "",
-    title: "",
-    issuer: "",
-    url: "",
-  }
+  const selectedEducation = profileDetail?.resume?.educations?.find((ed: any) => ed.id === selected.educations) ?? null
+  const selectedCertification = profileDetail?.certifications?.find((cert: any) => cert.id === selected.certifications) ?? null
 
   return (
     <>
       <Helmet>
         <meta charSet="utf-8" />
-        <title>{`${isLoading ? "Profile" : profileDetail.profileDetail.name} | Resumid`}</title>
+        <title>{`${!isLoading && profileDetail?.profileDetail ? profileDetail.profileDetail.name : "Profile"} | Resumid`}</title>
         <meta name="description" content={`Analysis details for {Name Placeholder}`} />
       </Helmet>
 
@@ -263,8 +259,8 @@ export default function ProfileDetail() {
             }
           }}
         />
-        <div className="responsive-container py-8 flex flex-col-reverse sm:flex-row gap-8">
-          <div className="flex-shrink-0 min-w-[180px] max-w-[280px] flex flex-col gap-6">
+        <div className="responsive-container py-6 sm:py-8 flex flex-col-reverse sm:flex-row gap-4 sm:gap-8">
+          <div className="flex-shrink-0 sm:min-w-[180px] sm:max-w-[280px] w-full flex flex-col gap-6">
             {(profileDetail?.resume?.skills?.length ?? 0) > 0 && (
               <ProfileSkills
                 detail={profileDetail}
@@ -285,7 +281,7 @@ export default function ProfileDetail() {
               detail={profileDetail}
               loading={isLoading}
               isOwner={isOwner}
-              onEdit={() => handleOpen("about")}
+              onEdit={() => handleOpen("summary")}
             />
             {(profileDetail?.resume?.workExperiences?.length ?? 0) > 0 && (
               <ProfileExperience
@@ -342,8 +338,8 @@ export default function ProfileDetail() {
           isNew={!profileDetail?.resume?.skills}
         />
         <AboutDialog
-          open={open.about}
-          setOpen={() => handleOpen("about")}
+          open={open.summary}
+          setOpen={() => handleOpen("summary")}
           queryKey={[KEY, id]}
           detail={profileDetail}
           isNew={!profileDetail?.resume?.summary}

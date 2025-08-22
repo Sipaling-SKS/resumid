@@ -11,12 +11,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/useToast";
-import { ProfileDetailType, ProfileType, WorkExperienceType } from "@/types/profile-types";
+import { ProfileType, WorkExperienceType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { List, ListOrdered, Loader2, Plus, Save, Trash } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Resolver, useForm, Controller } from "react-hook-form";
-import { format, isAfter, parseISO } from "date-fns";
+import { compareDesc, format, isAfter, isValid, parseISO } from "date-fns";
 
 import { useEditor, EditorContent, useEditorState, Editor } from "@tiptap/react";
 import { Extension } from "@tiptap/core"
@@ -30,6 +30,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { sortByPeriod } from "@/utils/sortByPeriod";
 
 export type PeriodType = {
   start?: string;
@@ -46,6 +48,18 @@ export type ExperienceFormValues = {
   isNew: boolean;
 };
 
+type WorkExperienceInput = {
+  company: string
+  position: string
+  location: [string] | []
+  employment_type: [string] | []
+  period: {
+    start: [string] | []
+    end: [string] | []
+  }
+  description: [string] | []
+}
+
 type ConfirmTypes = {
   remove: boolean;
   leave: boolean;
@@ -57,7 +71,7 @@ interface ExperienceDialogProps {
   open: boolean;
   setOpen: (value: boolean) => void;
   isNew?: boolean;
-  initial: WorkExperienceType
+  initial: WorkExperienceType | undefined | null
 }
 
 const resolver: Resolver<ExperienceFormValues> = async (values) => {
@@ -104,6 +118,9 @@ export function ExperienceDialog({
 
   const finalQueryKey = Array.isArray(queryKey) ? queryKey : [queryKey];
 
+  const { resumidActor, userData } = useAuth();
+  const isNewRef = useRef(isNew);
+
   const [confirm, setConfirm] = useState<ConfirmTypes>({ remove: false, leave: false });
   const handleConfirm = (key: keyof ConfirmTypes) =>
     setConfirm((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -117,21 +134,18 @@ export function ExperienceDialog({
     }
   };
 
-  const initialValues: ExperienceFormValues = useMemo(
-    () => ({
-      company: initial?.company,
-      location: initial?.location,
-      employment_type: initial?.employment_type,
-      position: initial?.position,
-      description: initial?.description,
-      period: {
-        start: toInputDate(initial?.period?.start),
-        end: toInputDate(initial?.period?.end),
-      },
-      isNew,
-    }),
-    [initial, isNew]
-  );
+  const initialValues: ExperienceFormValues = {
+    company: initial?.company,
+    location: initial?.location,
+    employment_type: initial?.employment_type ?? "",
+    position: initial?.position,
+    description: initial?.description,
+    period: {
+      start: toInputDate(initial?.period?.start),
+      end: toInputDate(initial?.period?.end),
+    },
+    isNew: isNewRef.current,
+  }
 
   const {
     register,
@@ -190,33 +204,117 @@ export function ExperienceDialog({
   useEffect(() => {
     if (open) {
       reset(initialValues);
+      isNewRef.current = isNew;
       editor?.commands.setContent(initialValues.description || "", { emitUpdate: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialValues]);
+  }, [open]);
 
-  async function handleUpdateExperience({
+  function validateBefore(id: string) {
+    if (!userData) throw new Error("Error, user data is undefined");
+
+    if (!id) throw new Error("Error, id is invalid or undefined");
+
+    if (userData?.ok?.id.__principal__ !== id) {
+      throw new Error("Error, user is not the owner of this profile");
+    }
+  }
+
+  function mapWorkExperienceInput(data: ExperienceFormValues): WorkExperienceInput {
+    const { company, location, position, employment_type, period, description } = data;
+
+    if (!period?.start) throw new Error("Error, start date is required")
+
+
+    const workExperienceInput: WorkExperienceInput = {
+      company: company ?? "",
+      location: location ? [location] : [],
+      position: position ?? "",
+      employment_type: employment_type ? [employment_type] : [],
+      period: {
+        start: [period.start],
+        end: period.end ? [period.end] : [],
+      },
+      description: description ? [description] : [],
+    };
+
+    return workExperienceInput;
+  }
+
+  async function handleAddExperience({
     id,
     data,
   }: {
-    id: string | number;
+    id: string;
     data: ExperienceFormValues;
   }) {
     try {
-      // TODO: call API with `id` and `data`
-      // Ensure `period.start/end` are already yyyy-MM-dd (they are)
-      // Ensure `description` is HTML from TipTap
-      return { ok: true };
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      const workExperienceInput = mapWorkExperienceInput(data);
+
+      const res = await resumidActor.addWorkExperienceShared(workExperienceInput)
+
+      if ("ok" in res) {
+        return { data }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  async function handleRemoveExperience({ id }: { id: string | number }) {
+  async function handleUpdateExperience({
+    id,
+    itemId,
+    data,
+  }: {
+    id: string;
+    itemId: string;
+    data: ExperienceFormValues;
+  }) {
     try {
-      // TODO: call API to remove this experience by id
-      return { ok: true };
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      if (!itemId) throw new Error("Error, this item does not exists");
+
+      const workExperienceInput = mapWorkExperienceInput(data);
+
+      const res = await resumidActor.editWorkExperienceShared(itemId, workExperienceInput)
+
+      if ("ok" in res) {
+        return { itemId, data }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async function handleRemoveExperience({ id, itemId }: { id: string, itemId: string }) {
+    try {
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      if (!itemId) throw new Error("Error, this item does not exists");
+      console.log("Removing experience")
+
+      const res = await resumidActor.deleteResumeItemShared("workExperience", [itemId]);
+
+      if ("ok" in res) {
+        return { itemId }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
       console.error(error);
       throw error;
@@ -226,18 +324,50 @@ export function ExperienceDialog({
   const queryClient = useQueryClient();
 
   const { mutateAsync: addExperience, isPending: isAdding } = useMutation({
-    mutationFn: async ({ data }: { data: ExperienceFormValues }) => {
-      try {
-        // TODO: call API to add new experience
-        return { ok: true };
-      } catch (error) {
-        console.error(error);
-        throw error;
+    mutationFn: handleAddExperience,
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: finalQueryKey });
+      const previous = queryClient.getQueryData(finalQueryKey);
+
+      const tempId = `temp-${Date.now()}`;
+      const newExperience: WorkExperienceType = {
+        id: tempId,
+        company: data.company ?? "",
+        position: data.position ?? "",
+        location: data.location,
+        employment_type: data.employment_type,
+        description: data.description,
+        period: {
+          start: data?.period?.start,
+          end: data?.period?.end,
+        }
       }
+
+      queryClient.setQueryData(
+        finalQueryKey,
+        (old: { profile: ProfileType; endorsementInfo: any }) =>
+          old
+            ? {
+              ...old,
+              profile: {
+                ...old.profile,
+                resume: {
+                  ...old.profile.resume,
+                  workExperiences: sortByPeriod<WorkExperienceType>([
+                    ...(old.profile.resume?.workExperiences ?? []),
+                    newExperience,
+                  ]),
+                },
+              },
+            }
+            : old
+      );
+
+      return { previous };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Success", description: "Experience added!" });
+      toast({ title: "Success", description: "Experience added!", variant: "success" });
       setOpen(false);
     },
     onError: (error) => {
@@ -249,12 +379,33 @@ export function ExperienceDialog({
     },
   });
 
-  const { mutateAsync: updateExperience, isPending: isSaving } = useMutation({
+  const { mutateAsync: updateExperience, isPending: isUpdating } = useMutation({
     mutationFn: handleUpdateExperience,
-    onMutate: async ({ id, data }) => {
+    onMutate: async ({ id, itemId, data }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previous = queryClient.getQueryData(finalQueryKey);
-      // TODO: optimistic update (optional)
+
+      queryClient.setQueryData(
+        finalQueryKey,
+        (old: { profile: ProfileType; endorsementInfo: any }) =>
+          old
+            ? {
+              ...old,
+              profile: {
+                ...old.profile,
+                resume: {
+                  ...old.profile.resume,
+                  workExperiences: sortByPeriod<WorkExperienceType>(
+                    old.profile.resume?.workExperiences?.map((exp) =>
+                      exp.id === itemId ? { ...exp, ...data } : exp
+                    ) ?? []
+                  ),
+                },
+              },
+            }
+            : old
+      );
+
       return { previous };
     },
     onError: (error, _vars, ctx) => {
@@ -267,17 +418,38 @@ export function ExperienceDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Success", description: "Experience updated!" });
+      toast({ title: "Success", description: "Experience updated!", variant: "success" });
       setOpen(false);
     },
   });
 
   const { mutateAsync: removeExperience, isPending: isRemoving } = useMutation({
     mutationFn: handleRemoveExperience,
-    onMutate: async ({ id }) => {
+    onMutate: async ({ id, itemId }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previous = queryClient.getQueryData(finalQueryKey);
-      // TODO: optimistic remove (optional)
+
+      queryClient.setQueryData(
+        finalQueryKey,
+        (old: { profile: ProfileType; endorsementInfo: any }) =>
+          old
+            ? {
+              ...old,
+              profile: {
+                ...old.profile,
+                resume: {
+                  ...old.profile.resume,
+                  workExperiences: sortByPeriod<WorkExperienceType>(
+                    old.profile.resume?.workExperiences?.filter(
+                      (exp) => exp.id !== itemId
+                    ) ?? []
+                  ),
+                },
+              },
+            }
+            : old
+      );
+
       return { previous };
     },
     onError: (error, _vars, ctx) => {
@@ -290,7 +462,7 @@ export function ExperienceDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Removed", description: "Experience removed." });
+      toast({ title: "Removed", description: "Experience removed.", variant: "success" });
       setOpen(false);
     },
   });
@@ -417,6 +589,9 @@ export function ExperienceDialog({
       </TooltipProvider>
     );
   }
+
+  const isSaving = isAdding || isUpdating;
+
   return (
     <>
       <Dialog
@@ -430,29 +605,29 @@ export function ExperienceDialog({
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto scrollbar">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px] max-h-[80vh] sm:max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">
-              {isNew ? "Add Experience" : "Edit Experience"}
+              {isNewRef.current ? "Add Experience" : "Edit Experience"}
             </DialogTitle>
             <DialogDescription className="font-inter text-paragraph">
-              {isNew ? "Create a new" : "Update your"} work experience item.
+              {isNewRef.current ? "Create a new" : "Update your"} work experience item.
             </DialogDescription>
           </DialogHeader>
 
           <form
             onSubmit={handleSubmit(async (values) => {
-              if (isNew) {
-                await addExperience({ data: values });
+              if (isNewRef.current || !initial) {
+                await addExperience({ id: detail?.userId, data: values });
               } else {
-                await updateExperience({ id: initial.id, data: values });
+                await updateExperience({ id: detail?.userId, itemId: initial.id, data: values });
               }
             })}
             className="grid grid-cols-1 md:grid-cols-2 gap-5 font-inter text-paragraph"
           >
             <Label htmlFor="company" className="space-y-2 col-span-1">
               <p>Company<span className="text-red-500">*</span></p>
-              <Input className="font-normal" id="company" {...register("company")} placeholder="Company name" />
+              <Input className="font-normal text-sm" id="company" {...register("company")} placeholder="Company name" />
               {errors?.company && (
                 <p className="text-sm text-red-500">{errors.company.message}</p>
               )}
@@ -460,7 +635,7 @@ export function ExperienceDialog({
 
             <Label htmlFor="position" className="space-y-2 col-span-1">
               <p>Position<span className="text-red-500">*</span></p>
-              <Input className="font-normal" id="position" {...register("position")} placeholder="e.g., Frontend Engineer" />
+              <Input className="font-normal text-sm" id="position" {...register("position")} placeholder="e.g., Frontend Engineer" />
               {errors?.position && (
                 <p className="text-sm text-red-500">{errors.position.message}</p>
               )}
@@ -468,7 +643,7 @@ export function ExperienceDialog({
 
             <Label htmlFor="location" className="space-y-2 col-span-1">
               <p>Location</p>
-              <Input className="font-normal" id="location" {...register("location")} placeholder="City, Country (optional)" />
+              <Input className="font-normal text-sm" id="location" {...register("location")} placeholder="City, Country (optional)" />
             </Label>
 
             <Label htmlFor="employment_type" className="space-y-2 col-span-1">
@@ -482,7 +657,7 @@ export function ExperienceDialog({
 
                   return (
                     <Select value={field.value || ""} onValueChange={field.onChange}>
-                      <SelectTrigger className="font-normal">
+                      <SelectTrigger className="font-normal text-sm">
                         <SelectValue placeholder="Select employment type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -508,7 +683,7 @@ export function ExperienceDialog({
             <div className="col-span-1">
               <Label htmlFor="period.start" className="space-y-2">
                 <p>Start Date<span className="text-red-500">*</span></p>
-                <Input className="font-normal" type="date" id="period.start" {...register("period.start")} />
+                <Input className="font-normal text-sm" type="date" id="period.start" {...register("period.start")} />
                 {errors.period?.start && (
                   <p className="text-sm text-red-500">{errors.period.start.message}</p>
                 )}
@@ -518,7 +693,7 @@ export function ExperienceDialog({
             <div className="col-span-1">
               <Label htmlFor="period.end" className="space-y-2">
                 <p>End Date</p>
-                <Input className="font-normal" type="date" id="period.end" {...register("period.end")} />
+                <Input className="font-normal text-sm" type="date" id="period.end" {...register("period.end")} />
                 {errors.period?.end && (
                   <p className="text-sm text-red-500">{errors.period.end.message}</p>
                 )}
@@ -549,8 +724,8 @@ export function ExperienceDialog({
               />
             </div>
 
-            <DialogFooter className={cn("gap-2 col-span-1 md:col-span-2", isNew ? "sm:justify-end" : "sm:justify-between")}>
-              {!isNew && (
+            <DialogFooter className={cn("gap-2 col-span-1 md:col-span-2", isNewRef.current ? "sm:justify-end" : "sm:justify-between")}>
+              {!isNewRef.current && (
                 <Button
                   type="button"
                   variant="destructive"
@@ -567,8 +742,8 @@ export function ExperienceDialog({
                   <Button size="sm" variant="grey-outline">Cancel</Button>
                 </DialogClose>
                 <Button size="sm" disabled={isSaving || !isDirty}>
-                  {!isSaving ? isNew ? <Plus /> : <Save /> : <Loader2 className="animate-spin" />}
-                  {isSaving ? isNew ? "Adding..." : "Saving..." : isNew ? "Add Experience" : "Save changes"}
+                  {!isSaving ? isNewRef.current ? <Plus /> : <Save /> : <Loader2 className="animate-spin" />}
+                  {isSaving ? isNewRef.current ? "Adding..." : "Saving..." : isNewRef.current ? "Add Experience" : "Save changes"}
                 </Button>
               </div>
             </DialogFooter>
@@ -577,7 +752,7 @@ export function ExperienceDialog({
       </Dialog>
 
       {/* Remove confirm */}
-      {!isNew && <Dialog open={confirm.remove} onOpenChange={() => handleConfirm("remove")} modal>
+      {!isNewRef.current && initial && <Dialog open={confirm.remove} onOpenChange={() => handleConfirm("remove")} modal>
         <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="font-inter text-base text-heading">
@@ -587,7 +762,7 @@ export function ExperienceDialog({
               This action cannot be undone. Are you sure you want to remove this experience?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" variant="grey-outline">Cancel</Button>
             </DialogClose>
@@ -595,7 +770,7 @@ export function ExperienceDialog({
               size="sm"
               variant="destructive"
               onClick={async () => {
-                await removeExperience({ id: initial.id });
+                await removeExperience({ id: detail?.userId, itemId: initial.id });
                 handleConfirm("remove");
               }}
               disabled={isRemoving}
@@ -618,7 +793,7 @@ export function ExperienceDialog({
               You have unsaved changes, are you sure you want to discard them?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" variant="grey-outline">Cancel</Button>
             </DialogClose>
