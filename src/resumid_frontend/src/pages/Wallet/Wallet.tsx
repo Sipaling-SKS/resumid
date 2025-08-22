@@ -1,45 +1,61 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Wallet as WalletIcon, Copy, CheckCircle } from "lucide-react";
 import { useWallet } from "@/hooks/useWallet";
 import WalletCard from "@/components/parts/WalletCard";
 // import { Card, CardContent } from "@/components/ui/card";
 import TransactionHistory from "@/components/parts/TransactionHistory";
 import BuyPackageDialog from "@/components/parts/BuyPackageDialog";
-import PromotionDialog from  "@/components/parts/PromotionDialog";
+import PromotionDialog from "@/components/parts/PromotionDialog";
 import SkeletonWallet from "@/components/parts/skeleton/SkeletonWallet";
 import { useToast } from "@/hooks/useToast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { TokenEntry } from "../../../../declarations/resumid_backend/resumid_backend.did";
 
 export default function Wallet() {
   const {
-    data: walletData,
     isLoading,
     error,
-    buyPackage,
-    applyPromotion,
-    refetch
+    // buyPackage,
+    // applyPromotion,
   } = useWallet();
+
+  const { userData, loading: userDataLoading, resumidActor } = useAuth();
 
   const [buyPackageOpen, setBuyPackageOpen] = useState(false);
   const [promotionOpen, setPromotionOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
+  const fetchTokenEntries = async () => {
+    const result: TokenEntry[] = await resumidActor.getUserTokenEntries();
+    console.log(result);
+    return result;
+  }
+
+  const { data: tokenEntries, isLoading: loadingTokenEntries, error: tokenEntriesError } = useQuery({
+    initialData: [],
+    queryKey: ['token-entries', userData.name],
+    queryFn: () => fetchTokenEntries(),
+    // staleTime: 5 * 60 * 1000,
+    // gcTime: 10 * 60 * 1000,
+  })
+  
+
   const handleBuyPackage = async (packageId: string, amount: number) => {
-    try {
-      await buyPackage(packageId, amount);
-      await refetch();
-    } catch (error) {
-      console.error("Failed to buy package:", error);
-    }
+    // try {
+    //   await buyPackage(packageId, amount);
+    // } catch (error) {
+    //   console.error("Failed to buy package:", error);
+    // }
   };
 
   const handlePromotion = async (promotionCode: string) => {
-    try {
-      await applyPromotion(promotionCode);
-      await refetch();
-    } catch (error) {
-      console.error("Failed to apply promotion:", error);
-    }
+    // try {
+    //   await applyPromotion(promotionCode);
+    // } catch (error) {
+    //   console.error("Failed to apply promotion:", error);
+    // }
   };
 
   const handleCopyAddress = async (address: string) => {
@@ -64,7 +80,7 @@ export default function Wallet() {
     console.log("Navigate to full history page");
   };
 
-  if (isLoading) {
+  if (userDataLoading || loadingTokenEntries) {
     return (
       <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
         <div className="container mx-auto px-3 sm:px-4 max-w-4xl">
@@ -81,7 +97,7 @@ export default function Wallet() {
     );
   }
 
-  if (error || !walletData) {
+  if (error || !userData) {
     return (
       <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
         <div className="container mx-auto px-3 sm:px-4 max-w-4xl">
@@ -97,7 +113,7 @@ export default function Wallet() {
               {error || "Failed to load wallet data"}
             </p>
             <button
-              onClick={refetch}
+              // onClick={refetch}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm sm:text-base"
             >
               Try Again
@@ -123,9 +139,9 @@ export default function Wallet() {
         {/* Wallet Card */}
         <div className="mb-6 sm:mb-8">
           <WalletCard
-            userName={walletData.userName}
-            icpAddress={walletData.icpAddress}
-            balance={walletData.balance}
+            userName={userData.ok.name}
+            icpAddress={userData.ok.depositAddr}
+            balance={userData.ok.token}
             onBuyPackage={() => setBuyPackageOpen(true)}
             onPromotion={() => setPromotionOpen(true)}
           />
@@ -134,7 +150,7 @@ export default function Wallet() {
         {/* Transaction History */}
         <div className="mb-6 sm:mb-8">
           <TransactionHistory
-            transactions={walletData.transactions}
+            transactions={tokenEntries}
             onViewAll={handleViewAllHistory}
           />
         </div>

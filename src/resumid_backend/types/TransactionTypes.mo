@@ -1,6 +1,7 @@
 import HashMap "mo:base/HashMap";
 import Principal "mo:base/Principal";
 import Text "mo:base/Text";
+import Int32 "mo:base/Int32";
 import PackageTypes "PackageTypes";
 
 module TransactionTypes {
@@ -18,8 +19,16 @@ module TransactionTypes {
 
   public type TokenEntry = {
     entryNo: Nat;
+    entryType: TokenEntryType;
     description : Text;
     timestamp: Text;
-    quantity: Nat;
+    quantity: Int32;
   };
+  
+  public type TokenEntryType = {
+    #initial;
+    #analyze;
+    #buy;
+    #sub;
+  }
 };

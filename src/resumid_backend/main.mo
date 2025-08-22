@@ -3,7 +3,6 @@ import HashMap "mo:base/HashMap";
 import Result "mo:base/Result";
 import Text "mo:base/Text";
 import Debug "mo:base/Debug";
-import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
 import Int "mo:base/Int";
 import Time "mo:base/Time";
@@ -14,7 +13,6 @@ import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import { JSON } = "mo:serde";
 import DateHelper "helpers/DateHelper";
-
 
 import GptTypes "types/GptTypes";
 import GptServices "services/GptServices";
@@ -27,7 +25,6 @@ import GeminiTypes "types/GeminiTypes";
 import UserServices "services/UserServices";
 import PackageServices "services/PackageServices";
 import GeminiServices "services/GeminiServices";
-import DateHelper "helpers/DateHelper";
 import TransactionTypes "types/TransactionTypes";
 import ProfileTypes "types/ProfileTypes";
 import ProfileServices "services/ProfileServices";
@@ -51,7 +48,6 @@ actor Resumid {
     Debug.print("Caller Principal WHOAMI: " # Principal.toText(msg.caller));
     return msg.caller;
   };
-
 
   // public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
   //   let userId = msg.caller;
@@ -90,6 +86,22 @@ actor Resumid {
 
   public shared (msg) func getUserById() : async Result.Result<UserTypes.UserData, Text> {
     let userId = msg.caller;
+
+    Debug.print("Caller Principal for getUserById: " # Principal.toText(userId));
+
+    switch (users.get(userId)) {
+      case (?userData) {
+        return #ok(userData);
+      };
+      case null {
+        return #err("User not found");
+      };
+    };
+  };
+
+  // TODO: Only for development - remove this after function is ready
+  public shared (msg) func getUserByIdDevelopment(userId : Principal) : async Result.Result<UserTypes.UserData, Text> {
+    // let userId = msg.caller;
 
     Debug.print("Caller Principal for getUserById: " # Principal.toText(userId));
 
@@ -266,7 +278,6 @@ actor Resumid {
       };
     };
   };
-
 
   public shared (msg) func GetDraftByUserId() : async [ResumeExtractTypes.ResumeHistoryItem] {
     let userId = Principal.toText(msg.caller);

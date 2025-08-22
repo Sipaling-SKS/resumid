@@ -26,7 +26,7 @@ interface CheckoutDialogProps {
 export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDialogProps) {
   const { toast } = useToast();
   const { isAuthenticated, login } = useAuth();
-  const { hasClaimedTrial, canClaimTrial, refetch, buyPackage } = useWallet();
+  // const { hasClaimedTrial, canClaimTrial, refetch, buyPackage } = useWallet();
   const [agree, setAgree] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -58,8 +58,8 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
     setIsLoading(true);
     try {
       // FE-only: update wallet locally
-      await buyPackage(plan.id, plan.tokens);
-      await refetch();
+      // await buyPackage(plan.id, plan.tokens);
+      // await refetch();
 
       // Backend integration placeholder
       // await fetch("/api/checkout", {
@@ -153,18 +153,19 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
             </div>
 
             {isAuthenticated ? (
-              <Button disabled={!agree || isLoading || (plan?.id === 'trial' && !canClaimTrial())} onClick={() => setConfirmOpen(true)} className="w-full shadow-md" size="lg" variant="gradient">
-                Buy Package
-              </Button>
+              // <Button disabled={!agree || isLoading || (plan?.id === 'trial' && !canClaimTrial())} onClick={() => setConfirmOpen(true)} className="w-full shadow-md" size="lg" variant="gradient">
+              //   Buy Package
+              // </Button>
+              <></>
             ) : (
-              <Button onClick={login} className="w-full shadow-md" size="lg" variant="gradient">
+              <Button onClick={()=> login()} className="w-full shadow-md" size="lg" variant="gradient">
                 Sign in to Buy
               </Button>
             )}
 
-            {plan?.id === 'trial' && hasClaimedTrial && (
+            {/* {plan?.id === 'trial' && hasClaimedTrial && (
               <p className="text-sm text-red-500 font-inter text-center">You have already claimed the Trial package.</p>
-            )}
+            )} */}
           </div>
         )}
         </DialogContent>

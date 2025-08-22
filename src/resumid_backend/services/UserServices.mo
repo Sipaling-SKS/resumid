@@ -4,6 +4,7 @@ import Principal "mo:base/Principal";
 import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import Result "mo:base/Result";
+import Array "mo:base/Array";
 import DateHelper "../helpers/DateHelper";
 import TransactionTypes "../types/TransactionTypes";
 import GlobalHelper "../helpers/GlobalHelper";
@@ -46,6 +47,7 @@ module UserService {
           entryNo = entryNo;
           description = "Initial trial token";
           timestamp = DateHelper.formatTimestamp(timestamp);
+          entryType = #initial;
           quantity = 3;
         };
         switch (tokenEntries.get(userId)) {
