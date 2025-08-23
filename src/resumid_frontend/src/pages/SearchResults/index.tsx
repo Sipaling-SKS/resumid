@@ -5,82 +5,62 @@ import SkeletonProfileCard from "@/components/parts/skeleton/SkeletonProfileCard
 import { Search, SearchX, RefreshCw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { useRef, useEffect } from "react";
+import { SearchResult } from "../../../../declarations/resumid_backend/resumid_backend.did";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Static mock data for testing
-const MOCK_PEOPLE = [
-  {
-    id: "2",
-    name: "Michael Chen",
-    role: "Full Stack Engineer",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    endorsements: [1]
-  },
-  {
-    id: "3",
-    name: "Emily Rodriguez",
-    role: "UX/UI Designer",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-    endorsements: [1, 2, 3, 4, 5, 6]
-  },
-  {
-    id: "4",
-    name: "David Kim",
-    role: "DevOps Engineer",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    endorsements: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-  },
-  {
-    id: "5",
-    name: "Lisa Thompson",
-    role: "Product Manager",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
-    endorsements: []
-  },
-  {
-    id: "6",
-    name: "Alex Martinez",
-    role: "Data Scientist",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-    endorsements: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-  }
-];
+async function searchPeople(resumidActor: any, query: string) {
+  const basePinataUrl: string = import.meta.env.VITE_PINATA_GATEWAY_URL;
 
-async function searchPeople(query: string) {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
-  
-  if (Math.random() < 0.1) {
-    throw new Error('Search service temporarily unavailable');
+  if (!resumidActor) {
+    throw new Error('Backend actor not available');
   }
-  
-  const filteredPeople = MOCK_PEOPLE.filter(person => 
-    person.name.toLowerCase().includes(query.toLowerCase()) ||
-    person.role.toLowerCase().includes(query.toLowerCase())
-  );
-  
-  return filteredPeople;
+
+  if (!query.trim()) {
+    return [];
+  }
+
+  try {
+    const results: SearchResult[] = await resumidActor.searchProfiles(query);
+
+    return results.map(result => {
+      const name = result.profileDetail?.[0]?.name?.[0] || 'Unknown User';
+
+      const avatarCid = result.profileDetail?.[0]?.profileCid?.[0] || null;
+      const avatarUrl = avatarCid ? `${basePinataUrl}/ipfs/${avatarCid}` : null;
+
+      return {
+        id: result.userId,
+        name: name,
+        role: result.profileDetail?.[0]?.current_position?.[0] || 'No position specified',
+        image: avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=225adf&color=f4f4f4&size=150`,
+        endorsements: result.endorsements?.[0] ? result.endorsements[0].map((_, index) => index) : []
+      };
+    });
+  } catch (error) {
+    console.error('Backend search error:', error);
+    throw new Error('Failed to search profiles');
+  }
 }
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const query = searchParams.get('q') || '';
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
-  
+  const { resumidActor } = useAuth();
+
   const {
     data: people = [],
     isLoading,
     error,
     refetch
   } = useQuery({
-    queryKey: ['searchPeople', query],
-    queryFn: () => searchPeople(query),
-    enabled: !!query,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    queryKey: ['searchProfiles', query],
+    queryFn: () => searchPeople(resumidActor, query),
+    enabled: !!query && !!resumidActor,
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
   });
-  
+
   const profileText = people.length <= 1 ? 'profile' : 'profiles';
 
   const handleProfileClick = (id: string) => {
@@ -91,7 +71,7 @@ export default function SearchResults() {
     refetch();
   };
 
-  const handleTryNewSearch = () => {   
+  const handleTryNewSearch = () => {
     setTimeout(() => {
       const searchInput = document.querySelector('input[placeholder*="search"], input[placeholder*="Search"]') as HTMLInputElement;
       if (searchInput) {
@@ -105,17 +85,17 @@ export default function SearchResults() {
     if (isLoading) {
       return (
         <span className="inline-flex items-center">
-          <span className="text-2xl md:text-3xl font-bold text-primary-600 bg-gray-200 rounded animate-pulse" style={{width: '0.75em', height: '1em', display: 'inline-block'}}></span>
+          <span className="text-2xl md:text-3xl font-bold text-primary-600 bg-gray-200 rounded animate-pulse" style={{ width: '0.75em', height: '1em', display: 'inline-block' }}></span>
         </span>
       );
     }
-    
+
     if (error) {
       return (
         <span className="text-2xl md:text-3xl font-bold text-red-500">--</span>
       );
     }
-    
+
     return (
       <span className="text-2xl md:text-3xl font-bold text-primary-600">{people.length}</span>
     );
@@ -134,7 +114,7 @@ export default function SearchResults() {
             <h1 className="text-xl md:text-2xl font-semibold text-heading font-outfit text-center">
               Search Results
             </h1>
-             {(!error && people.length > 0) && (
+            {(isLoading || (!error && people.length > 0)) && (
               <p className="text-center text-paragraph font-inter">
                 Found <CountDisplay /> {profileText} with the keyword of <em className="italic text-heading">{query}</em>
               </p>
@@ -159,7 +139,7 @@ export default function SearchResults() {
                 <p className="text-paragraph font-inter text-center mb-6 max-w-md">
                   {error.message || 'Something went wrong while searching. Please try again.'}
                 </p>
-                <Button 
+                <Button
                   onClick={handleRetry}
                   variant="gradient"
                   className="inline-flex items-center gap-2"
@@ -189,7 +169,7 @@ export default function SearchResults() {
                 <p className="text-sm text-paragraph font-inter text-center mb-6">
                   Please try again with another keyowrd.
                 </p>
-                <Button 
+                <Button
                   onClick={handleTryNewSearch}
                   variant="gradient"
                   className="inline-flex items-center gap-2"

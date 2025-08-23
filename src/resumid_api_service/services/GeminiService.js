@@ -375,13 +375,13 @@ const ExtractResume = async (req) => {
     await new TrGeminiRequestLog({
       idempotency_key: req.headers["idempotency-key"],
       gemini_request: JSON.stringify(req.body),
-      gemini_response: JSON.stringify(parsedResponseRaw),
+      gemini_response: JSON.stringify(parsedResponseCleaned),
       expired_date,
       created_at: now,
       updated_at: now,
     }).save();
 
-    return parsedResponseRaw;
+    return parsedResponseCleaned;
 
   } catch (err) {
     console.error("ExtractResume error:", err);

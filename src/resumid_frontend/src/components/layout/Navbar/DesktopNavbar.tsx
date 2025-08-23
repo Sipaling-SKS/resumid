@@ -2,7 +2,7 @@ import Logo from "@/assets/logo-black.svg";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn, scrollTo, scrollToTop } from "@/lib/utils";
 import { NavLink, replace } from "react-router";
-import { LogIn, LogOut, User2 as ProfileIcon, ArrowLeft } from "lucide-react";
+import { LogIn, LogOut, User2 as ProfileIcon, ArrowLeft, Wallet } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -78,6 +78,13 @@ function DesktopNavbar({ navigate }: any) {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/profile/${userData?.profile.profileId}`)}>
                   <ProfileIcon />
                   Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => navigate("/wallet")}
+                >
+                  <Wallet />
+                  Wallet
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-500" onClick={logout}>
                   <LogOut />
@@ -230,6 +237,13 @@ function DesktopNavbar({ navigate }: any) {
               <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/profile/${userData?.profile.profileId}`)}>
                 <ProfileIcon />
                 Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => navigate("/wallet")}
+              >
+                <Wallet />
+                Wallet
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-500" onClick={logout}>
                 <LogOut />
