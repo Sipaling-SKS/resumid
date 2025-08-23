@@ -12,6 +12,7 @@ import Float "mo:base/Float";
 import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import { JSON } = "mo:serde";
+import Error "mo:base/Error";
 
 import GptTypes "types/GptTypes";
 import GptServices "services/GptServices";
@@ -258,35 +259,12 @@ actor Resumid {
     };
   };
 
-
   public shared (msg) func GetDraftByUserId() : async [ResumeExtractTypes.ResumeHistoryItem] {
     let userId = Principal.toText(msg.caller);
 
     switch (draftMap.get(userId)) {
       case null { [] };
       case (?arr) { arr };
-    };
-  };
-
-  public shared (msg) func getProfileByUserId() : async {
-    profile : ?ProfileTypes.Profile;
-    endorsementInfo : [{ name : ?Text; avatar : ?Text }];
-  } {
-    let userId = Principal.toText(msg.caller);
-    let result = await ProfileServices.getProfileByUserId(profiles, userId);
-    switch (result) {
-      case (?data) {
-        return {
-          profile = ?data.profile;
-          endorsementInfo = data.endorsementInfo;
-        };
-      };
-      case null {
-        return {
-          profile = null;
-          endorsementInfo = [];
-        };
-      };
     };
   };
 
@@ -424,31 +402,21 @@ actor Resumid {
   // ==============================
   // Profile Management Methods
   // ==============================
-  // public shared (msg) func createProfile(
-  //   profileData : ?{
-  //     name : ?Text;
-  //     profileCid : ?Text;
-  //     bannerCid : ?Text;
-  //     current_position : ?Text;
-  //     description : ?Text;
-  //   }
-  // ) : async Result.Result<Text, Text> {
-  //   let userId = Principal.toText(msg.caller);
-  //   return await ProfileServices.createUserProfile(profiles, userId, profileData);
-  // };
-
-  public shared (msg) func getProfileById(profileId : Text) : async {
-    profile : ?ProfileTypes.Profile;
-    endorsementInfo : [{ name : ?Text; avatar : ?Text }];
-  } {
+  public shared (msg) func getProfileById(profileId : Text) : async Result.Result<ProfileTypes.ProfileWithEndorsements, Text> {
     switch (await ProfileServices.getProfileByProfileId(profiles, profileId)) {
-      case (?data) {
-        {
-          profile = ?data.profile;
-          endorsementInfo = data.endorsementInfo;
-        };
-      };
-      case null { { profile = null; endorsementInfo = [] } };
+      case (?data) { #ok(data) };
+      case null { #err("Profile not found") };
+    };
+  };
+
+  public shared (msg) func getProfileByUserId() : async Result.Result<ProfileTypes.ProfileWithEndorsements, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot access profiles");
+    };
+    let userId = Principal.toText(msg.caller);
+    switch (await ProfileServices.getProfileByUserId(profiles, userId)) {
+      case (?data) { #ok(data) };
+      case null { #err("Profile not found") };
     };
   };
 
