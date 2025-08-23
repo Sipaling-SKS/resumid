@@ -8,83 +8,84 @@ import Error "mo:base/Error";
 
 import DateHelper "../helpers/DateHelper";
 import ProfileTypes "../types/ProfileTypes";
+import Buffer "mo:base/Buffer";
 
 module ProfileServices {
 
-  // utils
-  // public func getProfileByProfileId(
-  //   profiles : ProfileTypes.Profiles,
-  //   profileId : Text,
-  // ) : async ?ProfileTypes.Profile {
-  //   for ((_, profile) in profiles.entries()) {
-  //     if (profile.profileId == profileId) {
-  //       return ?profile;
-  //     };
-  //   };
-  //   return null;
-  // };
-
-  // public func getProfileByUserId(
-  //   profiles : ProfileTypes.Profiles,
-  //   userId : Text,
-  // ) : async ?ProfileTypes.Profile {
-  //   switch (profiles.get(userId)) {
-  //     case null { return null };
-  //     case (?profile) { return ?profile };
-  //   };
-  // };
-
+  //utils
   public func getProfileByProfileId(
     profiles : ProfileTypes.Profiles,
     profileId : Text,
-  ) : async ?{
-    profile : ProfileTypes.Profile;
-    endorsementInfo : [{
-      name : ?Text;
-      avatar : ?Text;
-    }];
-  } {
+  ) : async ?ProfileTypes.ProfileWithEndorsements {
     for ((_, profile) in profiles.entries()) {
       if (profile.profileId == profileId) {
         let endorsementInfo = switch (profile.endorsements) {
           case (?endorsementIds) {
-            getEndorsementBasicInfo(profiles, endorsementIds);
+            ?getEndorsementBasicInfo(profiles, endorsementIds);
           };
-          case null { [] };
+          case null { null };
+        };
+
+        let endorsedProfilesInfo = switch (profile.endorsedProfiles) {
+          case (?endorsedIds) {
+            ?getEndorsementBasicInfo(profiles, endorsedIds);
+          };
+          case null { null };
         };
 
         return ?{
-          profile = profile;
+          profile = {
+            userId = profile.userId;
+            profileId = profile.profileId;
+            profileDetail = profile.profileDetail;
+            contact = profile.contact;
+            resume = profile.resume;
+            certifications = profile.certifications;
+            createdAt = profile.createdAt;
+            updatedAt = profile.updatedAt;
+          };
           endorsementInfo = endorsementInfo;
+          endorsedProfilesInfo = endorsedProfilesInfo;
         };
       };
     };
-    return null;
+    null;
   };
 
   public func getProfileByUserId(
     profiles : ProfileTypes.Profiles,
     userId : Text,
-  ) : async ?{
-    profile : ProfileTypes.Profile;
-    endorsementInfo : [{
-      name : ?Text;
-      avatar : ?Text;
-    }];
-  } {
+  ) : async ?ProfileTypes.ProfileWithEndorsements {
     switch (profiles.get(userId)) {
-      case null { return null };
+      case null { null };
       case (?profile) {
         let endorsementInfo = switch (profile.endorsements) {
           case (?endorsementIds) {
-            getEndorsementBasicInfo(profiles, endorsementIds);
+            ?getEndorsementBasicInfo(profiles, endorsementIds);
           };
-          case null { [] };
+          case null { null };
         };
 
-        return ?{
-          profile = profile;
+        let endorsedProfilesInfo = switch (profile.endorsedProfiles) {
+          case (?endorsedIds) {
+            ?getEndorsementBasicInfo(profiles, endorsedIds);
+          };
+          case null { null };
+        };
+
+        ?{
+          profile = {
+            userId = profile.userId;
+            profileId = profile.profileId;
+            profileDetail = profile.profileDetail;
+            contact = profile.contact;
+            resume = profile.resume;
+            certifications = profile.certifications;
+            createdAt = profile.createdAt;
+            updatedAt = profile.updatedAt;
+          };
           endorsementInfo = endorsementInfo;
+          endorsedProfilesInfo = endorsedProfilesInfo;
         };
       };
     };
@@ -93,21 +94,20 @@ module ProfileServices {
   public func getEndorsementBasicInfo(
     profiles : ProfileTypes.Profiles,
     endorsementUserIds : [Text],
-  ) : [{
-    name : ?Text;
-    avatar : ?Text;
-  }] {
-    var results : [{
-      name : ?Text;
-      avatar : ?Text;
-    }] = [];
+  ) : [ProfileTypes.EndorsementBasicInfo] {
+    var results : [ProfileTypes.EndorsementBasicInfo] = [];
 
     for (userId in endorsementUserIds.vals()) {
       switch (profiles.get(userId)) {
         case (?profile) {
           let name = switch (profile.profileDetail) {
-            case (?detail) { detail.name };
-            case null { null };
+            case (?detail) {
+              switch (detail.name) {
+                case (?n) { n };
+                case null { "" };
+              };
+            };
+            case null { "" };
           };
 
           let avatar = switch (profile.profileDetail) {
@@ -115,66 +115,22 @@ module ProfileServices {
             case null { null };
           };
 
-          let endorsementInfo = {
+          let endorsementInfo : ProfileTypes.EndorsementBasicInfo = {
+            profileId = profile.profileId;
             name = name;
             avatar = avatar;
           };
+
           results := Array.append(results, [endorsementInfo]);
         };
         case null {};
       };
     };
-
     results;
   };
 
-  // create a new user profile
-  // public func createUserProfile(
-  //   profileMap : ProfileTypes.Profiles,
-  //   userId : Text,
-  //   profileDetailInput : ?{
-  //     name : ?Text;
-  //     profileCid : ?Text;
-  //     bannerCid : ?Text;
-  //     current_position : ?Text;
-  //     description : ?Text;
-  //   },
-  // ) : async Result.Result<Text, Text> {
-  //   switch (profileMap.get(userId)) {
-  //     case (?_) { return #err("Profile already exists for this user") };
-  //     case null {
-  //       let entropy = await Random.blob();
-  //       let profileId = UUID.generateV4(entropy);
-  //       let newProfile : ProfileTypes.Profile = {
-  //         userId = userId;
-  //         profileId = profileId;
-  //         profileDetail = switch (profileDetailInput) {
-  //           case null { null };
-  //           case (?input) {
-  //             ?{
-  //               name = input.name;
-  //               profileCid = input.profileCid;
-  //               bannerCid = input.bannerCid;
-  //               current_position = input.current_position;
-  //               description = input.description;
-  //             };
-  //           };
-  //         };
-  //         contact = null;
-  //         resume = null;
-  //         certificatons = null;
-  //         endorsements = null;
-  //         endorsedProfiles = null;
-  //         createdAt = DateHelper.formatTimestamp(Time.now());
-  //         updatedAt = DateHelper.formatTimestamp(Time.now());
-  //       };
-
-  //       profileMap.put(userId, newProfile);
-  //       return #ok("User profile created successfully");
-  //     };
-  //   };
-  // };
-
+  
+  // Profile management functions
   public func createUserProfile(
     profileMap : ProfileTypes.Profiles,
     userId : Text,
@@ -196,7 +152,7 @@ module ProfileServices {
           };
           contact = null;
           resume = null;
-          certificatons = null;
+          certifications = null;
           endorsements = null;
           endorsedProfiles = null;
           createdAt = DateHelper.formatTimestamp(Time.now());
@@ -278,7 +234,6 @@ module ProfileServices {
       return #err("Failed to update profile: " # Error.message(error));
     };
 
-    
   };
 
   public func updateProfilePicture(
@@ -809,7 +764,7 @@ module ProfileServices {
       case (?profile) profile;
     };
 
-    let currentCertifications = switch (profile.certificatons) {
+    let currentCertifications = switch (profile.certifications) {
       case null { [] };
       case (?certs) certs;
     };
@@ -854,7 +809,7 @@ module ProfileServices {
       case (?profile) profile;
     };
 
-    let certificationsArray = switch (profile.certificatons) {
+    let certificationsArray = switch (profile.certifications) {
       case null { return #err("No certifications found") };
       case (?certs) certs;
     };
@@ -897,7 +852,7 @@ module ProfileServices {
       case (?profile) profile;
     };
 
-    let certificationsArray = switch (profile.certificatons) {
+    let certificationsArray = switch (profile.certifications) {
       case null { return #err("No certifications to delete") };
       case (?certs) certs;
     };
@@ -1208,6 +1163,8 @@ module ProfileServices {
       };
     };
   };
+
+ 
 
   public func removeEndorsedProfile(
     profileMap : ProfileTypes.Profiles,

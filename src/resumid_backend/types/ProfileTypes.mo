@@ -73,21 +73,44 @@ module ProfileTypes {
     educations : ?[Education];
     skills : ?Skills;
   };
-  
+
   public type SearchResult = {
     userId : Text;
     profileId : Text;
     profileDetail : ?ProfileTypes.ProfileDetail;
     endorsements : ?[Text];
   };
-  
+
+  public type EndorsementBasicInfo = {
+    profileId : Text;
+    name : Text;
+    avatar : ?Text;
+  };
+
+  public type ProfileWithEndorsements = {
+    profile : SanitizedProfile;
+    endorsementInfo : ?[EndorsementBasicInfo];
+    endorsedProfilesInfo : ?[EndorsementBasicInfo];
+  };
+
+  public type SanitizedProfile = {
+    userId : Text;
+    profileId : Text;
+    profileDetail : ?ProfileDetail;
+    contact : ?ContactInfo;
+    resume : ?ResumeData;
+    certifications : ?[Certificate];
+    createdAt : Text;
+    updatedAt : Text;
+  };
+
   public type Profile = {
     userId : Text;
     profileId : Text;
     profileDetail : ?ProfileDetail;
     contact : ?ContactInfo;
     resume : ?ResumeData;
-    certificatons : ?[Certificate];
+    certifications : ?[Certificate];
     endorsements : ?[Text];
     endorsedProfiles : ?[Text];
     createdAt : Text;
