@@ -225,16 +225,21 @@ export function CertificationDialog({
         credential_url: data.credential_url
       }
 
-      queryClient.setQueryData(finalQueryKey, (old: ProfileType | undefined) =>
-        old
-          ? {
-            ...old,
-            certifications: [
-              ...old?.certifications ?? [],
-              newCertification,
-            ]
-          }
-          : old
+      queryClient.setQueryData(
+        finalQueryKey,
+        (old: { profile: ProfileType; endorsementInfo: any }) =>
+          old
+            ? {
+              ...old,
+              profile: {
+                ...old.profile,
+                certifications: [
+                  ...old?.profile?.certifications ?? [],
+                  newCertification,
+                ]
+              },
+            }
+            : old
       );
 
       return { previous };
@@ -259,15 +264,18 @@ export function CertificationDialog({
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previous = queryClient.getQueryData(finalQueryKey);
 
-      queryClient.setQueryData(finalQueryKey, (old: ProfileType | undefined) =>
+      queryClient.setQueryData(finalQueryKey, (old: { profile: ProfileType; endorsementInfo: any }) =>
         old
           ? {
             ...old,
-            certifications: old?.certifications?.map((cert) =>
-              cert.id === itemId
-                ? { ...cert, ...data }
-                : cert
-            ) ?? [],
+            profile: {
+              ...old.profile,
+              certifications: old?.profile?.certifications?.map((cert) =>
+                cert.id === itemId
+                  ? { ...cert, ...data }
+                  : cert
+              ) ?? [],
+            }
           }
           : old
       );
@@ -295,13 +303,16 @@ export function CertificationDialog({
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previous = queryClient.getQueryData(finalQueryKey);
 
-      queryClient.setQueryData(finalQueryKey, (old: ProfileType | undefined) =>
+      queryClient.setQueryData(finalQueryKey, (old: { profile: ProfileType; endorsementInfo: any }) =>
         old
           ? {
             ...old,
-            certifications: old?.certifications?.filter(
-              (cert) => cert.id !== itemId
-            ) ?? [],
+            profile: {
+              ...old.profile,
+              certifications: old?.profile?.certifications?.filter(
+                (cert) => cert.id !== itemId
+              ) ?? [],
+            }
           }
           : old
       );
@@ -417,7 +428,7 @@ export function CertificationDialog({
               This action cannot be undone. Are you sure you want to remove this certification?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" variant="grey-outline">Cancel</Button>
             </DialogClose>
@@ -448,7 +459,7 @@ export function CertificationDialog({
               You have unsaved changes, are you sure you want to discard them?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" variant="grey-outline">Cancel</Button>
             </DialogClose>

@@ -208,9 +208,7 @@ export default function ProfileDetail() {
     )
   }
 
-  if (!profileDetail) return null;
-
-  const isOwner = !isLoading ? profileDetail.userId === userData?.ok?.id?.__principal__ : false;
+  const isOwner = !isLoading ? profileDetail!.userId === userData?.ok?.id?.__principal__ : false;
 
   console.log(profileDetail);
 
@@ -241,14 +239,14 @@ export default function ProfileDetail() {
     <>
       <Helmet>
         <meta charSet="utf-8" />
-        <title>{`${!isLoading && profileDetail?.profileDetail ? profileDetail.profileDetail.name : "Profile"} | Resumid`}</title>
+        <title>{`${!isLoading && profileDetail?.profileDetail ? profileDetail!.profileDetail!.name : "Profile"} | Resumid`}</title>
         <meta name="description" content={`Analysis details for {Name Placeholder}`} />
       </Helmet>
 
       <div className="min-h-screen">
         <ProfileHeader
           queryKey={[KEY, id]}
-          detail={profileDetail}
+          detail={profileDetail!}
           loading={isLoading}
           isOwner={isOwner}
           isNewUser={isNewUser}
@@ -263,7 +261,7 @@ export default function ProfileDetail() {
           <div className="flex-shrink-0 sm:min-w-[180px] sm:max-w-[280px] w-full flex flex-col gap-6">
             {(profileDetail?.resume?.skills?.length ?? 0) > 0 && (
               <ProfileSkills
-                detail={profileDetail}
+                detail={profileDetail!}
                 loading={isLoading}
                 isOwner={isOwner}
                 onEdit={() => handleOpen("skills")}
@@ -278,14 +276,14 @@ export default function ProfileDetail() {
           </div>
           <div className="flex-1 flex flex-col gap-6">
             <ProfileAbout
-              detail={profileDetail}
+              detail={profileDetail!}
               loading={isLoading}
               isOwner={isOwner}
               onEdit={() => handleOpen("summary")}
             />
             {(profileDetail?.resume?.workExperiences?.length ?? 0) > 0 && (
               <ProfileExperience
-                detail={profileDetail}
+                detail={profileDetail!}
                 isOwner={isOwner}
                 loading={isLoading}
                 onAdd={() => {
@@ -300,7 +298,7 @@ export default function ProfileDetail() {
             )}
             {(profileDetail?.resume?.educations?.length ?? 0) > 0 && (
               <ProfileEducation
-                detail={profileDetail}
+                detail={profileDetail!}
                 isOwner={isOwner}
                 loading={isLoading}
                 onAdd={() => {
@@ -315,7 +313,7 @@ export default function ProfileDetail() {
             )}
             {(profileDetail?.certifications?.length ?? 0) > 0 && (
               <ProfileCertification
-                detail={profileDetail}
+                detail={profileDetail!}
                 isOwner={isOwner}
                 loading={isLoading}
                 onAdd={() => {
@@ -334,14 +332,14 @@ export default function ProfileDetail() {
           open={open.skills}
           setOpen={() => handleOpen("skills")}
           queryKey={[KEY, id]}
-          detail={profileDetail}
+          detail={profileDetail!}
           isNew={!profileDetail?.resume?.skills}
         />
         <AboutDialog
           open={open.summary}
           setOpen={() => handleOpen("summary")}
           queryKey={[KEY, id]}
-          detail={profileDetail}
+          detail={profileDetail!}
           isNew={!profileDetail?.resume?.summary}
         />
         <ExperienceDialog
@@ -350,7 +348,7 @@ export default function ProfileDetail() {
           queryKey={[KEY, id]}
           isNew={!selected.workExperiences}
           initial={selectedExperience}
-          detail={profileDetail}
+          detail={profileDetail!}
         />
         <EducationDialog
           open={open.educations}
@@ -358,7 +356,7 @@ export default function ProfileDetail() {
           queryKey={[KEY, id]}
           isNew={!selected.educations}
           initial={selectedEducation}
-          detail={profileDetail}
+          detail={profileDetail!}
         />
         <CertificationDialog
           open={open.certifications}
@@ -366,7 +364,7 @@ export default function ProfileDetail() {
           queryKey={[KEY, id]}
           isNew={!selected.certifications}
           initial={selectedCertification}
-          detail={profileDetail}
+          detail={profileDetail!}
         />
       </div >
     </>

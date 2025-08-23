@@ -12,6 +12,8 @@ import { ProfileType } from "@/types/profile-types";
 import { ProfileHeaderSkeleton } from "./Skeleton/ProfileHeaderSkeleton";
 
 import BannerPlaceholder from "@/assets/banner_placeholder.jpg"
+import { useImageLoader } from "@/hooks/useImageLoader";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type OpenTypes = {
   avatar: boolean;
@@ -33,11 +35,11 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
 
   const avatarCid = detail?.profileDetail?.profileCid || null;
   const avatarUrl = avatarCid ? `${basePinataUrl}/ipfs/${avatarCid}` : null;
-  console.log(avatarUrl);
+  const avatar = useImageLoader();
 
   const bannerCid = detail?.profileDetail?.bannerCid || null;
   const bannerUrl = bannerCid ? `${basePinataUrl}/ipfs/${bannerCid}` : null;
-  console.log(bannerUrl);
+  const banner = useImageLoader();
 
   const [open, setOpen] = useState<OpenTypes>({
     avatar: false,
@@ -49,6 +51,13 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
     setOpen((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
+  const isEmptySection = (value: unknown): boolean => {
+    if (value === null || value === undefined) return true;
+    if (typeof value === "string") return value.trim().length === 0;
+    if (Array.isArray(value)) return value.length === 0;
+    return false;
+  }
+
   const availableSections = [
     { key: "summary", label: "About" },
     { key: "workExperiences", label: "Work Experiences" },
@@ -57,11 +66,14 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
     { key: "certifications", label: "Certifications" }
   ];
 
+  const sectionValues = { ...detail?.resume, certifications: detail?.certifications } as Record<string, unknown>;
+
   const addedSections = availableSections.filter(
-    section => ({...detail?.resume, certifications: detail?.certifications } as Record<string, unknown>)?.[section.key]
+    (section) => !isEmptySection(sectionValues?.[section.key])
   );
+
   const notAddedSections = availableSections.filter(
-    section => !({...detail?.resume, certifications: detail?.certifications }  as Record<string, unknown>)?.[section.key]
+    (section) => isEmptySection(sectionValues?.[section.key])
   );
 
   useEffect(() => {
@@ -75,16 +87,24 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
       {!loading ? (
         <Card className="p-0 overflow-hidden space-y-0 rounded-none border-none">
           {/* Top banner */}
-          <div onClick={() => handleOpenDialog("banner")} className="relative w-full h-36 sm:h-56 cursor-pointer">
-            <div className="opacity-0 hover:opacity-100 transition-opacity absolute w-full h-full flex justify-center items-center bg-black/20">
-              <div className="flex justify-center items-center bg-black/50 text-white p-4 sm:p-6 rounded-full backdrop-blur-[2px]">
-                <Eye className="h-4 w-4 sm:h-6 sm:w-6" />
+          <div onClick={() => handleOpenDialog("banner")} className="relative w-full h-36 sm:h-56 bg-white cursor-pointer">
+            {!banner.loaded ? (
+              <Skeleton className="absolute inset-0" />) : (
+              <div className="opacity-0 hover:opacity-100 transition-opacity absolute w-full h-full flex justify-center items-center bg-black/20">
+                <div className="flex justify-center items-center bg-black/50 text-white p-4 sm:p-6 rounded-full backdrop-blur-[2px]">
+                  <Eye className="h-4 w-4 sm:h-6 sm:w-6" />
+                </div>
               </div>
-            </div>
+            )}
+
             <img
               src={bannerUrl || BannerPlaceholder}
               alt="profile-banner"
-              className="w-full h-full object-cover object-center"
+              className={cn(
+                "w-full h-full object-cover object-center transition-opacity duration-500",
+                banner.loaded ? "opacity-100" : "opacity-0"
+              )}
+              onLoad={banner.handleLoad}
             />
           </div>
 
@@ -94,24 +114,38 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-start">
                 {/* Avatar - left column */}
                 <div className="flex-shrink-0 w-32 sm:min-w-[180px] sm:max-w-[280px] sm:w-full flex flex-col items-center">
-                  <Avatar
+                  <div
                     onClick={() => handleOpenDialog("avatar")}
-                    className="w-full h-full border-2 sm:border-4 border-white -mt-24 sm:-mt-32 overflow-hidden"
+                    className="relative w-full aspect-square rounded-full border-2 sm:border-4 border-white bg-white -mt-24 sm:-mt-32 overflow-hidden cursor-pointer"
                   >
-                    {/* hover overlay */}
-                    <div className="opacity-0 hover:opacity-100 transition-opacity absolute inset-0 flex justify-center items-center bg-black/20">
-                      <div className="bg-black/50 text-white p-6 rounded-full backdrop-blur-[2px]">
-                        <Eye />
-                      </div>
-                    </div>
+                    {/* Skeleton placeholder */}
+                    {!avatar.loaded && (
+                      <Skeleton className="absolute inset-0" />
+                    )}
 
-                    <AvatarImage
-                      src={avatarUrl || `https://ui-avatars.com/api/?name=${detail?.profileDetail?.name || "Resumid User"}&background=225adf&color=f4f4f4`}
+                    {/* Avatar image */}
+                    <img
+                      src={
+                        avatarUrl ||
+                        `https://ui-avatars.com/api/?name=${detail?.profileDetail?.name || "Resumid User"}&background=225adf&color=f4f4f4`
+                      }
                       alt="profile-avatar"
-                      className="w-full h-full object-cover max-w-none"
+                      className={cn(
+                        "w-full h-full object-cover transition-opacity duration-500",
+                        avatar.loaded ? "opacity-100" : "opacity-0"
+                      )}
+                      onLoad={avatar.handleLoad}
                     />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
+
+                    {/* Hover overlay */}
+                    {avatar.loaded && (
+                      <div className="opacity-0 hover:opacity-100 transition-opacity absolute inset-0 flex justify-center items-center bg-black/20">
+                        <div className="bg-black/50 text-white p-6 rounded-full backdrop-blur-[2px]">
+                          <Eye />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Info - right column */}

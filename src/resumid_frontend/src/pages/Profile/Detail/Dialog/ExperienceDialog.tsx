@@ -625,7 +625,7 @@ export function ExperienceDialog({
             })}
             className="grid grid-cols-1 md:grid-cols-2 gap-5 font-inter text-paragraph"
           >
-            <Label htmlFor="company" className="space-y-2 col-span-1">
+            <Label htmlFor="company" className="space-y-2 col-span-1 md:col-span-2">
               <p>Company<span className="text-red-500">*</span></p>
               <Input className="font-normal text-sm" id="company" {...register("company")} placeholder="Company name" />
               {errors?.company && (
@@ -633,7 +633,7 @@ export function ExperienceDialog({
               )}
             </Label>
 
-            <Label htmlFor="position" className="space-y-2 col-span-1">
+            <Label htmlFor="position" className="space-y-2 col-span-1 md:col-span-2">
               <p>Position<span className="text-red-500">*</span></p>
               <Input className="font-normal text-sm" id="position" {...register("position")} placeholder="e.g., Frontend Engineer" />
               {errors?.position && (
@@ -641,12 +641,12 @@ export function ExperienceDialog({
               )}
             </Label>
 
-            <Label htmlFor="location" className="space-y-2 col-span-1">
+            <Label htmlFor="location" className="space-y-2 col-span-1 md:col-span-2">
               <p>Location</p>
               <Input className="font-normal text-sm" id="location" {...register("location")} placeholder="City, Country (optional)" />
             </Label>
 
-            <Label htmlFor="employment_type" className="space-y-2 col-span-1">
+            <Label htmlFor="employment_type" className="space-y-2 col-span-1 md:col-span-2">
               <p>Employment Type</p>
               <Controller
                 name="employment_type"

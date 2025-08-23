@@ -615,7 +615,7 @@ export function EducationDialog({
             })}
             className="grid grid-cols-1 md:grid-cols-2 gap-5 font-inter text-paragraph"
           >
-            <Label htmlFor="institution" className="space-y-2 col-span-2">
+            <Label htmlFor="institution" className="space-y-2 col-span-1 md:col-span-2">
               <p>Institution<span className="text-red-500">*</span></p>
               <Input className="font-normal text-sm" id="company" {...register("institution")} placeholder="Company name" />
               {errors?.institution && (
@@ -623,7 +623,7 @@ export function EducationDialog({
               )}
             </Label>
 
-            <Label htmlFor="degree" className="space-y-2 col-span-2">
+            <Label htmlFor="degree" className="space-y-2 col-span-1 md:col-span-2">
               <p>Degree<span className="text-red-500">*</span></p>
               <Input className="font-normal text-sm" id="position" {...register("degree")} placeholder="e.g., Frontend Engineer" />
               {errors?.degree && (
