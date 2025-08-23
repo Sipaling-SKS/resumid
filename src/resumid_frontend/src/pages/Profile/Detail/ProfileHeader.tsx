@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Briefcase, Pencil, PlusIcon, UserCheck, Eye } from "lucide-react";
+import { Briefcase, Pencil, PlusIcon, UserCheck, Eye, UserMinus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AvatarDialog } from "./Dialog/AvatarDialog";
 import { useEffect, useState } from "react";
@@ -27,10 +27,24 @@ interface ProfileHeaderProps {
   loading?: boolean,
   isOwner?: boolean,
   isNewUser?: boolean,
+  isEndorsed?: boolean,
+  endorsmentInfo: any[],
+  onEndorseProfile?: () => void,
   onSectionAdd?: (key: any) => void
 }
 
-export default function ProfileHeader({ queryKey, detail, loading = false, isOwner = false, isNewUser = false, onSectionAdd }: ProfileHeaderProps) {
+export default function ProfileHeader({
+  queryKey,
+  detail,
+  loading = false,
+  isOwner = false,
+  isNewUser = false,
+  isEndorsed = false,
+  endorsmentInfo = [],
+  onSectionAdd,
+  onEndorseProfile
+}: ProfileHeaderProps
+) {
   const basePinataUrl = import.meta.env.VITE_PINATA_GATEWAY_URL
 
   const avatarCid = detail?.profileDetail?.profileCid || null;
@@ -184,18 +198,25 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
                       )}
                     </div>
                     {/* Analytics */}
-                    {!isOwner && (
+                    {!isOwner && (endorsmentInfo?.length ?? 0) > 0 && (
                       <div className="flex flex-col items-end">
                         <div className="inline-flex mb-1 -mr-1">
-                          {Array.from({ length: 3 }).map((_, index) => (
-                            <Avatar key={index} className={cn("w-8 h-8 border-[2px] border-white", index > 0 ? "-ml-3" : "")}>
-                              <AvatarImage src="https://github.com/shadcn.png" alt="profile-avatar" />
-                              <AvatarFallback>CN</AvatarFallback>
-                            </Avatar>
-                          ))}
+                          {/* TODO: Endorsment avatar */}
+                          {endorsmentInfo.slice(0, 3).map((item, index) => {
+                            const endorsedAvatarCid = item?.profileCid || null;
+                            const endorsedAvatarUrl = endorsedAvatarCid ? `${basePinataUrl}/ipfs/${endorsedAvatarCid}` : null;
+                            
+                            return (
+                              <Avatar className={cn("w-8 h-8 border-[2px] border-white", index > 0 ? "-ml-3" : "")}>
+                                <AvatarImage
+                                  src={endorsedAvatarUrl || `https://ui-avatars.com/api/?name=${item?.name || "Resumid User"}&background=225adf&color=f4f4f4`}
+                                />
+                              </Avatar>
+                            )
+                          })}
                         </div>
                         <div className="font-inter text-xs text-primary-500 text-right">
-                          <span className="font-semibold">32 People</span><br />
+                          <span className="font-semibold">{endorsmentInfo.length} Peoples</span><br />
                           Endorsed this profile
                         </div>
                       </div>
@@ -242,9 +263,9 @@ export default function ProfileHeader({ queryKey, detail, loading = false, isOwn
                     </div>
                   ) : (
                     <div className="flex gap-4 mt-2">
-                      <Button variant="default" size="sm">
-                        <UserCheck />
-                        Endorse Profile
+                      <Button variant="default" size="sm" onClick={onEndorseProfile}>
+                        {isEndorsed ? <UserMinus /> : <UserCheck />}
+                        {isEndorsed ? "Unendorse Profile" : "Endors Profile"}
                       </Button>
                       <button className="text-blue-600 font-inter text-sm font-medium hover:underline">
                         Contact Info

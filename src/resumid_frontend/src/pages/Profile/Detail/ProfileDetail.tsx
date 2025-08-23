@@ -75,12 +75,33 @@ export default function ProfileDetail() {
 
   if (!id) return;
 
+  async function handleEndorseProfile(userId: string | undefined, isEndorse: boolean) {
+    if (!resumidActor) throw new Error("Actor is undefined");
+    if (!userId) throw new Error("userId is undefined");
+
+    let result;
+
+    if (isEndorse) {
+      result = await resumidActor.endorseProfile(userId);
+    } else {
+      result = await resumidActor.unendorseProfile(userId);
+    }
+
+    if ("ok" in result) {
+      return { id: userId, message: result.ok };
+    } else {
+      throw new Error(result.err ?? "Unknown Error");
+    }
+  }
+
   async function handleGetProfileDetail(id: string): Promise<ProfileDetailResponse> {
     if (!resumidActor) throw new Error("Actor is undefined");
 
     const result = await resumidActor.getProfileById(id);
     const { profile: profileRaw, endorsementInfo = [] } = result;
     const _profile = fromNullable(profileRaw);
+
+    console.log("Result raw:", result);
 
     if (!_profile) return { profile: null, endorsementInfo };
 
@@ -208,9 +229,11 @@ export default function ProfileDetail() {
     )
   }
 
-  const isOwner = !isLoading ? profileDetail!.userId === userData?.ok?.id?.__principal__ : false;
-
-  console.log(profileDetail);
+  const currentUserId = userData?.ok?.id?.__principal__;
+  const isOwner = !isLoading ? profileDetail!.userId === currentUserId : false;
+  
+  // TODO: Adjust later
+  const hasEndorsed = !isOwner && endorsementInfo?.some((endorsement) => endorsement.endorsedUserId === currentUserId);
 
   if (error) {
     return (
@@ -256,6 +279,11 @@ export default function ProfileDetail() {
               handleSelected(key, null);
             }
           }}
+          onEndorseProfile={() => {
+            handleEndorseProfile(profileDetail!.userId, hasEndorsed)
+          }}
+          isEndorsed={hasEndorsed}
+          endorsmentInfo={endorsementInfo}
         />
         <div className="responsive-container py-6 sm:py-8 flex flex-col-reverse sm:flex-row gap-4 sm:gap-8">
           <div className="flex-shrink-0 sm:min-w-[180px] sm:max-w-[280px] w-full flex flex-col gap-6">
