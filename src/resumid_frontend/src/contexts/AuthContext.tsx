@@ -5,6 +5,9 @@ import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declaratio
 import { toast } from "@/hooks/useToast";
 import { useNavigate } from "react-router";
 import { LoaderCircle } from "lucide-react";
+import { Flatten, flattenNullable, fromNullable } from "@/lib/optionalField";
+import { _SERVICE, Profile } from "../../../declarations/resumid_backend/resumid_backend.did";
+import { ActorSubclass } from "@dfinity/agent";
 
 type AuthLoginOptions = {
   onSuccessNavigate?: () => void;
@@ -19,7 +22,7 @@ interface AuthContextType {
   authClient: AuthClient | null;
   identity: any | null;
   principal: any | null;
-  resumidActor: any | null;
+  resumidActor: ActorSubclass<_SERVICE> | null;
   userData: any | null;
   fetchUserData: () => Promise<void>;
   loading: boolean;
@@ -60,7 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [identity, setIdentity] = useState<any | null>(null);
   const [principal, setPrincipal] = useState<any | null>(null);
-  const [resumidActor, setResumidActor] = useState<any | null>(null);
+  const [resumidActor, setResumidActor] = useState<ActorSubclass<_SERVICE> | null>(null);
   const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -87,8 +90,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
+      const profileData = await resumidActor.getProfileByUserId();
+
+      const { profile: profileRaw, endorsementInfo } = profileData;
+
+      const profile = fromNullable(profileRaw);
+
+      if (!profile) {
+        console.error("No profile data found");
+        setUserData(null);
+        setLoading(false);
+        return;
+      }
+
+      const profileDetail = fromNullable(profile?.profileDetail)
+
       const serializedData = JSON.parse(
-        JSON.stringify(data, (key, value) =>
+        JSON.stringify({
+          ...data, ...(profileDetail && {
+            profile: {
+              profileId: profile.profileId,
+              name: fromNullable(profileDetail.name),
+              profileCid: fromNullable(profileDetail.profileCid)
+            }
+          })
+        }, (key, value) =>
           typeof value === "bigint" ? value.toString() : value
         )
       );

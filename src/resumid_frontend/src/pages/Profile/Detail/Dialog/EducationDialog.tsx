@@ -11,10 +11,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/useToast";
-import { ProfileDetailType, EducationType } from "@/types/profile-types";
+import { EducationType, ProfileType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { List, ListOrdered, Loader2, Plus, Save, Trash } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Resolver, useForm, Controller } from "react-hook-form";
 import { format, isAfter, parseISO } from "date-fns";
 
@@ -29,6 +29,8 @@ import ListItem from "@tiptap/extension-list-item";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { sortByPeriod } from "@/utils/sortByPeriod";
 
 export type PeriodType = {
   start?: string;
@@ -37,12 +39,22 @@ export type PeriodType = {
 
 export type EducationFormValues = {
   institution?: string;
-  location?: string;
   degree?: string;
   description?: string;
   period?: PeriodType;
-  isNew: boolean; 
+  isNew: boolean;
 };
+
+
+type EducationInput = {
+  institution: [string] | []
+  degree: [string] | []
+  period: {
+    start: [string] | []
+    end: [string] | []
+  }
+  description: [string] | []
+}
 
 type ConfirmTypes = {
   remove: boolean;
@@ -51,11 +63,11 @@ type ConfirmTypes = {
 
 interface EducationDialogProps {
   queryKey: (string | number)[] | string | number;
-  detail: ProfileDetailType;
+  detail: ProfileType;
   open: boolean;
   setOpen: (value: boolean) => void;
   isNew?: boolean;
-  initial: EducationType
+  initial: EducationType | undefined | null
 }
 
 const resolver: Resolver<EducationFormValues> = async (values) => {
@@ -103,6 +115,9 @@ export function EducationDialog({
 
   const finalQueryKey = Array.isArray(queryKey) ? queryKey : [queryKey];
 
+  const { resumidActor, userData } = useAuth();
+  const isNewRef = useRef(isNew);
+
   const [confirm, setConfirm] = useState<ConfirmTypes>({ remove: false, leave: false });
   const handleConfirm = (key: keyof ConfirmTypes) =>
     setConfirm((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -116,20 +131,16 @@ export function EducationDialog({
     }
   };
 
-  const initialValues: EducationFormValues = useMemo(
-    () => ({
-      institution: initial?.institution,
-      location: initial?.location,
-      degree: initial?.degree,
-      description: initial?.description,
-      period: {
-        start: toInputDate(initial?.period?.start),
-        end: toInputDate(initial?.period?.end),
-      },
-      isNew,
-    }),
-    [initial, isNew]
-  );
+  const initialValues: EducationFormValues = {
+    institution: initial?.institution,
+    degree: initial?.degree,
+    description: initial?.description,
+    period: {
+      start: toInputDate(initial?.period?.start),
+      end: toInputDate(initial?.period?.end),
+    },
+    isNew: isNewRef.current,
+  };
 
   const {
     register,
@@ -188,33 +199,114 @@ export function EducationDialog({
   useEffect(() => {
     if (open) {
       reset(initialValues);
+      isNewRef.current = isNew;
       editor?.commands.setContent(initialValues.description || "", { emitUpdate: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialValues]);
+  }, [open]);
 
-  async function handleUpdateEducation({
+  function validateBefore(id: string) {
+    if (!userData) throw new Error("Error, user data is undefined");
+
+    if (!id) throw new Error("Error, id is invalid or undefined");
+
+    if (userData?.ok?.id.__principal__ !== id) {
+      throw new Error("Error, user is not the owner of this profile");
+    }
+  }
+
+  function mapEducationInput(data: EducationFormValues): EducationInput {
+    const { institution, degree, period, description } = data;
+
+    if (!period?.start) throw new Error("Error, start date is required")
+
+    const educationInput: EducationInput = {
+      institution: institution ? [institution] : [],
+      degree: degree ? [degree] : [],
+      period: {
+        start: [period.start],
+        end: period.end ? [period.end] : [],
+      },
+      description: description ? [description] : [],
+    };
+
+    return educationInput;
+  }
+
+  async function handleAddEducation({
     id,
     data,
   }: {
-    id: string | number;
+    id: string;
     data: EducationFormValues;
   }) {
     try {
-      // TODO: call API with `id` and `data`
-      // Ensure `period.start/end` are already yyyy-MM-dd (they are)
-      // Ensure `description` is HTML from TipTap
-      return { ok: true };
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      const educationInput = mapEducationInput(data);
+
+      const res = await resumidActor.addEducationShared(educationInput)
+
+      if ("ok" in res) {
+        return { data }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  async function handleRemoveEducation({ id }: { id: string | number }) {
+
+  async function handleUpdateEducation({
+    id,
+    itemId,
+    data,
+  }: {
+    id: string;
+    itemId: string;
+    data: EducationFormValues;
+  }) {
     try {
-      // TODO: call API to remove this education by id
-      return { ok: true };
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      if (!itemId) throw new Error("Error, this item does not exists");
+
+      const educationInput = mapEducationInput(data);
+
+      const res = await resumidActor.editEducationShared(itemId, educationInput)
+
+      if ("ok" in res) {
+        return { itemId, data }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async function handleRemoveEducation({ id, itemId }: { id: string, itemId: string }) {
+    try {
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      if (!itemId) throw new Error("Error, this item does not exists");
+
+      const res = await resumidActor.deleteResumeItemShared("education", [itemId]);
+
+      if ("ok" in res) {
+        return { itemId }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
       console.error(error);
       throw error;
@@ -224,18 +316,48 @@ export function EducationDialog({
   const queryClient = useQueryClient();
 
   const { mutateAsync: addEducation, isPending: isAdding } = useMutation({
-    mutationFn: async ({ data }: { data: EducationFormValues }) => {
-      try {
-        // TODO: call API to add new education
-        return { ok: true };
-      } catch (error) {
-        console.error(error);
-        throw error;
+    mutationFn: handleAddEducation,
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: finalQueryKey });
+      const previous = queryClient.getQueryData(finalQueryKey);
+
+      const tempId = `temp-${Date.now()}`;
+      const newEducation: EducationType = {
+        id: tempId,
+        institution: data.institution,
+        degree: data.degree,
+        description: data.description,
+        period: {
+          start: data?.period?.start,
+          end: data?.period?.end,
+        }
       }
+
+      queryClient.setQueryData(
+        finalQueryKey,
+        (old: { profile: ProfileType; endorsementInfo: any }) =>
+          old
+            ? {
+              ...old,
+              profile: {
+                ...old.profile,
+                resume: {
+                  ...old.profile.resume,
+                  educations: sortByPeriod<EducationType>([
+                    ...(old.profile.resume?.educations ?? []),
+                    newEducation,
+                  ]),
+                },
+              },
+            }
+            : old
+      );
+
+      return { previous };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Success", description: "Education added!" });
+      toast({ title: "Success", description: "Education added!", variant: "success" });
       setOpen(false);
     },
     onError: (error) => {
@@ -247,12 +369,33 @@ export function EducationDialog({
     },
   });
 
-  const { mutateAsync: updateEducation, isPending: isSaving } = useMutation({
+  const { mutateAsync: updateEducation, isPending: isUpdating } = useMutation({
     mutationFn: handleUpdateEducation,
-    onMutate: async ({ id, data }) => {
+    onMutate: async ({ id, itemId, data }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previous = queryClient.getQueryData(finalQueryKey);
-      // TODO: optimistic update (optional)
+
+      queryClient.setQueryData(
+        finalQueryKey,
+        (old: { profile: ProfileType; endorsementInfo: any }) =>
+          old
+            ? {
+              ...old,
+              profile: {
+                ...old.profile,
+                resume: {
+                  ...old.profile.resume,
+                  educations: sortByPeriod<EducationType>(
+                    old.profile.resume?.educations?.map((ed) =>
+                      ed.id === itemId ? { ...ed, ...data } : ed
+                    ) ?? []
+                  ),
+                },
+              },
+            }
+            : old
+      );
+
       return { previous };
     },
     onError: (error, _vars, ctx) => {
@@ -265,17 +408,38 @@ export function EducationDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Success", description: "Education updated!" });
+      toast({ title: "Success", description: "Education updated!", variant: "success" });
       setOpen(false);
     },
   });
 
   const { mutateAsync: removeEducation, isPending: isRemoving } = useMutation({
     mutationFn: handleRemoveEducation,
-    onMutate: async ({ id }) => {
+    onMutate: async ({ id, itemId }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previous = queryClient.getQueryData(finalQueryKey);
-      // TODO: optimistic remove (optional)
+
+      queryClient.setQueryData(
+        finalQueryKey,
+        (old: { profile: ProfileType; endorsementInfo: any }) =>
+          old
+            ? {
+              ...old,
+              profile: {
+                ...old.profile,
+                resume: {
+                  ...old.profile.resume,
+                  educations: sortByPeriod<EducationType>(
+                    old.profile.resume?.educations?.filter(
+                      (exp) => exp.id !== itemId
+                    ) ?? []
+                  ),
+                },
+              },
+            }
+            : old
+      );
+
       return { previous };
     },
     onError: (error, _vars, ctx) => {
@@ -288,7 +452,7 @@ export function EducationDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Removed", description: "Education removed." });
+      toast({ title: "Removed", description: "Education removed.", variant: "success" });
       setOpen(false);
     },
   });
@@ -415,6 +579,9 @@ export function EducationDialog({
       </TooltipProvider>
     );
   }
+
+  const isSaving = isAdding || isUpdating;
+
   return (
     <>
       <Dialog
@@ -428,51 +595,46 @@ export function EducationDialog({
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px] max-h-[80vh] sm:max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">
-              {isNew ? "Add Education" : "Edit Education"}
+              {isNewRef.current ? "Add Education" : "Edit Education"}
             </DialogTitle>
             <DialogDescription className="font-inter text-paragraph">
-              {isNew ? "Create a new" : "Update your"} education item.
+              {isNewRef.current ? "Create a new" : "Update your"} education item.
             </DialogDescription>
           </DialogHeader>
 
           <form
             onSubmit={handleSubmit(async (values) => {
-              if (isNew) {
-                await addEducation({ data: values });
+              if (isNewRef.current || !initial) {
+                await addEducation({ id: detail?.userId, data: values });
               } else {
-                await updateEducation({ id: initial.id, data: values });
+                await updateEducation({ id: detail?.userId, itemId: initial.id, data: values });
               }
             })}
             className="grid grid-cols-1 md:grid-cols-2 gap-5 font-inter text-paragraph"
           >
-            <Label htmlFor="institution" className="space-y-2 col-span-2">
+            <Label htmlFor="institution" className="space-y-2 col-span-1 md:col-span-2">
               <p>Institution<span className="text-red-500">*</span></p>
-              <Input className="font-normal" id="company" {...register("institution")} placeholder="Company name" />
+              <Input className="font-normal text-sm" id="company" {...register("institution")} placeholder="Company name" />
               {errors?.institution && (
                 <p className="text-sm text-red-500">{errors.institution.message}</p>
               )}
             </Label>
 
-            <Label htmlFor="degree" className="space-y-2 col-span-1">
+            <Label htmlFor="degree" className="space-y-2 col-span-1 md:col-span-2">
               <p>Degree<span className="text-red-500">*</span></p>
-              <Input className="font-normal" id="position" {...register("degree")} placeholder="e.g., Frontend Engineer" />
+              <Input className="font-normal text-sm" id="position" {...register("degree")} placeholder="e.g., Frontend Engineer" />
               {errors?.degree && (
                 <p className="text-sm text-red-500">{errors.degree.message}</p>
               )}
             </Label>
 
-            <Label htmlFor="location" className="space-y-2 col-span-1">
-              <p>Location</p>
-              <Input className="font-normal" id="location" {...register("location")} placeholder="City, Country (optional)" />
-            </Label>
-
             <div className="col-span-1">
               <Label htmlFor="period.start" className="space-y-2">
                 <p>Start Date<span className="text-red-500">*</span></p>
-                <Input className="font-normal" type="date" id="period.start" {...register("period.start")} />
+                <Input className="font-normal text-sm" type="date" id="period.start" {...register("period.start")} />
                 {errors.period?.start && (
                   <p className="text-sm text-red-500">{errors.period.start.message}</p>
                 )}
@@ -482,7 +644,7 @@ export function EducationDialog({
             <div className="col-span-1">
               <Label htmlFor="period.end" className="space-y-2">
                 <p>End Date</p>
-                <Input className="font-normal" type="date" id="period.end" {...register("period.end")} />
+                <Input className="font-normal text-sm" type="date" id="period.end" {...register("period.end")} />
                 {errors.period?.end && (
                   <p className="text-sm text-red-500">{errors.period.end.message}</p>
                 )}
@@ -513,8 +675,8 @@ export function EducationDialog({
               />
             </div>
 
-            <DialogFooter className={cn("gap-2 col-span-1 md:col-span-2", isNew ? "sm:justify-end" : "sm:justify-between")}>
-              {!isNew && (
+            <DialogFooter className={cn("gap-2 col-span-1 md:col-span-2", isNewRef.current ? "sm:justify-end" : "sm:justify-between")}>
+              {!isNewRef.current && (
                 <Button
                   type="button"
                   variant="destructive"
@@ -531,8 +693,8 @@ export function EducationDialog({
                   <Button size="sm" variant="grey-outline">Cancel</Button>
                 </DialogClose>
                 <Button size="sm" disabled={isSaving || !isDirty}>
-                  {!isSaving ? isNew ? <Plus /> : <Save /> : <Loader2 className="animate-spin" />}
-                  {isSaving ? isNew ? "Adding..." : "Saving..." : isNew ? "Add Education" : "Save changes"}
+                  {!isSaving ? isNewRef.current ? <Plus /> : <Save /> : <Loader2 className="animate-spin" />}
+                  {isSaving ? isNewRef.current ? "Adding..." : "Saving..." : isNewRef.current ? "Add Education" : "Save changes"}
                 </Button>
               </div>
             </DialogFooter>
@@ -541,7 +703,7 @@ export function EducationDialog({
       </Dialog>
 
       {/* Remove confirm */}
-      {!isNew && <Dialog open={confirm.remove} onOpenChange={() => handleConfirm("remove")} modal>
+      {!isNewRef.current && initial && <Dialog open={confirm.remove} onOpenChange={() => handleConfirm("remove")} modal>
         <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="font-inter text-base text-heading">
@@ -551,7 +713,7 @@ export function EducationDialog({
               This action cannot be undone. Are you sure you want to remove this education?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" variant="grey-outline">Cancel</Button>
             </DialogClose>
@@ -559,7 +721,7 @@ export function EducationDialog({
               size="sm"
               variant="destructive"
               onClick={async () => {
-                await removeEducation({ id: initial.id });
+                await removeEducation({ id: detail?.userId, itemId: initial.id });
                 handleConfirm("remove");
               }}
               disabled={isRemoving}
@@ -582,7 +744,7 @@ export function EducationDialog({
               You have unsaved changes, are you sure you want to discard them?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" variant="grey-outline">Cancel</Button>
             </DialogClose>

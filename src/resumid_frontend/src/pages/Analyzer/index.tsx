@@ -118,6 +118,7 @@ function Analyzer() {
         const res = await resumidActor.AnalyzeResumeV2(
           filename,
           cleanedFullText,
+          "",
           jobTitle
         );
 

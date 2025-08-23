@@ -151,6 +151,8 @@ export default function HistoryList() {
 
   async function handleGetHistories(): Promise<HistoryResponse> {
     try {
+      if (!resumidActor) throw new Error("Actor is undefined");
+
       const filterBys: [string, string][] = columnFilters.map((f) => [f.id, String(f.value)]);
       const sortBys: [string, boolean][] = sorting.map((s) => [s.id, s.desc]);
       // const cvContent = "Tiara Puspita puspitatiara14@gmail.com Gunung Putri, Bogor, 16962. https://github.com/tiarapus/ 085959148809 (WhatsApp) https://www.linkedin.com/in/tiarapu spita-/ https://tiara-personalsite.web.app/ Summary A highly motivated Informatics fresh graduate from Gunadarma University (GPA 3.86) with hands-on experience in software development, data analytics, and machine learning through academic projects and coding competitions. Equipped with strong analytical and problem-solving skills, and a keen interest in business strategy, and data-driven decision-making. Passionate about continous learning, eager to develop new skills, and contribute to impactful projects to drive business growth. Professional Experience 2025/04 – present Jakarta, Indonesia Software Engineer Mitramas Infosys Global (KB Bank) Placement @ KB Bukopin Bank •Monitor and track defects to ensure timely identification, escalation, and resolution •Develop and implement effective solutions for identified issues, including conducting internal testing •Collaborate with QA teams to support and facilitate System Integration Testing (SIT) 2023/05 – 2023/06 Remote Company-Based Capstone Team Bangkit Academy 2023 •Design and develop a marketplace platform for ecotourism that incorporates geo-tagging and carbon footprint, addressing the problem statement presented by AMATI Indonesia. •Develop recommendation systems by constructing a data analysis and machine learning model that leverages both content-based and collaborative filtering techniques. •Create a machine learning API using Python Flask. •Create mockup design for multiple app pages using Figma. •App Testing and Debugging. 2022/09 – 2023/09 Depok, Indonesia Course Assistant & Instructor Lembaga Pengembangan Komputerisasi Universitas Gunadarma •Review and evaluate practitioners' activity reports. •Collaborate with course tutor and supervisor to assist in co-facilitating beginner courses for approximately 30 practitioners that focus on the Fundamental of DBMS, Web Programming, Fundamental Network, and Fundamental Server OS. •To guide 25 practitioners in completing course activities and delivering beginner-level DBMS materials using SQL Server Management Studio. mailto:puspitatiara14@gmail.com tel:085959148809 (WhatsApp) Skills Programming Languages Python, PHP, Javascript Project Management Problem Solving Deep Learning Basic Linux Bash Scripting Website Development Laravel, ReactJS, NodeJS Version Control Git DBMS Oracle DB, MSSQL Google Cloud Platform BigQuery, VertexAI Basic Cybersecurity Education 2020 – 2024 Depok, Indonesia Informatics Universitas Gunadarma GPA: 3.86 out of 4.00 2023/02 – 2023/07 Remote Machine Learning Cohort Bangkit Academy 2023 •Active team members of the Best team for company’s projects. •Best Capstone Presenters - Company capstone. Final Score: 91/100 2025/01 – 2025/02 Remote Google #JuaraGCP11 Google Cloud Skills Boost Key skills learning: AI and ML with Vertex AI & Gemini, Virtual Machines, BigQuery, IAM, Cloud Compute, Cloud Data Security, etc. Projects 2024/12 – 2024/12 Resumid ICP Hub Indonesia Hachkathon project Resumid is a decentralized Web-based application designed to help users analyze resumes in depth by leveraging AI technology. This platform provides a match score between the resume and the job position applied for, while providing a comprehensive summary of the quality of the user's resume 2023/09 – 2024/01 Juice Friend Campus Final Team Project As the project manager overseeing the development of a web-based e-commerce platform for Juice Friend, a micro, small, and medium-sized enterprise (UMKM) in the juice industry, my responsibilities include efficiently managing the team, coordinating tasks, and maintaining communication channels to ensure the project progresses smoothly through the Agile Software Development Life Cycle (SDLC), from planning, requirement analysis to testing and deployment. 2023/07 – 2023/08 Batique VCP Competition UPNVY As the project manager leading the team in the Agile software development life cycle (SDLC) for the creation of a web-based social media platform that supports local artists who are passionate about batik. This platform will utilize machine learning, specifically image classification content filtering, to enhance user experience by effectively filtering out spam content. My responsibilities include developing the article page, ensuring effective communication within the team, and preparing technical documentation. Awards 2024/12 1st Winner ICP Hub Hackathon 9.0 ICP Hub Indonesia 2023/07 Top 9 Best Company Capstone Project Team Bangkit Academy 2023 Batch 1 2023/07 Best Presenter in Company Capstone Team Bangkit Academy 2023 Certificates Tensorflow Developer Certificate Google Data Analitycs Scholarship Toefl ITP Prediction Test Brighten English Pare Score : 620 Oracle Training - Intermediate Level Data Analytics Mini Course RevoU Best Capstone Project Bangkit Academy Pelatihan SQL Server - Intermediate Level Junior Website Developer (BNSP) https://www.credential.net/21277ae8-1112-4e7f-a977-42d4f6081e40 https://startupcampus.id/certificate/GCC-DA6FBC https://drive.google.com/file/d/19qJCIy36fyWb9kmYXM8ji3X2S5q2MjCX/view?usp=drive_link https://drive.google.com/file/d/1YYqpy7eeafOH9fFERd2cYs-d44KoK-Gw/view https://drive.google.com/file/d/1_YRWmxbxor33cvYuOeFq6x7Zg9rwefdn/view"
@@ -176,9 +178,12 @@ export default function HistoryList() {
       //   console.error("Error:", err);
       // }
 
+      const pageIndex: any = pagination.pageIndex;
+      const pageSize: any = pagination.pageSize;
+
       const res = await resumidActor.getHistoriesPaginated(
-        pagination.pageIndex,
-        pagination.pageSize,
+        pageIndex,
+        pageSize,
         [sortBys],
         [filterBys],
         globalFilter ?? ""
@@ -188,7 +193,7 @@ export default function HistoryList() {
         const response = res.ok;
         const { data, totalRowCount, totalPages, currentPage, pageSize } = response;
 
-        const result = data.map((history: History) => {
+        const result: any = data.map((history: History) => {
           const { value: summary, score } = history.summary;
 
           const mappedResult = {
@@ -204,7 +209,7 @@ export default function HistoryList() {
         })
 
         return {
-          message: res?.message || "success",
+          message: "success",
           data: result,
           totalRowCount: Number(totalRowCount),
           totalPages: Number(totalPages),

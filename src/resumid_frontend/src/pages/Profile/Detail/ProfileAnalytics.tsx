@@ -70,7 +70,7 @@ export default function ProfileAnalytics({ detail, loading = false }: ProfileAna
   return (
     <Card className="p-0 overflow-hidden space-y-0">
       <CardTitle className="relative inline-flex gap-3 justify-between items-center px-4 py-4 w-full border-b border-neutral-200">
-        <h3 className="font-outfit text-base text-heading font-semibold">Latest Endorsement</h3>
+        <h3 className="font-outfit text-lg text-heading font-semibold">Latest Endorsement</h3>
       </CardTitle>
       <CardContent className="relative flex flex-wrap gap-4 p-4">
         {analytics?.length > 0 ? (

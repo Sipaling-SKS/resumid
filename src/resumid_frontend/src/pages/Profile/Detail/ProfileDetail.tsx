@@ -2,14 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router";
 import { Helmet } from "react-helmet";
 
-import useWindowSize from "@/hooks/useMediaQuery"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileHeader from "./ProfileHeader";
@@ -18,19 +10,19 @@ import ProfileExperience from "./ProfileExperience";
 import ProfileEducation from "./ProfileEducation";
 import ProfileSkills from "./ProfileSkill";
 import ProfileAnalytics from "./ProfileAnalytics";
-import { Card, CardContent } from "@/components/ui/card";
-import { ProfileDetailType } from "@/types/profile-types";
-import { profileDetailData } from "@/data/profile-detail-data";
+import { EducationType, ProfileType, WorkExperienceType } from "@/types/profile-types";
 import { AboutDialog } from "./Dialog/AboutDialog";
 import { SkillDialog } from "./Dialog/SkillDialog";
 import { ExperienceDialog } from "./Dialog/ExperienceDialog";
 import { EducationDialog } from "./Dialog/EducationDialog";
 import ProfileCertification from "./ProfileCertification";
 import { CertificationDialog } from "./Dialog/CertificationDialog";
+import { fromNullable } from "@/lib/optionalField";
+import { sortByPeriod } from "@/utils/sortByPeriod";
 
 type OpenTypes = {
   sectionMenu: boolean
-  about: boolean
+  summary: boolean
   workExperiences: boolean
   educations: boolean
   skills: boolean
@@ -43,12 +35,16 @@ type SelectedTypes = {
   certifications: string | null
 }
 
+type ProfileDetailResponse = {
+  profile: ProfileType | null;
+  endorsementInfo: any[];
+};
+
 export default function ProfileDetail() {
   const KEY = "profile"
-  const isOwner = true;
 
   const { id } = useParams()
-  const { resumidActor } = useAuth();
+  const { resumidActor, userData } = useAuth();
 
   const location = useLocation();
   const { state } = location;
@@ -56,7 +52,7 @@ export default function ProfileDetail() {
 
   const [open, setOpen] = useState<OpenTypes>({
     sectionMenu: false,
-    about: false,
+    summary: false,
     workExperiences: false,
     educations: false,
     skills: false,
@@ -77,39 +73,151 @@ export default function ProfileDetail() {
     setSelected((prev) => ({ ...prev, [key]: value }))
   }
 
-  if (!id || !resumidActor) return;
+  if (!id) return;
 
-  async function handleGetProfileDetail(id: string | number): Promise<any> {
-    const result = await resumidActor.getProfileById(id)
-    const { profile } = result;
+  async function handleGetProfileDetail(id: string): Promise<ProfileDetailResponse> {
+    if (!resumidActor) throw new Error("Actor is undefined");
 
-    if (profile) {
-      return result;
-    } else {
-      throw new Error("Profile not found")
-    }
+    const result = await resumidActor.getProfileById(id);
+    const { profile: profileRaw, endorsementInfo = [] } = result;
+    const _profile = fromNullable(profileRaw);
+
+    if (!_profile) return { profile: null, endorsementInfo };
+
+    const profile: ProfileType = {
+      profileId: _profile.profileId,
+      userId: _profile.userId,
+      createdAt: _profile.createdAt,
+      updatedAt: _profile.updatedAt,
+      contact: (() => {
+        const c = fromNullable(_profile.contact);
+        return c
+          ? {
+            twitter: fromNullable(c.twitter),
+            instagram: fromNullable(c.instagram),
+            email: fromNullable(c.email),
+            website: fromNullable(c.website),
+            facebook: fromNullable(c.facebook),
+            address: fromNullable(c.address),
+            phone: fromNullable(c.phone),
+          }
+          : undefined;
+      })(),
+      profileDetail: (() => {
+        const d = fromNullable(_profile.profileDetail);
+        return d
+          ? {
+            name: fromNullable(d.name),
+            description: fromNullable(d.description),
+            current_position: fromNullable(d.current_position),
+            bannerCid: fromNullable(d.bannerCid),
+            profileCid: fromNullable(d.profileCid),
+          }
+          : undefined;
+      })(),
+      resume: (() => {
+        const r = fromNullable(_profile.resume);
+        return r
+          ? {
+            summary: (() => {
+              const content = fromNullable(r.summary)?.content;
+              if (!content) return undefined;
+              return fromNullable(content) || undefined;
+            })(),
+
+            skills: fromNullable(r.skills)?.skills ?? undefined,
+
+            educations: (() => {
+              const mapped =
+                fromNullable(r.educations)?.map((ed) => ({
+                  id: ed.id,
+                  period: {
+                    start: fromNullable(ed.period.start),
+                    end: fromNullable(ed.period.end),
+                  },
+                  institution: fromNullable(ed.institution),
+                  description: fromNullable(ed.description),
+                  degree: fromNullable(ed.degree),
+                })) ?? [];
+              return mapped.length ? sortByPeriod<EducationType>(mapped) : undefined;
+            })(),
+
+            workExperiences: (() => {
+              const mapped =
+                fromNullable(r.workExperiences)?.map((we) => ({
+                  id: we.id,
+                  period: {
+                    start: fromNullable(we.period.start),
+                    end: fromNullable(we.period.end),
+                  },
+                  employment_type: fromNullable(we.employment_type),
+                  description: fromNullable(we.description),
+                  company: we.company,
+                  position: we.position,
+                  location: fromNullable(we.location),
+                })) ?? [];
+              return mapped.length ? sortByPeriod<WorkExperienceType>(mapped) : undefined;
+            })(),
+          }
+          : undefined;
+      })(),
+      endorsements: fromNullable(_profile.endorsedProfiles) ?? [],
+      endorsedProfiles: fromNullable(_profile.endorsedProfiles) ?? [],
+      certifications:
+        fromNullable(_profile.certificatons)?.map((cert) => ({
+          id: cert.id,
+          title: cert.title,
+          createdAt: cert.createdAt,
+          updatedAt: cert.updatedAt,
+          credential_url: fromNullable(cert.credential_url),
+          issuer: fromNullable(cert.issuer),
+        })) ?? undefined,
+    };
+
+    return { profile, endorsementInfo };
   }
 
   const {
-    data = {},
+    data,
     isLoading,
     error
-  } = useQuery({
-    queryKey: ['historyDetail', id],
+  } = useQuery<ProfileDetailResponse>({
+    queryKey: [KEY, id],
     queryFn: () => handleGetProfileDetail(id),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    retry: 2,
+    refetchOnWindowFocus: false
   });
 
-  const { profile: profileDetail, endorsementInfo = [] } = data;
-  // const profileDetail: ProfileDetailType = profile;
+  const { profile: profileDetail, endorsementInfo } = data ?? { profile: null, endorsementInfo: [] };
+
+  if (!isLoading && !profileDetail) {
+    return (
+      <>
+        <Helmet>
+          <meta charSet="utf-8" />
+          <title>{"Profile Not Found | Resumid"}</title>
+          <meta name="description" content={`Analysis details for {Name Placeholder}`} />
+        </Helmet>
+
+        <div className="min-h-screen flex justify-center items-center">
+          <h2 className="text-xl font-outfit font-semibold text-heading">
+            This profile does not exists, sorry!
+          </h2>
+        </div>
+      </>
+    )
+  }
+
+  const isOwner = !isLoading ? profileDetail!.userId === userData?.ok?.id?.__principal__ : false;
+
+  console.log(profileDetail);
 
   if (error) {
     return (
       <>
         <Helmet>
           <meta charSet="utf-8" />
-          <title>{"{Name Placeholder} | Resumid"}</title>
+          <title>{"Profile | Resumid"}</title>
           <meta name="description" content={`Analysis details for {Name Placeholder}`} />
         </Helmet>
 
@@ -122,44 +230,23 @@ export default function ProfileDetail() {
     )
   }
 
-  const selectedExperience = profileDetail?.workExperiences?.find((exp: any) => exp.id === selected.workExperiences) ?? {
-    id: "",
-    company: "",
-    position: "",
-    description: "",
-    employementType: "",
-    location: "",
-    period: { start: "", end: "" }
-  }
+  const selectedExperience = profileDetail?.resume?.workExperiences?.find((exp: any) => exp.id === selected.workExperiences) ?? null
 
-  const selectedEducation = profileDetail?.educations?.find((ed: any) => ed.id === selected.educations) ?? {
-    id: "",
-    institution: "",
-    degree: "",
-    description: "",
-    location: "",
-    period: { start: "", end: "" }
-  }
-
-  const selectedCertification = profileDetail?.certifications?.find((cert: any) => cert.id === selected.certifications) ?? {
-    id: "",
-    title: "",
-    issuer: "",
-    url: "",
-  }
+  const selectedEducation = profileDetail?.resume?.educations?.find((ed: any) => ed.id === selected.educations) ?? null
+  const selectedCertification = profileDetail?.certifications?.find((cert: any) => cert.id === selected.certifications) ?? null
 
   return (
     <>
       <Helmet>
         <meta charSet="utf-8" />
-        <title>{"{Name Placeholder} | Resumid"}</title>
+        <title>{`${!isLoading && profileDetail?.profileDetail ? profileDetail!.profileDetail!.name : "Profile"} | Resumid`}</title>
         <meta name="description" content={`Analysis details for {Name Placeholder}`} />
       </Helmet>
 
       <div className="min-h-screen">
         <ProfileHeader
           queryKey={[KEY, id]}
-          detail={profileDetail}
+          detail={profileDetail!}
           loading={isLoading}
           isOwner={isOwner}
           isNewUser={isNewUser}
@@ -170,12 +257,12 @@ export default function ProfileDetail() {
             }
           }}
         />
-        <div className="responsive-container my-8 flex flex-col-reverse sm:flex-row gap-8">
-          <div className="flex-shrink-0 min-w-[180px] max-w-[280px] flex flex-col gap-6">
-            {(profileDetail?.skills?.length ?? 0) > 0 && (
+        <div className="responsive-container py-6 sm:py-8 flex flex-col-reverse sm:flex-row gap-4 sm:gap-8">
+          <div className="flex-shrink-0 sm:min-w-[180px] sm:max-w-[280px] w-full flex flex-col gap-6">
+            {(profileDetail?.resume?.skills?.length ?? 0) > 0 && (
               <ProfileSkills
-                detail={profileDetail}
-                loading={isLoading} 
+                detail={profileDetail!}
+                loading={isLoading}
                 isOwner={isOwner}
                 onEdit={() => handleOpen("skills")}
               />
@@ -183,31 +270,20 @@ export default function ProfileDetail() {
             {isOwner && (
               <ProfileAnalytics
                 detail={endorsementInfo}
-              loading={isLoading}
+                loading={isLoading}
               />
             )}
           </div>
           <div className="flex-1 flex flex-col gap-6">
-            {profileDetail?.about ? (
-              <ProfileAbout
-                detail={profileDetail}
-                loading={isLoading}
-                isOwner={isOwner}
-                onEdit={() => handleOpen("about")}
-              />
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col gap-3 justify-center items-center p-6 outline-dashed outline-2 outline-neutral-300 outline-offset-1 rounded-lg bg-neutral-50">
-                  <p className="font-inter font-paragraph text-sm text-center text-balance">You haven't added about section to your profile, share a brief overview of your professional journey, experience, and skills so people can get to know your strengths and capabilities at a glance.</p>
-                  <button className="text-blue-600 font-inter text-sm font-medium hover:underline">
-                    Start adding about section
-                  </button>
-                </CardContent>
-              </Card>
-            )}
-            {(profileDetail?.workExperiences?.length ?? 0) > 0 && (
+            <ProfileAbout
+              detail={profileDetail!}
+              loading={isLoading}
+              isOwner={isOwner}
+              onEdit={() => handleOpen("summary")}
+            />
+            {(profileDetail?.resume?.workExperiences?.length ?? 0) > 0 && (
               <ProfileExperience
-                detail={profileDetail}
+                detail={profileDetail!}
                 isOwner={isOwner}
                 loading={isLoading}
                 onAdd={() => {
@@ -220,9 +296,9 @@ export default function ProfileDetail() {
                 }}
               />
             )}
-            {(profileDetail?.educations?.length ?? 0) > 0 && (
+            {(profileDetail?.resume?.educations?.length ?? 0) > 0 && (
               <ProfileEducation
-                detail={profileDetail}
+                detail={profileDetail!}
                 isOwner={isOwner}
                 loading={isLoading}
                 onAdd={() => {
@@ -237,7 +313,7 @@ export default function ProfileDetail() {
             )}
             {(profileDetail?.certifications?.length ?? 0) > 0 && (
               <ProfileCertification
-                detail={profileDetail}
+                detail={profileDetail!}
                 isOwner={isOwner}
                 loading={isLoading}
                 onAdd={() => {
@@ -256,15 +332,15 @@ export default function ProfileDetail() {
           open={open.skills}
           setOpen={() => handleOpen("skills")}
           queryKey={[KEY, id]}
-          detail={profileDetail}
-          isNew={!profileDetail?.skills}
+          detail={profileDetail!}
+          isNew={!profileDetail?.resume?.skills}
         />
         <AboutDialog
-          open={open.about}
-          setOpen={() => handleOpen("about")}
+          open={open.summary}
+          setOpen={() => handleOpen("summary")}
           queryKey={[KEY, id]}
-          detail={profileDetail}
-          isNew={!profileDetail?.about}
+          detail={profileDetail!}
+          isNew={!profileDetail?.resume?.summary}
         />
         <ExperienceDialog
           open={open.workExperiences}
@@ -272,7 +348,7 @@ export default function ProfileDetail() {
           queryKey={[KEY, id]}
           isNew={!selected.workExperiences}
           initial={selectedExperience}
-          detail={profileDetail}
+          detail={profileDetail!}
         />
         <EducationDialog
           open={open.educations}
@@ -280,7 +356,7 @@ export default function ProfileDetail() {
           queryKey={[KEY, id]}
           isNew={!selected.educations}
           initial={selectedEducation}
-          detail={profileDetail}
+          detail={profileDetail!}
         />
         <CertificationDialog
           open={open.certifications}
@@ -288,7 +364,7 @@ export default function ProfileDetail() {
           queryKey={[KEY, id]}
           isNew={!selected.certifications}
           initial={selectedCertification}
-          detail={profileDetail}
+          detail={profileDetail!}
         />
       </div >
     </>

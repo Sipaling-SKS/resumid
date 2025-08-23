@@ -33,14 +33,14 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
 
   const [confirm, setConfirm] = useState<boolean>(false)
   const [isEditing, setEditing] = useState<boolean>(false)
-  const [cropped, setCropped] = useState<string | null>(null)
+  const [cropped, setCropped] = useState<{ file: Blob, url: string } | null>(null)
   const [isCropReady, setIsCropReady] = useState<boolean>(false)
 
   const cropperRef = useRef<PhotoUploadCropRef>(null)
 
   const handleDone = async () => {
-    const base64 = await cropperRef.current?.cropImage()
-    if (base64) setCropped(base64)
+    const result = await cropperRef.current?.cropImage()
+    if (result) setCropped(result)
   }
 
   const handleReset = () => {
@@ -51,36 +51,41 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
   const { resumidActor } = useAuth();
 
   async function handleUpdateBanner({ file }: { file: File }) {
-      try {
-        const presignRes = await fetch(`${import.meta.env.VITE_SERVICE_URL}/presigned-url/true`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ expires: 60 }),
-        });
-  
-        if (!presignRes.ok) {
-          throw new Error("Failed to request presigned URL");
-        }
-  
-        const data = await presignRes.json();
-  
-        const upload = await pinata.upload.public
-          .file(file)
-          .url(data.url)
-  
-        const cid = upload.cid;
-        const res = await resumidActor.updateBannerPicture(cid);
-  
-        if ("ok" in res) {
-          return { cid }
-        } else {
-          throw new Error(res.err ?? "Unknown error");
-        }
-      } catch (error) {
-        console.error("Error uploading avatar:", error);
-        throw error;
+    try {
+      if (!resumidActor) throw new Error("Actor is undefined");
+
+      const apiKey = import.meta.env.VITE_SERVICE_API_KEY;
+
+      const presignRes = await fetch(`/service/api/upload/presigned-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+        body: JSON.stringify({ expires: 60, uploadFileType: "image" }),
+      });
+
+
+      if (!presignRes.ok) {
+        throw new Error("Failed to request presigned URL");
       }
+
+      const data = await presignRes.json();
+
+      const upload = await pinata.upload.public
+        .file(file)
+        .url(data.url)
+
+      const cid = upload.cid;
+      const res = await resumidActor.updateBannerPicture(cid);
+
+      if ("ok" in res) {
+        return { cid }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      throw error;
     }
+  }
 
   const queryClient = useQueryClient();
 
@@ -103,20 +108,26 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Success", description: "Your profile banner has been updated!" })
+      toast({ title: "Success", description: "Your profile banner has been updated!", variant: "success" })
       handleReset();
       setOpen(false);
     }
   });
 
   const handleSubmit = async () => {
-      if (!cropped) {
-        return toast({ variant: "destructive", title: "Error", description: "You need to choose a photo first to upload"})
-      }
-  
-      const file = base64ToFile(cropped)
-      updateBanner({ file })
+    if (!cropped) {
+      return toast({ variant: "destructive", title: "Error", description: "You need to choose a photo first to upload" })
     }
+
+    const mimeType = cropped.file.type;
+    const ext = mimeType.split("/")[1] || "png";
+
+    const randomName = `banner_${Math.random().toString(36).substring(2, 10)}.${ext}`;
+
+    const file = new File([cropped.file], randomName, { type: cropped.file.type });
+
+    updateBanner({ file });
+  }
 
   return (
     <>
@@ -128,7 +139,7 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[860px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[860px] max-h-[80vh] sm:max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">{isEditing ? "Upload " : ""}Profile Banner</DialogTitle>
             <DialogDescription className="font-inter text-paragraph">
@@ -140,7 +151,7 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
           ) : (
             <div className="flex justify-center items-center bg-black/5 aspect-[32/9] rounded-md shadow-sm overflow-clip">
               <img
-                src={cropped || url || BannerPlaceholder}
+                src={cropped?.url || url || BannerPlaceholder}
                 alt="profile-banner"
                 className="w-full h-full object-cover object-center"
               />
@@ -202,7 +213,7 @@ export function BannerDialog({ queryKey, url, open, setOpen, isOwner = false }: 
               This action cannot be undone. Are you sure you want to remove your profile banner?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" key="cancel-btn" variant="grey-outline">Cancel</Button>
             </DialogClose>
