@@ -25,6 +25,7 @@ interface AuthContextType {
   resumidActor: ActorSubclass<_SERVICE> | null;
   userData: any | null;
   fetchUserData: () => Promise<void>;
+  updateUserData: (updates: Partial<any>) => void;
   loading: boolean;
 }
 
@@ -111,7 +112,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             profile: {
               profileId: profile.profileId,
               name: fromNullable(profileDetail.name),
-              profileCid: fromNullable(profileDetail.profileCid)
+              profileCid: fromNullable(profileDetail.profileCid),
+              current_position: fromNullable(profileDetail.current_position)
             }
           })
         }, (key, value) =>
@@ -263,6 +265,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
 
+  const updateUserData = (updates: Partial<any>) => {
+    setUserData((prevData: any) => ({
+      ...prevData,
+      ...updates,
+      profile: {
+        ...prevData?.profile,
+        ...updates.profile
+      }
+    }));
+    
+    const updatedData = {
+      ...userData,
+      ...updates,
+      profile: {
+        ...userData?.profile,
+        ...updates.profile
+      }
+    };
+    localStorage.setItem("userData", JSON.stringify(updatedData));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -275,6 +298,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         resumidActor,
         userData,
         fetchUserData,
+        updateUserData,
         loading,
       }}
     >

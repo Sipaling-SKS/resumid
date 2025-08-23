@@ -30,6 +30,7 @@ async function searchPeople(resumidActor: any, query: string) {
 
       return {
         id: result.userId,
+        profileId: result.profileId,
         name: name,
         role: result.profileDetail?.[0]?.current_position?.[0] || 'No position specified',
         image: avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=225adf&color=f4f4f4&size=150`,
@@ -152,7 +153,7 @@ export default function SearchResults() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {people.map((person) => (
                   <ProfileCard
-                    key={person.id}
+                    key={person.profileId}
                     person={person}
                     onClick={handleProfileClick}
                   />
