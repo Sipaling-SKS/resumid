@@ -10,7 +10,7 @@ import ProfileExperience from "./ProfileExperience";
 import ProfileEducation from "./ProfileEducation";
 import ProfileSkills from "./ProfileSkill";
 import ProfileAnalytics from "./ProfileAnalytics";
-import { EducationType, ProfileType, WorkExperienceType } from "@/types/profile-types";
+import { EducationType, EndorsementBasicInfo, ProfileType, WorkExperienceType } from "@/types/profile-types";
 import { AboutDialog } from "./Dialog/AboutDialog";
 import { SkillDialog } from "./Dialog/SkillDialog";
 import { ExperienceDialog } from "./Dialog/ExperienceDialog";
@@ -36,8 +36,9 @@ type SelectedTypes = {
 }
 
 type ProfileDetailResponse = {
-  profile: ProfileType | null;
-  endorsementInfo: any[];
+  profile: ProfileType;
+  endorsementInfo?: EndorsementBasicInfo[];
+  endorsedProfilesInfo?: EndorsementBasicInfo[];
 };
 
 export default function ProfileDetail() {
@@ -98,104 +99,124 @@ export default function ProfileDetail() {
     if (!resumidActor) throw new Error("Actor is undefined");
 
     const result = await resumidActor.getProfileById(id);
-    const { profile: profileRaw, endorsementInfo = [] } = result;
-    const _profile = fromNullable(profileRaw);
 
-    console.log("Result raw:", result);
+    if ("ok" in result) {
+      const data = result.ok;
+      const { 
+        profile: _profile, 
+        endorsementInfo: _endorsementInfo, 
+        endorsedProfilesInfo: _endrosedProfilesInfo
+      } = data;
 
-    if (!_profile) return { profile: null, endorsementInfo };
+      const profile: ProfileType = {
+        profileId: _profile.profileId,
+        userId: _profile.userId,
+        createdAt: _profile.createdAt,
+        updatedAt: _profile.updatedAt,
+        contact: (() => {
+          const c = fromNullable(_profile.contact);
+          return c
+            ? {
+              twitter: fromNullable(c.twitter),
+              instagram: fromNullable(c.instagram),
+              email: fromNullable(c.email),
+              website: fromNullable(c.website),
+              facebook: fromNullable(c.facebook),
+              address: fromNullable(c.address),
+              phone: fromNullable(c.phone),
+            }
+            : undefined;
+        })(),
+        profileDetail: (() => {
+          const d = fromNullable(_profile.profileDetail);
+          return d
+            ? {
+              name: fromNullable(d.name),
+              description: fromNullable(d.description),
+              current_position: fromNullable(d.current_position),
+              bannerCid: fromNullable(d.bannerCid),
+              profileCid: fromNullable(d.profileCid),
+            }
+            : undefined;
+        })(),
+        resume: (() => {
+          const r = fromNullable(_profile.resume);
+          return r
+            ? {
+              summary: (() => {
+                const content = fromNullable(r.summary)?.content;
+                if (!content) return undefined;
+                return fromNullable(content) || undefined;
+              })(),
 
-    const profile: ProfileType = {
-      profileId: _profile.profileId,
-      userId: _profile.userId,
-      createdAt: _profile.createdAt,
-      updatedAt: _profile.updatedAt,
-      contact: (() => {
-        const c = fromNullable(_profile.contact);
-        return c
-          ? {
-            twitter: fromNullable(c.twitter),
-            instagram: fromNullable(c.instagram),
-            email: fromNullable(c.email),
-            website: fromNullable(c.website),
-            facebook: fromNullable(c.facebook),
-            address: fromNullable(c.address),
-            phone: fromNullable(c.phone),
-          }
-          : undefined;
-      })(),
-      profileDetail: (() => {
-        const d = fromNullable(_profile.profileDetail);
-        return d
-          ? {
-            name: fromNullable(d.name),
-            description: fromNullable(d.description),
-            current_position: fromNullable(d.current_position),
-            bannerCid: fromNullable(d.bannerCid),
-            profileCid: fromNullable(d.profileCid),
-          }
-          : undefined;
-      })(),
-      resume: (() => {
-        const r = fromNullable(_profile.resume);
-        return r
-          ? {
-            summary: (() => {
-              const content = fromNullable(r.summary)?.content;
-              if (!content) return undefined;
-              return fromNullable(content) || undefined;
-            })(),
+              skills: fromNullable(r.skills)?.skills ?? undefined,
 
-            skills: fromNullable(r.skills)?.skills ?? undefined,
+              educations: (() => {
+                const mapped =
+                  fromNullable(r.educations)?.map((ed) => ({
+                    id: ed.id,
+                    period: {
+                      start: fromNullable(ed.period.start),
+                      end: fromNullable(ed.period.end),
+                    },
+                    institution: fromNullable(ed.institution),
+                    description: fromNullable(ed.description),
+                    degree: fromNullable(ed.degree),
+                  })) ?? [];
+                return mapped.length ? sortByPeriod<EducationType>(mapped) : undefined;
+              })(),
 
-            educations: (() => {
-              const mapped =
-                fromNullable(r.educations)?.map((ed) => ({
-                  id: ed.id,
-                  period: {
-                    start: fromNullable(ed.period.start),
-                    end: fromNullable(ed.period.end),
-                  },
-                  institution: fromNullable(ed.institution),
-                  description: fromNullable(ed.description),
-                  degree: fromNullable(ed.degree),
-                })) ?? [];
-              return mapped.length ? sortByPeriod<EducationType>(mapped) : undefined;
-            })(),
+              workExperiences: (() => {
+                const mapped =
+                  fromNullable(r.workExperiences)?.map((we) => ({
+                    id: we.id,
+                    period: {
+                      start: fromNullable(we.period.start),
+                      end: fromNullable(we.period.end),
+                    },
+                    employment_type: fromNullable(we.employment_type),
+                    description: fromNullable(we.description),
+                    company: we.company,
+                    position: we.position,
+                    location: fromNullable(we.location),
+                  })) ?? [];
+                return mapped.length ? sortByPeriod<WorkExperienceType>(mapped) : undefined;
+              })(),
+            }
+            : undefined;
+        })(),
+        certifications:
+          fromNullable(_profile.certifications)?.map((cert) => ({
+            id: cert.id,
+            title: cert.title,
+            createdAt: cert.createdAt,
+            updatedAt: cert.updatedAt,
+            credential_url: fromNullable(cert.credential_url),
+            issuer: fromNullable(cert.issuer),
+          })) ?? undefined,
+      };
 
-            workExperiences: (() => {
-              const mapped =
-                fromNullable(r.workExperiences)?.map((we) => ({
-                  id: we.id,
-                  period: {
-                    start: fromNullable(we.period.start),
-                    end: fromNullable(we.period.end),
-                  },
-                  employment_type: fromNullable(we.employment_type),
-                  description: fromNullable(we.description),
-                  company: we.company,
-                  position: we.position,
-                  location: fromNullable(we.location),
-                })) ?? [];
-              return mapped.length ? sortByPeriod<WorkExperienceType>(mapped) : undefined;
-            })(),
-          }
-          : undefined;
-      })(),
-      endorsements: fromNullable(_profile.endorsedProfiles) ?? [],
-      endorsedProfiles: fromNullable(_profile.endorsedProfiles) ?? [],
-      certifications:
-        fromNullable(_profile.certificatons)?.map((cert) => ({
-          id: cert.id,
-          title: cert.title,
-          createdAt: cert.createdAt,
-          updatedAt: cert.updatedAt,
-          credential_url: fromNullable(cert.credential_url),
-          issuer: fromNullable(cert.issuer),
-        })) ?? undefined,
-    };
+      const endrosementInfo: EndorsementBasicInfo[] = fromNullable(_endorsementInfo)?.map(({ name, avatar, profileId }) => ({
+        name,
+        profileId,
+        avatar: fromNullable(avatar)
+      })) ?? []
 
-    return { profile, endorsementInfo };
+      const endorsedProfilesInfo: EndorsementBasicInfo[] = fromNullable(_endrosedProfilesInfo)?.map(({ name, avatar, profileId }) => ({
+        name,
+        profileId,
+        avatar: fromNullable(avatar)
+      })) ?? []
+
+      return {
+        profile,
+        endorsementInfo,
+        endorsedProfilesInfo
+      };
+
+    } else {
+      throw new Error(result?.err || "Unknown Error")
+    }
   }
 
   const {
@@ -209,7 +230,7 @@ export default function ProfileDetail() {
     refetchOnWindowFocus: false
   });
 
-  const { profile: profileDetail, endorsementInfo } = data ?? { profile: null, endorsementInfo: [] };
+  const { profile: profileDetail, endorsementInfo = [] } = data ?? { profile: null, endorsementInfo: [] };
 
   if (!isLoading && !profileDetail) {
     return (
@@ -231,9 +252,9 @@ export default function ProfileDetail() {
 
   const currentUserId = userData?.ok?.id?.__principal__;
   const isOwner = !isLoading ? profileDetail!.userId === currentUserId : false;
-  
+
   // TODO: Adjust later
-  const hasEndorsed = !isOwner && endorsementInfo?.some((endorsement) => endorsement.endorsedUserId === currentUserId);
+  const hasEndorsed = !isOwner && endorsementInfo?.some((endorsement) => endorsement.profileId === currentUserId) || false;
 
   if (error) {
     return (

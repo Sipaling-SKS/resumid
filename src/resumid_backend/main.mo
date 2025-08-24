@@ -428,7 +428,7 @@ actor Resumid {
       profiles,
       userId,
       profileDetailInput,
-      contactInfo,
+      contactInfo,yes
     );
 
     switch (result) {
@@ -439,6 +439,20 @@ actor Resumid {
         #err("Failed to update profile for user " # userId # ": " # errMsg);
       };
     };
+  };
+
+  public shared (msg) func updateProfilePicture(
+    profileCid: Text
+  ) : async Result.Result<Text, Text> {
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.updateProfilePicture(profiles, userId, profileCid)
+  };
+
+  public shared (msg) func updateBannerPicture(
+    bannerCid: Text
+  ) : async Result.Result<Text, Text> {
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.updateBannerPicture(profiles, userId, bannerCid)
   };
 
   // --- Work Experience ---

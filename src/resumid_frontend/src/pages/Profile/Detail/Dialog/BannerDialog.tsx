@@ -17,7 +17,6 @@ import { Camera, Check, Loader2, Save, Trash } from "lucide-react"
 import { useRef, useState } from "react"
 
 import BannerPlaceholder from "@/assets/banner_placeholder.jpg"
-import { base64ToFile } from "@/utils/base64ToFile"
 import { pinata } from "@/lib/pinata"
 
 interface BannerDialogProps {

@@ -5,8 +5,8 @@ import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declaratio
 import { toast } from "@/hooks/useToast";
 import { useNavigate } from "react-router";
 import { LoaderCircle } from "lucide-react";
-import { Flatten, flattenNullable, fromNullable } from "@/lib/optionalField";
-import { _SERVICE, Profile } from "../../../declarations/resumid_backend/resumid_backend.did";
+import { fromNullable } from "@/lib/optionalField";
+import { _SERVICE } from "../../../declarations/resumid_backend/resumid_backend.did";
 import { ActorSubclass } from "@dfinity/agent";
 
 type AuthLoginOptions = {
@@ -91,40 +91,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
-      const profileData = await resumidActor.getProfileByUserId();
+      const result = await resumidActor.getProfileByUserId();
 
-      const { profile: profileRaw, endorsementInfo } = profileData;
+      if ("ok" in result) {
+        const data = result.ok;
 
-      const profile = fromNullable(profileRaw);
+        const { profile: _profile } = data;
 
-      if (!profile) {
-        console.error("No profile data found");
+        const profileDetail = fromNullable(_profile.profileDetail);
+
+        const serializedData = JSON.parse(
+          JSON.stringify({
+            ...data,
+            profile: {
+              profileId: _profile.profileId,
+              ...(profileDetail && {
+                name: fromNullable(profileDetail.name),
+                profileCid: fromNullable(profileDetail.profileCid),
+                current_position: fromNullable(profileDetail.current_position)
+              })
+            }
+          }, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        );
+        console.log("Serialized user data:", serializedData);
+  
+        setUserData(serializedData);
+        localStorage.setItem("userData", JSON.stringify(serializedData));
+      } else {
+        console.error(result?.err && "Error serializing user data");
         setUserData(null);
         setLoading(false);
         return;
       }
-
-      const profileDetail = fromNullable(profile?.profileDetail)
-
-      const serializedData = JSON.parse(
-        JSON.stringify({
-          ...data, ...(profileDetail && {
-            profile: {
-              profileId: profile.profileId,
-              name: fromNullable(profileDetail.name),
-              profileCid: fromNullable(profileDetail.profileCid),
-              current_position: fromNullable(profileDetail.current_position)
-            }
-          })
-        }, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
-      );
-
-      console.log("Serialized user data:", serializedData);
-
-      setUserData(serializedData);
-      localStorage.setItem("userData", JSON.stringify(serializedData));
     } catch (error) {
       console.error("Error fetching user data:", error);
       setUserData(null);
@@ -274,7 +274,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         ...updates.profile
       }
     }));
-    
+
     const updatedData = {
       ...userData,
       ...updates,

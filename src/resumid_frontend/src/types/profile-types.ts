@@ -6,10 +6,14 @@ export interface ProfileType {
 
   resume?: ResumeDataType;
   contact?: ContactInfoType;
-  endorsedProfiles?: string[];
-  endorsements?: string[];
   certifications?: CertificateType[];
   profileDetail?: ProfileDetailType;
+}
+
+export interface EndorsementBasicInfo {
+  profileId: string,
+  name: string,
+  avatar?: string
 }
 
 // Resume
