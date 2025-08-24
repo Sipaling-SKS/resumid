@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { cn, scrollToTop, scrollTo } from "@/lib/utils";
+import { cn, scrollToTop, scrollTo, shorten, truncate } from "@/lib/utils";
 import { Menu, X as Close, LogOut, User2 as ProfileIcon, Search, ArrowLeft, Wallet } from "lucide-react";
 import { NavLink } from "react-router";
 import { useState, useRef } from "react";
@@ -16,6 +16,12 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
   const showSearch = shouldShowSearch(location.pathname) && isAuthenticated;
   const searchMode = isSearchMode(location.pathname);
   const searchBarRef = useRef<SearchBarRef>(null);
+
+  const basePinataUrl = import.meta.env.VITE_PINATA_GATEWAY_URL;
+  const avatarCid = userData?.profile?.profileCid || null;
+  const avatarUrl = avatarCid ? `${basePinataUrl}/ipfs/${avatarCid}` : null;
+  const userName = userData?.profile?.name || userData?.ok?.name || "User";
+  const userRole = userData?.profile?.current_position || "No Position";
 
   const handleSearchToggle = () => {
     if (searchMode) {
@@ -64,17 +70,23 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
               Resume Analyzer
             </NavLink>
           </ul>
-          <div className="inline-flex gap-6 p-4 border-t border-b border-neutral-200 items-center justify-between">
-            <div className="inline-flex gap-2 items-center">
-              <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">ID</div>
-              <p className="text-paragraph font-medium">{String(userData?.ok?.name).split("-").splice(0, 2).join("-")}</p>
+          <div className="inline-flex gap-2 p-4 border-t border-b border-neutral-200 items-center justify-between">
+            <div className="inline-flex gap-2 items-center min-w-0 flex-1">
+              <div className="flex flex-col min-w-0 flex-1">
+                <p className="text-paragraph font-medium">{truncate(userName, 12)}</p>
+                <p className="text-xs text-gray-500 truncate" title={userRole}>
+                  {userRole}
+                </p>
+              </div>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="cursor-pointer p-[2px] rounded-full bg-transparent hover:bg-primary-500 transition-colors">
-                  <Avatar className="border-2 border-white w-11 h-11">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                   <Avatar className="border-2 border-white w-11 h-11">
+                    <AvatarImage
+                      src={avatarUrl || `https://ui-avatars.com/api/?name=${userName}&background=225adf&color=f4f4f4`}
+                    />
+                    <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </div>
               </DropdownMenuTrigger>
@@ -94,12 +106,12 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
           </div>
         </div>
         {isOpen && <div onClick={() => setIsOpen(false)} className="fixed top-0 left-0 w-full h-full z-40" />}
-        
+
         <div className="relative inline-flex items-center justify-between gap-2 w-full">
           <div className="flex items-center gap-3 flex-1">
-            <Button 
+            <Button
               onClick={handleSearchToggle}
-              variant="ghost" 
+              variant="ghost"
               size="icon"
               className="flex-shrink-0"
               aria-label="Go back"
@@ -110,9 +122,9 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
               <SearchBar ref={searchBarRef} />
             </div>
           </div>
-          <Button 
-            onClick={() => setIsOpen(!isOpen)} 
-            variant="ghost" 
+          <Button
+            onClick={() => setIsOpen(!isOpen)}
+            variant="ghost"
             size="icon"
             className="flex-shrink-0"
           >
@@ -146,34 +158,34 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
               >
                 Home
               </NavLink>
-              <Button 
+              <Button
                 onClick={() => {
                   scrollTo('features', 73);
                   setIsOpen(false);
-                }} 
-                variant="link" 
-                size="lg" 
+                }}
+                variant="link"
+                size="lg"
                 className="p-2"
               >
                 Features
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
                   scrollTo('pricing', 73);
                   setIsOpen(false);
-                }} 
-                variant="link" 
-                size="lg" 
+                }}
+                variant="link"
+                size="lg"
                 className="p-2"
               >
                 Pricing
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
                   login();
                   setIsOpen(false)
-                }} 
-                variant="gradient" 
+                }}
+                variant="gradient"
                 size="lg"
               >
                 Sign In
@@ -211,17 +223,23 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
           )}
         </ul>
         {isAuthenticated && (
-          <div className="inline-flex gap-6 p-4 border-t border-b border-neutral-200 items-center justify-between">
-            <div className="inline-flex gap-2 items-center">
-              <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">ID</div>
-              <p className="text-paragraph font-medium">{String(userData?.ok?.name).split("-").splice(0, 2).join("-")}</p>
+          <div className="inline-flex gap-2 p-4 border-t border-b border-neutral-200 items-center justify-between">
+            <div className="inline-flex gap-2 items-center min-w-0 flex-1">
+              <div className="flex flex-col min-w-0 flex-1">
+                <p className="text-paragraph font-medium">{truncate(userName, 12)}</p>
+                <p className="text-xs text-gray-500 truncate" title={userRole}>
+                  {userRole}
+                </p>
+              </div>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="cursor-pointer p-[2px] rounded-full bg-transparent hover:bg-primary-500 transition-colors">
                   <Avatar className="border-2 border-white w-11 h-11">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage
+                      src={avatarUrl || `https://ui-avatars.com/api/?name=${userName}&background=225adf&color=f4f4f4`}
+                    />
+                    <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </div>
               </DropdownMenuTrigger>
@@ -233,12 +251,12 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => navigate("/wallet")}
-              >
-                <Wallet />
-                Wallet
-              </DropdownMenuItem>
+                  className="cursor-pointer"
+                  onClick={() => navigate("/wallet")}
+                >
+                  <Wallet />
+                  Wallet
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-500" >
                   <LogOut />
                   Sign out
@@ -252,9 +270,9 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
       <div className="relative inline-flex items-center justify-between gap-2 w-full">
         {showSearch && isSearchExpanded ? (
           <>
-            <Button 
-              onClick={handleSearchToggle} 
-              variant="ghost" 
+            <Button
+              onClick={handleSearchToggle}
+              variant="ghost"
               size="icon"
               className="flex-shrink-0"
             >
@@ -266,25 +284,25 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
           </>
         ) : (
           <>
-            <img 
-              onClick={() => navigate("/")} 
-              src={Logo} 
-              alt="Logo Resumid" 
-              className="pb-1 cursor-pointer" 
+            <img
+              onClick={() => navigate("/")}
+              src={Logo}
+              alt="Logo Resumid"
+              className="pb-1 cursor-pointer"
             />
             <div className="inline-flex items-center gap-2">
               {showSearch && (
-                <Button 
-                  onClick={handleSearchToggle} 
-                  variant="ghost" 
+                <Button
+                  onClick={handleSearchToggle}
+                  variant="ghost"
                   size="icon"
                 >
                   <Search size={24} />
                 </Button>
               )}
-              <Button 
-                onClick={() => setIsOpen(!isOpen)} 
-                variant="ghost" 
+              <Button
+                onClick={() => setIsOpen(!isOpen)}
+                variant="ghost"
                 size="icon"
               >
                 <Menu size={24} />

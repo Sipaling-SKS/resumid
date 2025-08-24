@@ -47,7 +47,7 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
     setEditing(false);
   }
 
-  const { resumidActor } = useAuth();
+  const { resumidActor, updateUserData } = useAuth();
 
   async function handleUpdateAvatar({ file }: { file: File }) {
     try {
@@ -106,6 +106,11 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
+      updateUserData({
+        profile: {
+          avatarCid: data.cid
+        }
+      });
       toast({ title: "Success", description: "Your profile avatar has been updated!" })
       handleReset();
       setOpen(false);

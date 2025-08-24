@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 interface ProfileCardProps {
   person: {
     id: string;
+    profileId: string;
     name: string;
     role: string;
     image: string;
@@ -16,7 +17,7 @@ interface ProfileCardProps {
 
 export default function ProfileCard({ person, onClick, className }: ProfileCardProps) {
   const handleClick = () => {
-    onClick?.(person.id);
+    onClick?.(person.profileId);
   };
 
   const endorsementCount = person.endorsements.length;

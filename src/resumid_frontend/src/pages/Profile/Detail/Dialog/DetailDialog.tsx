@@ -68,7 +68,7 @@ export function DetailDialog({
 }: DetailDialogProps) {
   const finalQueryKey = Array.isArray(queryKey) ? queryKey : [queryKey];
 
-  const { resumidActor, userData } = useAuth();
+  const { resumidActor, userData, updateUserData } = useAuth();
 
   const [confirm, setConfirm] = useState<ConfirmTypes>({
     remove: false,
@@ -227,6 +227,12 @@ export function DetailDialog({
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
+      updateUserData({
+        profile: {
+          name: variables.data.name,
+          current_position: variables.data.current_position
+        }
+      });
       toast({
         title: "Success",
         description: "Your profile detail has been updated!",
