@@ -45,6 +45,14 @@ actor Resumid {
     return msg.caller;
   };
 
+  // public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
+  //   let userId = msg.caller;
+
+  //   Debug.print("Caller Principal for auth: " # Principal.toText(userId));
+  //    await UserServices.authenticateUser(users, userId);
+  //    await ProfileServices.createUserProfile(profiles, userId);
+  //   return
+  // };
   public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
     let userId = msg.caller;
     Debug.print("Caller Principal for auth: " # Principal.toText(userId));
@@ -173,6 +181,8 @@ actor Resumid {
   // ==============================
   // Resume Extract Methods
   // ==============================
+
+  // Fixed extractResumeToDraft function
   public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
     if (Principal.isAnonymous(msg.caller)) {
       Debug.print("Anonymous users cannot extract resumes");
@@ -410,6 +420,33 @@ actor Resumid {
     };
   };
 
+  // public shared (msg) func updateProfileDetail(
+  //   profileDetailInput : ?{
+  //     name : ?Text;
+  //     current_position : ?Text;
+  //     description : ?Text;
+  //   },
+  //   contactInfo : ?ProfileTypes.ContactInfo,
+  // ) : async Text {
+  //   let userId = Principal.toText(msg.caller);
+
+  //   let result = await ProfileServices.updateProfileDetailAndContact(
+  //     profiles,
+  //     userId,
+  //     profileDetailInput,
+  //     contactInfo,
+  //   );
+
+  //   switch (result) {
+  //     case (#ok(_)) {
+  //       return "Profile for user " # userId # " updated successfully";
+  //     };
+  //     case (#err(errMsg)) {
+  //       return "Failed to update profile: " # errMsg;
+  //     };
+  //   };
+  // };
+
   public shared (msg) func updateProfileDetail(
     profileDetailInput : ?{
       name : ?Text;
@@ -428,7 +465,7 @@ actor Resumid {
       profiles,
       userId,
       profileDetailInput,
-      contactInfo
+      contactInfo,
     );
 
     switch (result) {
@@ -441,21 +478,55 @@ actor Resumid {
     };
   };
 
-  public shared (msg) func updateProfilePicture(
-    profileCid: Text
-  ) : async Result.Result<Text, Text> {
+  public shared (msg) func updateProfilePicture(imageUrl : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profile pictures");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.updateProfilePicture(profiles, userId, profileCid)
+    let result = await ProfileServices.updateProfilePicture(profiles, userId, imageUrl);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Profile picture updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update profile picture for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
-  public shared (msg) func updateBannerPicture(
-    bannerCid: Text
-  ) : async Result.Result<Text, Text> {
+  public shared (msg) func updateBannerPicture(bannerUrl : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update banner images");
+    };
     let userId = Principal.toText(msg.caller);
-    return await ProfileServices.updateBannerPicture(profiles, userId, bannerCid)
+    let result = await ProfileServices.updateBannerPicture(profiles, userId, bannerUrl);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Banner image updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update banner image for user " # userId # ": " # errMsg);
+      };
+    };
   };
 
   // --- Work Experience ---
+  // public shared (msg) func addWorkExperienceShared(
+  //   newWorkExperience : {
+  //     company : Text;
+  //     location : ?Text;
+  //     position : Text;
+  //     employment_type : ?Text;
+  //     period : {
+  //       start : ?Text;
+  //       end : ?Text;
+  //     };
+  //     description : ?Text;
+  //   }
+  // ) : async Result.Result<Text, Text> {
+  //   let userId = Principal.toText(msg.caller);
+  //   return await ProfileServices.addWorkExperience(profiles, userId, newWorkExperience);
+  // };
   public shared (msg) func addWorkExperienceShared(
     newWorkExperience : {
       company : Text;
@@ -592,6 +663,7 @@ actor Resumid {
 
   // --- Skills ---
   public shared (msg) func editSkillsShared(
+    // userId : Text,
     updatedSkills : [Text],
   ) : async Result.Result<Text, Text> {
     if (Principal.isAnonymous(msg.caller)) {
@@ -611,6 +683,7 @@ actor Resumid {
 
   // --- Resume Item Deletion ---
   public shared (msg) func deleteResumeItemShared(
+    // userId : Text,
     itemType : Text,
     itemId : ?Text,
   ) : async Result.Result<Text, Text> {
@@ -697,8 +770,7 @@ actor Resumid {
   // SEARCH
   // -------------------------
   public shared (msg) func searchProfiles(searchInput : Text) : async [ProfileTypes.SearchResult] {
-    let userId = Principal.toText(msg.caller);
-    return await ProfileServices.globalSearch(userId, profiles, searchInput);
+    return await ProfileServices.globalSearch(profiles, searchInput);
   };
 
   // -------------------------
@@ -746,10 +818,10 @@ actor Resumid {
 
     switch (result) {
       case (#ok(history)) {
-        return #ok(history.historyId); 
+        return #ok(history.historyId); // hanya kirim ID-nya
       };
       case (#err(errMsg)) {
-        return #err(errMsg);
+        return #err(errMsg); // kirim error asli dari service
       };
     };
   };

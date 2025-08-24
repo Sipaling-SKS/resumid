@@ -346,25 +346,23 @@ module ProfileServices {
 
     let resumeData = switch (profile.resume) {
       case null {
-        // IF NULL: Create new resume data with just the new work experience
         {
           summary = null;
-          workExperiences = ?[newWorkExp]; // Start with first work experience
+          workExperiences = ?[newWorkExp]; 
           educations = null;
           skills = null;
         };
       };
       case (?resume) {
-        // IF NOT NULL: Continue adding more work experiences
         let currentWorkExps = switch (resume.workExperiences) {
-          case null { [] }; // If workExperiences array is null, start with empty array
-          case (?arr) { arr }; // If workExperiences exist, use existing array
+          case null { [] }; 
+          case (?arr) { arr }; 
         };
-        let updatedWorkExps = Array.append(currentWorkExps, [newWorkExp]); // Add new one to existing
+        let updatedWorkExps = Array.append(currentWorkExps, [newWorkExp]); 
 
         {
           resume with
-          workExperiences = ?updatedWorkExps; // Keep all other fields, update workExperiences
+          workExperiences = ?updatedWorkExps; 
         };
       };
     };
