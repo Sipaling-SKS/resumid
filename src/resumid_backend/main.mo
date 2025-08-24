@@ -428,7 +428,7 @@ actor Resumid {
       profiles,
       userId,
       profileDetailInput,
-      contactInfo,yes
+      contactInfo
     );
 
     switch (result) {
