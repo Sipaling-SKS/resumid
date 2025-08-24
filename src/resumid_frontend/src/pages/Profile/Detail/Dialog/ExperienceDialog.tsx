@@ -215,7 +215,7 @@ export function ExperienceDialog({
 
     if (!id) throw new Error("Error, id is invalid or undefined");
 
-    if (userData?.ok?.id.__principal__ !== id) {
+    if (userData?.user?.id.__principal__ !== id) {
       throw new Error("Error, user is not the owner of this profile");
     }
   }

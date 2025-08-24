@@ -13,7 +13,6 @@ import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "@/hooks/useToast"
 import { pinata } from "@/lib/pinata"
 import { cn } from "@/lib/utils"
-import { base64ToFile } from "@/utils/base64ToFile"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Camera, Check, Loader2, Save, Trash } from "lucide-react"
 import { useRef, useState } from "react"
@@ -111,7 +110,7 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
           avatarCid: data.cid
         }
       });
-      toast({ title: "Success", description: "Your profile avatar has been updated!" })
+      toast({ title: "Success", description: "Your profile avatar has been updated!", variant: "success" })
       handleReset();
       setOpen(false);
     }

@@ -250,11 +250,10 @@ export default function ProfileDetail() {
     )
   }
 
-  const currentUserId = userData?.ok?.id?.__principal__;
-  const isOwner = !isLoading ? profileDetail!.userId === currentUserId : false;
+  const currentProfileId = userData?.profile?.profileId;
+  const isOwner = !isLoading ? profileDetail!.profileId === currentProfileId : false;
 
-  // TODO: Adjust later
-  const hasEndorsed = !isOwner && endorsementInfo?.some((endorsement) => endorsement.profileId === currentUserId) || false;
+  const hasEndorsed = !isOwner && endorsementInfo?.some((endorsement) => endorsement.profileId === currentProfileId) || false;
 
   if (error) {
     return (

@@ -82,27 +82,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     try {
-      const data = await resumidActor.getUserById();
+      const userRes = await resumidActor.getUserById();
+      let user;
 
-      if (!data || Object.keys(data).length === 0) {
-        console.error("No user data found");
+      if ("ok" in userRes) {
+        user = userRes.ok;
+      } else {
+        console.error(userRes?.err || "No user data found")
         setUserData(null);
         setLoading(false);
         return;
       }
 
-      const result = await resumidActor.getProfileByUserId();
+      const profileRes = await resumidActor.getProfileByUserId();
 
-      if ("ok" in result) {
-        const data = result.ok;
-
-        const { profile: _profile } = data;
+      if ("ok" in profileRes) {
+        const { profile: _profile } = profileRes.ok;
 
         const profileDetail = fromNullable(_profile.profileDetail);
 
         const serializedData = JSON.parse(
           JSON.stringify({
-            ...data,
+            user,
             profile: {
               profileId: _profile.profileId,
               ...(profileDetail && {
@@ -120,7 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserData(serializedData);
         localStorage.setItem("userData", JSON.stringify(serializedData));
       } else {
-        console.error(result?.err && "Error serializing user data");
+        console.error(profileRes?.err && "Error serializing user data");
         setUserData(null);
         setLoading(false);
         return;

@@ -20,7 +20,7 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
   const basePinataUrl = import.meta.env.VITE_PINATA_GATEWAY_URL;
   const avatarCid = userData?.profile?.profileCid || null;
   const avatarUrl = avatarCid ? `${basePinataUrl}/ipfs/${avatarCid}` : null;
-  const userName = userData?.profile?.name || userData?.ok?.name || "User";
+  const userName = userData?.profile?.name || userData?.user?.name || "User";
   const userRole = userData?.profile?.current_position || "No Position";
 
   const handleSearchToggle = () => {
