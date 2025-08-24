@@ -478,6 +478,38 @@ actor Resumid {
     };
   };
 
+  public shared (msg) func updateProfilePicture(imageUrl : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profile pictures");
+    };
+    let userId = Principal.toText(msg.caller);
+    let result = await ProfileServices.updateProfilePicture(profiles, userId, imageUrl);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Profile picture updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update profile picture for user " # userId # ": " # errMsg);
+      };
+    };
+  };
+
+  public shared (msg) func updateBannerPicture(bannerUrl : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update banner images");
+    };
+    let userId = Principal.toText(msg.caller);
+    let result = await ProfileServices.updateBannerPicture(profiles, userId, bannerUrl);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Banner image updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update banner image for user " # userId # ": " # errMsg);
+      };
+    };
+  };
+
   // --- Work Experience ---
   // public shared (msg) func addWorkExperienceShared(
   //   newWorkExperience : {
