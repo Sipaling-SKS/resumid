@@ -82,7 +82,7 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="cursor-pointer p-[2px] rounded-full bg-transparent hover:bg-primary-500 transition-colors">
-                   <Avatar className="border-2 border-white w-11 h-11">
+                  <Avatar className="border-2 border-white w-11 h-11">
                     <AvatarImage
                       src={avatarUrl || `https://ui-avatars.com/api/?name=${userName}&background=225adf&color=f4f4f4`}
                     />
@@ -93,7 +93,10 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
               <DropdownMenuContent className="text-paragraph m-2">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                  navigate(`/profile/${userData?.profile.profileId}`);
+                  setIsOpen(false);
+                }}>
                   <ProfileIcon />
                   Profile
                 </DropdownMenuItem>
@@ -246,13 +249,26 @@ function MobileNavbar({ navigate, isOpen, setIsOpen }: any) {
               <DropdownMenuContent className="text-paragraph m-2">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                  navigate(`/profile/${userData?.profile.profileId}`);
+                  setIsOpen(false);
+                }}>
+                  <ProfileIcon />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                  navigate(`/profile/${userData?.profile.profileId}`);
+                  setIsOpen(false);
+                }}>
                   <ProfileIcon />
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer"
-                  onClick={() => navigate("/wallet")}
+                  onClick={() => {
+                    navigate("/wallet");
+                    setIsOpen(false);
+                  }}
                 >
                   <Wallet />
                   Wallet

@@ -3,14 +3,13 @@ import DesktopNavbar from "@/components/layout/Navbar/DesktopNavbar";
 import MobileNavbar from "@/components/layout/Navbar/MobileNavbar";
 import useWindowSize from "@/hooks/useMediaQuery";
 import { useNavigate } from "react-router";
-import { useAuth } from "@/contexts/AuthContext";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { isMobile } = useWindowSize();
-  const { isAuthenticated } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const { isMobile } = useWindowSize()
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const Nav = isMobile ? MobileNavbar : DesktopNavbar;
 
   return (
