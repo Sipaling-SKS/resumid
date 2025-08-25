@@ -380,8 +380,10 @@ export default function ProfileDetail() {
             )}
             {isOwner && (
               <ProfileAnalytics
-                detail={endorsementInfo}
+                detail={profileDetail}
                 loading={isLoading}
+                endorsementInfo={endorsementInfo}
+                isOwner={isOwner}
               />
             )}
           </div>
