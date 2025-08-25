@@ -2,19 +2,19 @@ import { useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
-import { ProfileDetailType } from "@/types/profile-types";
+import { ProfileType } from "@/types/profile-types";
 import { ProfileSkillsSkeleton } from "./Skeleton/ProfileSkillSkeleton";
 
 interface ProfileSkillProps {
   isOwner?: boolean
   loading?: boolean
-  detail: ProfileDetailType
+  detail: ProfileType
   onEdit: () => void
 }
 
 export default function ProfileSkills({ isOwner = false, detail, loading = false, onEdit }: ProfileSkillProps) {
   const [expand, setExpand] = useState(false);
-  const { skills = [] } = detail; 
+  const skills = detail?.resume?.skills || [];
   const maxSkill = 12;
 
   if (loading) return (
@@ -24,7 +24,7 @@ export default function ProfileSkills({ isOwner = false, detail, loading = false
   return (
     <Card className="p-0 overflow-hidden space-y-0">
       <CardTitle className="relative inline-flex gap-3 justify-between items-center px-4 py-4 w-full border-b border-neutral-200">
-        <h3 className="font-outfit text-base text-heading font-semibold">Skills</h3>
+        <h3 className="font-outfit text-lg text-heading font-semibold">Skills</h3>
         {isOwner && (
           <Button
             variant="grey-outline"

@@ -41,6 +41,10 @@ export function shorten(str: string, length: number): string {
   return str && str.length > length ? str.slice(0, length).split(' ').slice(0, -1).join(' ') + "..." : str
 }
 
+export function truncate(str: string, length: number): string {
+  return str && str.length > length ? str.slice(0, length) + "..." : str
+}
+
 export function getTextSizeClass(length: number) {
   if (length <= 30) return "text-lg";
   if (length <= 60) return "text-base";

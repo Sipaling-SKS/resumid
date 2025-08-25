@@ -13,7 +13,6 @@ import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "@/hooks/useToast"
 import { pinata } from "@/lib/pinata"
 import { cn } from "@/lib/utils"
-import { base64ToFile } from "@/utils/base64ToFile"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Camera, Check, Loader2, Save, Trash } from "lucide-react"
 import { useRef, useState } from "react"
@@ -32,14 +31,14 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
 
   const [confirm, setConfirm] = useState<boolean>(false);
   const [isEditing, setEditing] = useState<boolean>(false)
-  const [cropped, setCropped] = useState<string | null>(null)
+  const [cropped, setCropped] = useState<{ file: Blob, url: string } | null>(null)
   const [isCropReady, setIsCropReady] = useState<boolean>(false)
 
   const cropperRef = useRef<PhotoUploadCropRef>(null)
 
   const handleDone = async () => {
-    const base64 = await cropperRef.current?.cropImage()
-    if (base64) setCropped(base64)
+    const result = await cropperRef.current?.cropImage()
+    if (result) setCropped(result)
   }
 
   const handleReset = () => {
@@ -47,14 +46,18 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
     setEditing(false);
   }
 
-  const { resumidActor } = useAuth();
+  const { resumidActor, updateUserData } = useAuth();
 
   async function handleUpdateAvatar({ file }: { file: File }) {
     try {
-      const presignRes = await fetch(`${import.meta.env.VITE_SERVICE_URL}/presigned-url/true`, {
+      if (!resumidActor) throw new Error("Actor is undefined");
+
+      const apiKey = import.meta.env.VITE_SERVICE_API_KEY;
+
+      const presignRes = await fetch(`/service/api/upload/presigned-url`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expires: 60 }),
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+        body: JSON.stringify({ expires: 60, uploadFileType: "image" }),
       });
 
       if (!presignRes.ok) {
@@ -102,7 +105,12 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Success", description: "Your profile avatar has been updated!" })
+      updateUserData({
+        profile: {
+          avatarCid: data.cid
+        }
+      });
+      toast({ title: "Success", description: "Your profile avatar has been updated!", variant: "success" })
       handleReset();
       setOpen(false);
     }
@@ -110,11 +118,17 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
 
   const handleSubmit = async () => {
     if (!cropped) {
-      return toast({ variant: "destructive", title: "Error", description: "You need to choose a photo first to upload"})
+      return toast({ variant: "destructive", title: "Error", description: "You need to choose a photo first to upload" })
     }
 
-    const file = base64ToFile(cropped)
-    updateAvatar({ file })
+    const mimeType = cropped.file.type;
+    const ext = mimeType.split("/")[1] || "png";
+
+    const randomName = `avatar_${Math.random().toString(36).substring(2, 10)}.${ext}`;
+
+    const file = new File([cropped.file], randomName, { type: cropped.file.type });
+
+    updateAvatar({ file });
   }
 
   return (
@@ -127,7 +141,7 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[425px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[425px] max-h-[80vh] sm:max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">{isEditing ? "Upload " : ""}Profile Avatar</DialogTitle>
             <DialogDescription className="font-inter text-paragraph">
@@ -139,7 +153,7 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
           ) : (
             <div className="flex justify-center items-center bg-black/5 aspect-square rounded-md shadow-sm overflow-clip">
               <img
-                src={cropped || url || `https://ui-avatars.com/api/?name=${name || "Resumid User"}&background=225adf&color=f4f4f4`}
+                src={cropped?.url || url || `https://ui-avatars.com/api/?name=${name || "Resumid User"}&background=225adf&color=f4f4f4`}
                 alt="profile-avatar"
                 className="w-full h-full object-contain"
               />
@@ -199,7 +213,7 @@ export function AvatarDialog({ queryKey, url, name, open, setOpen, isOwner = fal
               This action cannot be undone. Are you sure you want to permanently remove your profile avatar?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" key="cancel-btn" variant="grey-outline">Cancel</Button>
             </DialogClose>

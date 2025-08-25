@@ -13,6 +13,7 @@ import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import { JSON } = "mo:serde";
 import DateHelper "helpers/DateHelper";
+import Error "mo:base/Error";
 
 import GptTypes "types/GptTypes";
 import GptServices "services/GptServices";
@@ -29,6 +30,7 @@ import TransactionTypes "types/TransactionTypes";
 import ProfileTypes "types/ProfileTypes";
 import ProfileServices "services/ProfileServices";
 import ResumeExtractTypes "types/ResumeExtractTypes";
+
 import DraftServices "services/DraftServices";
 import TransactionServices "services/TransactionServices";
 
@@ -260,7 +262,7 @@ actor Resumid {
               location = we.location;
               position = we.position;
               employment_type = we.employment_type;
-              period = we.period; // Direct assignment - already correct structure!
+              period = we.period;
               description = ?we.description;
             };
           },
@@ -274,7 +276,7 @@ actor Resumid {
               id = "edu-" # Int.toText(now) # "-" # Int.toText(i);
               institution = ed.institution;
               degree = ed.degree;
-              period = ed.period; // Direct assignment - already correct structure!
+              period = ed.period;
               description = ?ed.description;
             };
           },
@@ -315,28 +317,6 @@ actor Resumid {
     switch (draftMap.get(userId)) {
       case null { [] };
       case (?arr) { arr };
-    };
-  };
-
-  public shared (msg) func getProfileByUserId() : async {
-    profile : ?ProfileTypes.Profile;
-    endorsementInfo : [{ name : ?Text; avatar : ?Text }];
-  } {
-    let userId = Principal.toText(msg.caller);
-    let result = await ProfileServices.getProfileByUserId(profiles, userId);
-    switch (result) {
-      case (?data) {
-        return {
-          profile = ?data.profile;
-          endorsementInfo = data.endorsementInfo;
-        };
-      };
-      case null {
-        return {
-          profile = null;
-          endorsementInfo = [];
-        };
-      };
     };
   };
 
@@ -474,31 +454,21 @@ actor Resumid {
   // ==============================
   // Profile Management Methods
   // ==============================
-  // public shared (msg) func createProfile(
-  //   profileData : ?{
-  //     name : ?Text;
-  //     profileCid : ?Text;
-  //     bannerCid : ?Text;
-  //     current_position : ?Text;
-  //     description : ?Text;
-  //   }
-  // ) : async Result.Result<Text, Text> {
-  //   let userId = Principal.toText(msg.caller);
-  //   return await ProfileServices.createUserProfile(profiles, userId, profileData);
-  // };
-
-  public shared (msg) func getProfileById(profileId : Text) : async {
-    profile : ?ProfileTypes.Profile;
-    endorsementInfo : [{ name : ?Text; avatar : ?Text }];
-  } {
+  public shared (msg) func getProfileById(profileId : Text) : async Result.Result<ProfileTypes.ProfileWithEndorsements, Text> {
     switch (await ProfileServices.getProfileByProfileId(profiles, profileId)) {
-      case (?data) {
-        {
-          profile = ?data.profile;
-          endorsementInfo = data.endorsementInfo;
-        };
-      };
-      case null { { profile = null; endorsementInfo = [] } };
+      case (?data) { #ok(data) };
+      case null { #err("Profile not found") };
+    };
+  };
+
+  public shared (msg) func getProfileByUserId() : async Result.Result<ProfileTypes.ProfileWithEndorsements, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot access profiles");
+    };
+    let userId = Principal.toText(msg.caller);
+    switch (await ProfileServices.getProfileByUserId(profiles, userId)) {
+      case (?data) { #ok(data) };
+      case null { #err("Profile not found") };
     };
   };
 
@@ -556,6 +526,38 @@ actor Resumid {
       };
       case (#err(errMsg)) {
         #err("Failed to update profile for user " # userId # ": " # errMsg);
+      };
+    };
+  };
+
+  public shared (msg) func updateProfilePicture(imageUrl : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update profile pictures");
+    };
+    let userId = Principal.toText(msg.caller);
+    let result = await ProfileServices.updateProfilePicture(profiles, userId, imageUrl);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Profile picture updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update profile picture for user " # userId # ": " # errMsg);
+      };
+    };
+  };
+
+  public shared (msg) func updateBannerPicture(bannerUrl : Text) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot update banner images");
+    };
+    let userId = Principal.toText(msg.caller);
+    let result = await ProfileServices.updateBannerPicture(profiles, userId, bannerUrl);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Banner image updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update banner image for user " # userId # ": " # errMsg);
       };
     };
   };

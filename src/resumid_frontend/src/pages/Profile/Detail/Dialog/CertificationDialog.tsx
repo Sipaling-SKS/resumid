@@ -11,24 +11,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/useToast";
-import { ProfileDetailType, CertificationType } from "@/types/profile-types";
+import { CertificateType, ProfileType } from "@/types/profile-types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { List, ListOrdered, Loader2, Plus, Save, Trash } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Resolver, useForm, Controller } from "react-hook-form";
-import { format, isAfter, parseISO } from "date-fns";
-
-import { useEditor, EditorContent, useEditorState, Editor } from "@tiptap/react";
-import { Extension } from "@tiptap/core"
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import BulletList from "@tiptap/extension-bullet-list";
-import OrderedList from "@tiptap/extension-ordered-list";
-import ListItem from "@tiptap/extension-list-item";
-
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Loader2, Plus, Save, Trash } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Resolver, useForm } from "react-hook-form";
+import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type PeriodType = {
   start?: string;
@@ -38,9 +28,15 @@ export type PeriodType = {
 export type CertificationFormValues = {
   title?: string;
   issuer?: string;
-  url?: string;
+  credential_url?: string;
   isNew: boolean;
 };
+
+type CertificationInput = {
+  title: string
+  issuer: [string] | []
+  credential_url: [string] | []
+}
 
 type ConfirmTypes = {
   remove: boolean;
@@ -49,11 +45,11 @@ type ConfirmTypes = {
 
 interface CertificationDialogProps {
   queryKey: (string | number)[] | string | number;
-  detail: ProfileDetailType;
+  detail: ProfileType;
   open: boolean;
   setOpen: (value: boolean) => void;
   isNew?: boolean;
-  initial: CertificationType
+  initial: CertificateType | undefined | null
 }
 
 const resolver: Resolver<CertificationFormValues> = async (values) => {
@@ -80,34 +76,23 @@ export function CertificationDialog({
 
   const finalQueryKey = Array.isArray(queryKey) ? queryKey : [queryKey];
 
+  const { resumidActor, userData } = useAuth();
+  const isNewRef = useRef(isNew);
+
   const [confirm, setConfirm] = useState<ConfirmTypes>({ remove: false, leave: false });
   const handleConfirm = (key: keyof ConfirmTypes) =>
     setConfirm((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const toInputDate = (iso?: string) => {
-    if (!iso) return "";
-    try {
-      return format(parseISO(iso), "yyyy-MM-dd");
-    } catch {
-      return "";
-    }
-  };
-
-  const initialValues: CertificationFormValues = useMemo(
-    () => ({
-      title: initial?.title,
-      issuer: initial?.issuer,
-      url: initial?.url,
-      isNew,
-    }),
-    [initial, isNew]
-  );
+  const initialValues: CertificationFormValues = {
+    title: initial?.title,
+    issuer: initial?.issuer,
+    credential_url: initial?.credential_url,
+    isNew: isNewRef.current,
+  }
 
   const {
     register,
-    control,
     reset,
-    setValue,
     handleSubmit,
     formState: { errors, isDirty },
   } = useForm<CertificationFormValues>({
@@ -115,36 +100,109 @@ export function CertificationDialog({
     defaultValues: initialValues,
   });
 
-
   useEffect(() => {
     if (open) {
       reset(initialValues);
+      isNewRef.current = isNew;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialValues]);
+  }, [open,]);
 
-  async function handleUpdateCertification({
+  function validateBefore(id: string) {
+    if (!userData) throw new Error("Error, user data is undefined");
+
+    if (!id) throw new Error("Error, id is invalid or undefined");
+
+    if (userData?.user?.id.__principal__ !== id) {
+      throw new Error("Error, user is not the owner of this profile");
+    }
+  }
+
+  function mapCertificationInput(data: CertificationFormValues): CertificationInput {
+    const { issuer, title, credential_url } = data;
+
+    const certificationInput: CertificationInput = {
+      title: title ?? "",
+      issuer: issuer ? [issuer] : [],
+      credential_url: credential_url ? [credential_url] : [],
+    };
+
+    return certificationInput;
+  }
+
+  async function handleAddExperience({
     id,
     data,
   }: {
-    id: string | number;
+    id: string;
     data: CertificationFormValues;
   }) {
     try {
-      // TODO: call API with `id` and `data`
-      // Ensure `period.start/end` are already yyyy-MM-dd (they are)
-      // Ensure `description` is HTML from TipTap
-      return { ok: true };
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      const certificationInput = mapCertificationInput(data);
+
+      const res = await resumidActor.addCertificationShared(certificationInput)
+
+      if ("ok" in res) {
+        return { data }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  async function handleRemoveCertification({ id }: { id: string | number }) {
+  async function handleUpdateCertification({
+    id,
+    itemId,
+    data,
+  }: {
+    id: string;
+    itemId: string;
+    data: CertificationFormValues;
+  }) {
     try {
-      // TODO: call API to remove this certification by id
-      return { ok: true };
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      if (!itemId) throw new Error("Error, this item does not exists");
+
+      const certificationInput = mapCertificationInput(data);
+
+      const res = await resumidActor.updateCertificationShared(itemId, certificationInput)
+
+      if ("ok" in res) {
+        return { itemId, data }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async function handleRemoveCertification({ id, itemId }: { id: string, itemId: string }) {
+    try {
+      if (!resumidActor) throw new Error("Error, actor is undefined");
+
+      validateBefore(id);
+
+      if (!itemId) throw new Error("Error, this item does not exists");
+
+      const res = await resumidActor.deleteCertificationShared([itemId]);
+
+      if ("ok" in res) {
+        return { itemId }
+      } else {
+        throw new Error(res.err ?? "Unknown error");
+      }
     } catch (error) {
       console.error(error);
       throw error;
@@ -154,18 +212,41 @@ export function CertificationDialog({
   const queryClient = useQueryClient();
 
   const { mutateAsync: addCertification, isPending: isAdding } = useMutation({
-    mutationFn: async ({ data }: { data: CertificationFormValues }) => {
-      try {
-        // TODO: call API to add new certification
-        return { ok: true };
-      } catch (error) {
-        console.error(error);
-        throw error;
+    mutationFn: handleAddExperience,
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: finalQueryKey });
+      const previous = queryClient.getQueryData(finalQueryKey);
+
+      const tempId = `temp-${Date.now()}`;
+      const newCertification: CertificateType = {
+        id: tempId,
+        title: data.title ?? "",
+        issuer: data.issuer,
+        credential_url: data.credential_url
       }
+
+      queryClient.setQueryData(
+        finalQueryKey,
+        (old: { profile: ProfileType; endorsementInfo: any }) =>
+          old
+            ? {
+              ...old,
+              profile: {
+                ...old.profile,
+                certifications: [
+                  ...old?.profile?.certifications ?? [],
+                  newCertification,
+                ]
+              },
+            }
+            : old
+      );
+
+      return { previous };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: finalQueryKey });
-      toast({ title: "Success", description: "Certification added!" });
+      toast({ title: "Success", description: "Certification added!", variant: "success" });
       setOpen(false);
     },
     onError: (error) => {
@@ -177,12 +258,28 @@ export function CertificationDialog({
     },
   });
 
-  const { mutateAsync: updateCertification, isPending: isSaving } = useMutation({
+  const { mutateAsync: updateCertification, isPending: isUpdating } = useMutation({
     mutationFn: handleUpdateCertification,
-    onMutate: async ({ id, data }) => {
+    onMutate: async ({ id, itemId, data }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previous = queryClient.getQueryData(finalQueryKey);
-      // TODO: optimistic update (optional)
+
+      queryClient.setQueryData(finalQueryKey, (old: { profile: ProfileType; endorsementInfo: any }) =>
+        old
+          ? {
+            ...old,
+            profile: {
+              ...old.profile,
+              certifications: old?.profile?.certifications?.map((cert) =>
+                cert.id === itemId
+                  ? { ...cert, ...data }
+                  : cert
+              ) ?? [],
+            }
+          }
+          : old
+      );
+
       return { previous };
     },
     onError: (error, _vars, ctx) => {
@@ -202,10 +299,24 @@ export function CertificationDialog({
 
   const { mutateAsync: removeCertification, isPending: isRemoving } = useMutation({
     mutationFn: handleRemoveCertification,
-    onMutate: async ({ id }) => {
+    onMutate: async ({ id, itemId }) => {
       await queryClient.cancelQueries({ queryKey: finalQueryKey });
       const previous = queryClient.getQueryData(finalQueryKey);
-      // TODO: optimistic remove (optional)
+
+      queryClient.setQueryData(finalQueryKey, (old: { profile: ProfileType; endorsementInfo: any }) =>
+        old
+          ? {
+            ...old,
+            profile: {
+              ...old.profile,
+              certifications: old?.profile?.certifications?.filter(
+                (cert) => cert.id !== itemId
+              ) ?? [],
+            }
+          }
+          : old
+      );
+
       return { previous };
     },
     onError: (error, _vars, ctx) => {
@@ -223,6 +334,8 @@ export function CertificationDialog({
     },
   });
 
+  const isSaving = isAdding || isUpdating;
+
   return (
     <>
       <Dialog
@@ -236,29 +349,29 @@ export function CertificationDialog({
         }}
         modal
       >
-        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px]">
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} className="sm:max-w-[720px] max-h-[80vh] sm:max-h-[90vh] overflow-y-auto scrollbar">
           <DialogHeader>
             <DialogTitle className="font-inter text-lg leading-none text-heading">
-              {isNew ? "Add Certification" : "Edit Certification"}
+              {isNewRef.current ? "Add Certification" : "Edit Certification"}
             </DialogTitle>
             <DialogDescription className="font-inter text-paragraph">
-              {isNew ? "Create a new" : "Update your"} certification item.
+              {isNewRef.current ? "Create a new" : "Update your"} certification item.
             </DialogDescription>
           </DialogHeader>
 
           <form
             onSubmit={handleSubmit(async (values) => {
-              if (isNew) {
-                await addCertification({ data: values });
+              if (isNewRef.current || !initial) {
+                await addCertification({ id: detail?.userId, data: values });
               } else {
-                await updateCertification({ id: initial.id, data: values });
+                await updateCertification({ id: detail?.userId, itemId: initial.id, data: values });
               }
             })}
             className="flex flex-col gap-5 font-inter text-paragraph"
           >
             <Label htmlFor="title" className="space-y-2">
               <p>Certification Title<span className="text-red-500">*</span></p>
-              <Input className="font-normal" id="company" {...register("title")} placeholder="Company name" />
+              <Input className="font-normal text-sm" id="title" {...register("title")} placeholder="Company name" />
               {errors?.title && (
                 <p className="text-sm text-red-500">{errors.title.message}</p>
               )}
@@ -266,19 +379,19 @@ export function CertificationDialog({
 
             <Label htmlFor="issuer" className="space-y-2">
               <p>Issuer</p>
-              <Input className="font-normal" id="position" {...register("issuer")} placeholder="e.g., Frontend Engineer" />
+              <Input className="font-normal text-sm" id="issuer" {...register("issuer")} placeholder="e.g., Frontend Engineer" />
             </Label>
 
-            <Label htmlFor="url" className="space-y-2">
+            <Label htmlFor="credential_url" className="space-y-2">
               <p>URL to Certification</p>
-              <Input className="font-normal" id="position" {...register("url")} placeholder="e.g., Frontend Engineer" />
-              {errors?.url && (
-                <p className="text-sm text-red-500">{errors.url.message}</p>
+              <Input className="font-normal text-sm" id="credential_url" {...register("credential_url")} placeholder="e.g., Frontend Engineer" />
+              {errors?.credential_url && (
+                <p className="text-sm text-red-500">{errors.credential_url.message}</p>
               )}
             </Label>
 
-            <DialogFooter className={cn("gap-2", isNew ? "sm:justify-end" : "sm:justify-between")}>
-              {!isNew && (
+            <DialogFooter className={cn("gap-2", isNewRef.current ? "sm:justify-end" : "sm:justify-between")}>
+              {!isNewRef.current && (
                 <Button
                   type="button"
                   variant="destructive"
@@ -295,8 +408,8 @@ export function CertificationDialog({
                   <Button size="sm" variant="grey-outline">Cancel</Button>
                 </DialogClose>
                 <Button size="sm" disabled={isSaving || !isDirty}>
-                  {!isSaving ? isNew ? <Plus /> : <Save /> : <Loader2 className="animate-spin" />}
-                  {isSaving ? isNew ? "Adding..." : "Saving..." : isNew ? "Add Certification" : "Save changes"}
+                  {!isSaving ? isNewRef.current ? <Plus /> : <Save /> : <Loader2 className="animate-spin" />}
+                  {isSaving ? isNewRef.current ? "Adding..." : "Saving..." : isNewRef.current ? "Add Certification" : "Save changes"}
                 </Button>
               </div>
             </DialogFooter>
@@ -305,7 +418,7 @@ export function CertificationDialog({
       </Dialog>
 
       {/* Remove confirm */}
-      {!isNew && <Dialog open={confirm.remove} onOpenChange={() => handleConfirm("remove")} modal>
+      {!isNewRef.current && initial && <Dialog open={confirm.remove} onOpenChange={() => handleConfirm("remove")} modal>
         <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="font-inter text-base text-heading">
@@ -315,7 +428,7 @@ export function CertificationDialog({
               This action cannot be undone. Are you sure you want to remove this certification?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" variant="grey-outline">Cancel</Button>
             </DialogClose>
@@ -323,7 +436,7 @@ export function CertificationDialog({
               size="sm"
               variant="destructive"
               onClick={async () => {
-                await removeCertification({ id: initial.id });
+                await removeCertification({ id: detail?.userId, itemId: initial.id });
                 handleConfirm("remove");
               }}
               disabled={isRemoving}
@@ -346,7 +459,7 @@ export function CertificationDialog({
               You have unsaved changes, are you sure you want to discard them?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <DialogClose asChild>
               <Button size="sm" variant="grey-outline">Cancel</Button>
             </DialogClose>

@@ -1,6 +1,6 @@
 import Logo from "@/assets/logo-black.svg";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { cn, scrollTo, scrollToTop } from "@/lib/utils";
+import { cn, scrollTo, scrollToTop, truncate } from "@/lib/utils";
 import { NavLink, replace } from "react-router";
 import { LogIn, LogOut, User2 as ProfileIcon, ArrowLeft, Wallet } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,20 +24,16 @@ function DesktopNavbar({ navigate }: any) {
   const searchMode = isSearchMode(location.pathname);
   const searchBarRef = useRef<SearchBarRef>(null);
 
+  const basePinataUrl = import.meta.env.VITE_PINATA_GATEWAY_URL;
+  const avatarCid = userData?.profile?.profileCid || null;
+  const avatarUrl = avatarCid ? `${basePinataUrl}/ipfs/${avatarCid}` : null;
+  const userName = userData?.profile?.name || userData?.user?.name || "User";
+  const userRole = userData?.profile?.current_position || "No Position";
+
   const handleBackClick = () => {
     navigate("/", { replace: true });
     searchBarRef.current?.reset();
   };
-
-  // // 🔹 Tambahan: cek apakah user baru pertama kali login (belum punya name)
-  // useEffect(() => {
-  //   if (isAuthenticated && !userData?.name) {
-  //     navigate(`/profile/${userData?.id}`, {
-  //       state: { isNewUser: true },
-  //       replace: true,
-  //     });
-  //   }
-  // }, [isAuthenticated, userData, navigate]);
 
   if (searchMode && isAuthenticated) {
     return (
@@ -67,32 +63,37 @@ function DesktopNavbar({ navigate }: any) {
         </div>
 
         {isAuthenticated && (
-          <div className="inline-flex gap-4 items-center">
-            <div className="inline-flex gap-2 items-center">
-              <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">
-                ID
+          <div className="inline-flex gap-3 items-center">
+            <div className="inline-flex gap-2 items-center min-w-0 flex-1">
+              <div className="flex flex-col min-w-0 flex-1">
+                <p className="text-paragraph font-medium">
+                  {truncate(userName, 24)}
+                </p>
+                <p className="text-xs text-gray-500 truncate" title={userRole}>
+                  {userRole}
+                </p>
               </div>
-              <p className="text-paragraph font-medium">
-                {String(userData?.ok?.name).split("-").splice(0, 2).join("-")}
-              </p>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="cursor-pointer p-[2px] rounded-full bg-transparent hover:bg-primary-500 transition-colors">
                   <Avatar className="border-2 border-white w-11 h-11">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage
+                      src={avatarUrl || `https://ui-avatars.com/api/?name=${userName}&background=225adf&color=f4f4f4`}
+                    />
+                    <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="text-paragraph">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/profile/${userData?.profile.profileId}`)}>
                   <ProfileIcon />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer"
+                <DropdownMenuItem
+                  className="cursor-pointer"
                   onClick={() => navigate("/wallet")}
                 >
                   <Wallet />
@@ -228,28 +229,32 @@ function DesktopNavbar({ navigate }: any) {
         </div>
       )}
       {isAuthenticated ? (
-        <div className="inline-flex gap-4 items-center">
-          <div className="inline-flex gap-2 items-center">
-            <div className="bg-primary-500 p-1 rounded-lg h-7 aspect-square text-center text-white font-semibold text-sm">
-              ID
+        <div className="inline-flex gap-3 items-center">
+          <div className="inline-flex gap-2 items-center min-w-0 flex-1">
+            <div className="flex flex-col min-w-0 flex-1">
+              <p className="text-paragraph font-medium">
+                {truncate(userName, 24)}
+              </p>
+              <p className="text-xs text-gray-500 truncate" title={userRole}>
+                {userRole}
+              </p>
             </div>
-            <p className="text-paragraph font-medium">
-              {String(userData?.ok?.name).split("-").splice(0, 2).join("-")}
-            </p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="cursor-pointer p-[2px] rounded-full bg-transparent hover:bg-primary-500 transition-colors">
                 <Avatar className="border-2 border-white w-11 h-11">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarImage
+                    src={avatarUrl || `https://ui-avatars.com/api/?name=${userName}&background=225adf&color=f4f4f4`}
+                  />
+                  <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="text-paragraph">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/profile/fadil-hisyam")}>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/profile/${userData?.profile.profileId}`)}>
                 <ProfileIcon />
                 Profile
               </DropdownMenuItem>
