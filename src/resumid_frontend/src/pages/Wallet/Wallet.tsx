@@ -40,16 +40,12 @@ export default function Wallet() {
 
   const { data: tokenEntries, isLoading: loadingTokenEntries, error: tokenEntriesError } = useQuery({
     queryKey: ['token-entries', userData.name],
-    queryFn: () => fetchTokenEntries(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    queryFn: () => fetchTokenEntries()
   })
   
   const { data: userInfo, isLoading: loadingUserInfo, error: errorUserInfo} = useQuery({
     queryKey: ['user-info', userData.name],
-    queryFn: () => fetchUserDetail(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    queryFn: () => fetchUserDetail()
   })
 
   const handleBuyPackage = async (packageId: string, amount: number) => {
@@ -149,7 +145,7 @@ export default function Wallet() {
         {/* Wallet Card */}
         <div className="mb-6 sm:mb-8">
           <WalletCard
-            userName={userInfo.ok.name}
+            userName={userInfo.ok.name ?? ""}
             icpAddress={userInfo.ok.depositAddr}
             balance={userInfo.ok.token.toString()}
             onBuyPackage={() => setBuyPackageOpen(true)}

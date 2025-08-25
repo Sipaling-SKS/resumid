@@ -89,25 +89,27 @@ function Pricing() {
     setCheckoutOpen(true);
   };
 
-  // const planList: Plan[] = [
+  // const planList: Package[] = [
   //   {
   //     title: "Basic",
-  //     description: "For individuals",
-  //     price: 5,
+  //     subtitle: "For individuals",
+  //     price: 5n,
   //     id: "trial",
-  //     tokens: 10,
-  //     list: [
+  //     token: 10n,
+  //     description: [
   //       "Get 10 Tokens",
   //       "Great for first-time users to try the service.",
   //     ],
+  //     highlightFirstItem: false,
+  //     highlightPlan: false,
   //   },
   //   {
   //     title: "Pro",
-  //     description: "For individuals or teams",
-  //     price: 10,
+  //     subtitle: "For individuals or teams",
+  //     price: 10n,
   //     id: "standard",
-  //     tokens: 25,
-  //     list: [
+  //     token: 25n,
+  //     description: [
   //       "Get 25 Tokens",
   //       "Ideal for regular users who need consistent feedback",
   //     ],
@@ -116,27 +118,28 @@ function Pricing() {
   //   },
   //   {
   //     title: "Premium",
-  //     description: "For teams",
-  //     price: 20,
+  //     subtitle: "For teams",
+  //     price: 20n,
   //     id: "premium",
-  //     tokens: 60,
-  //     list: [
+  //     token: 60n,
+  //     description: [
   //       "Get 60 Tokens",
   //       "Bulk analysis, custom AI models, and dedicated support.",
   //     ],
+  //     highlightPlan: false,
   //     highlightFirstItem: true,
   //   }
   // ]
 
   const fetchPackage = async () => {
     const result: Package[] = await resumidActor.getPackages();
+    console.log(result);
     return result;
   }
 
-  const { data: packages, isLoading: loadingPackages, error: errorPackages } = useQuery({
-    initialData: [],
+  const { data: packages = [], isLoading: loadingPackages, error: errorPackages } = useQuery({
     queryKey: ['list-of-packages'],
-    queryFn: () => fetchPackage()
+    queryFn: () => fetchPackage(),
   })
 
   return (

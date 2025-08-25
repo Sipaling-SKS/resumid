@@ -11,12 +11,14 @@ import { useWallet } from "@/hooks/useWallet";
 import { useTransaction } from "@/hooks/useTransaction";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
+import { Package } from "../../../../declarations/resumid_backend/resumid_backend.did";
+
 
 export interface CheckoutPlan {
   id: string;
   name: string;
-  tokens: bigint;
-  price: bigint; // In ICP
+  tokens: number;
+  price: number; // In ICP
   description?: string;
 }
 
@@ -36,7 +38,7 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const { transactionFee } = useTransaction();
+  const { transactionFee, transfer } = useTransaction();
 
   const defaultFee = 0.001;
 
@@ -45,6 +47,7 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
     return Number((Number(plan.price) + (transactionFee ?? defaultFee)));
   }, [plan, transactionFee]);
 
+  console.log(plan)
 
   const handleCheckout = async () => {
     if (!plan) return;
@@ -53,18 +56,24 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
       await login();
       return;
     }
-    console.log(resumidActor)
+
+    const validated = await resumidActor.checkUserICPBalance(plan.price);
+
+    if (validated.err) {
+      throw new Error(validated.err);
+    }
+
+    try {
+      await transfer(plan)
+    } catch (err: any) {
+      throw new Error('Error when transfer ICP, remaining balance: ' + err.balance)
+    }
+    
     const data = await resumidActor.createTransaction(plan.id);
-    console.log(data)
 
     if (data.err) {
       throw new Error(data.err);
-      // toast({ title: "Failed to checkout", description: data.err, variant: "destructive" });
-      // return;
     }
-
-    console.log('test2')
-    console.log(data)
   };
 
   const { mutate: transaction, isPending: isLoading } = useMutation({
@@ -103,7 +112,7 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
                   <span className="font-inter text-[16px] text-paragraph">Subtotal</span>
                   <div className="inline-flex items-center gap-2">
                     <img src={ICW} alt="ICP" className="w-4 h-4" />
-                    <span className="font-inter text-[18px]">{plan.price.toString()}</span>
+                    <span className="font-inter text-[18px]">{Number(plan.price)}</span>
                   </div>
                 </div>
 
@@ -126,8 +135,8 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
                 <CardContent className="p-6 md:p-6">
                   <div className="font-outfit font-semibold text-[20px] text-black mb-2">{plan.name}</div>
                   <ul className="list-disc pl-6 text-[18px] leading-7 text-gray-600 space-y-1">
-                    <li>{plan.tokens.toString()} Tokens</li>
-                    <li>Enough for {plan.tokens.toString()} CV analyses</li>
+                    <li>{Number(plan?.tokens)} Tokens</li>
+                    <li>Enough for {Number(plan?.tokens)} CV analyses</li>
                     <li>The best deal — maximize insights and get the most value!</li>
                   </ul>
                 </CardContent>
@@ -181,7 +190,7 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
               <DialogTitle className="font-outfit font-semibold text-[20px] leading-tight text-heading">Confirm Purchase</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <p className="font-inter text-paragraph text-[16px]">Confirm purchase of <span className="font-semibold">{plan.tokens.toString()} tokens</span> for <span className="font-semibold">{grandTotal} ICP</span>?</p>
+              <p className="font-inter text-paragraph text-[16px]">Confirm purchase of <span className="font-semibold">{Number(plan.tokens)} tokens</span> for <span className="font-semibold">{grandTotal} ICP</span>?</p>
               <div className="flex gap-3 justify-end pt-2">
                 <Button variant="secondary" onClick={() => setConfirmOpen(false)} disabled={isLoading}>Cancel</Button>
                 <Button variant="gradient" onClick={() => transaction()} disabled={isLoading}>{isLoading ? 'Processing...' : 'Confirm'}</Button>

@@ -41,7 +41,7 @@ actor Resumid {
   private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
   private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, [ResumeExtractTypes.ResumeHistoryItem]>(0, Text.equal, Text.hash);
   private var transactions : TransactionTypes.Transactions = HashMap.HashMap<Principal, [TransactionTypes.Transaction]>(0, Principal.equal, Principal.hash);
-  
+
   // ==============================
   // Authentication and User Methods
   // ==============================
@@ -125,6 +125,16 @@ actor Resumid {
     let userId = Principal.toText(msg.caller);
     Debug.print("Caller Principal for AnalyzeResume: " # userId);
 
+    let user = TransactionServices.hasSufficientBalance(users, msg.caller, 2);
+
+    switch (user) {
+      case (#err(message)) {
+        Debug.print(message);
+        return null;
+      };
+      case (#ok(message)) {};
+    };
+
     let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
     Debug.print("Analyze result: " # debug_show (analyzeResult));
 
@@ -188,7 +198,25 @@ actor Resumid {
         switch (addResult) {
           case (#ok(history)) {
             Debug.print("Berhasil menambahkan history ID: " # history.historyId);
-            ?history;
+
+            let resTrans = TransactionServices.chargeTokenBalance(
+              users,
+              tokenEntries,
+              msg.caller,
+              "Analyze Resume",
+              #analyze,
+              -1,
+            );
+
+            switch (resTrans) {
+              case (#err(message)) {
+                null;
+              };
+              case (#ok(message)) {
+                ?history;
+              };
+            }
+
           };
           case (#err(errMsg)) {
             Debug.print("Gagal menambahkan history: " # errMsg);
@@ -907,11 +935,21 @@ actor Resumid {
   };
 
   // TODO: Remove this after development
-  public shared (msg) func getUserTokenEntriesDevelopment(userId: Text) : async [TransactionTypes.TokenEntry] {
+  public shared (msg) func getUserTokenEntriesDevelopment(userId : Text) : async [TransactionTypes.TokenEntry] {
     switch (tokenEntries.get(Principal.fromText(userId))) {
       case (null) { [] };
       case (?entries) { entries };
     };
+  };
+
+  public shared (msg) func checkUserICPBalance(chargedBalance: Nat): async Result.Result<Text, Text> {
+    let currBalance = await UserServices.getBalance(msg.caller);
+
+    if(currBalance < chargedBalance) {
+      return #err("Insufficient ICP Balance");
+    };
+
+    #ok("Validated");
   };
 
   public shared (msg) func createTransaction(packageId : Text) : async Result.Result<TransactionTypes.Transaction, Text> {

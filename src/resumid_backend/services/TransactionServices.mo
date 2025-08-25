@@ -79,8 +79,6 @@ module {
           token = u.token + quantity
         };
 
-        Debug.print(debug_show(updatedUser));
-
         users.put(user, updatedUser);
 
         createTokenEntry(tokenEntries, user, description, entryType, quantity);
@@ -108,7 +106,32 @@ module {
         tokenEntries.put(userId, updated);
       };
     };
-  }
+  };
+
+  public func hasSufficientBalance(users : UserTypes.User, user : Principal, onChargeToken : Int64) : Result.Result<Text, Text> {
+    switch (users.get(user)) {
+      case (null) {
+        #err("User not found");
+      };
+      case (?user) {
+        if (user.token < onChargeToken) {
+          return #err("Insufficient Token");
+        };
+        #ok("Success");
+      };
+    };
+  };
+
+  public func chargeTokenBalance(
+    users : UserTypes.User,
+    tokenEntries : TransactionTypes.TokenEntries,
+    user : Principal,
+    description : Text,
+    entryType : TransactionTypes.TokenEntryType,
+    quantity : Int64,
+  ): Result.Result<Text, Text> {
+    return addTokenToUserAccount(users, tokenEntries, user, description, entryType, quantity);
+  };
 
   // private func getAdminPrincipalId() : {
   //   let currBalance = await ledger.transfer({

@@ -117,7 +117,7 @@ function Analyzer() {
       if (resumidActor) {
         const res = await resumidActor.AnalyzeResumeV2(
           filename,
-          cleanedFullText,
+          cleanedFullText, "",
           jobTitle
         );
 
