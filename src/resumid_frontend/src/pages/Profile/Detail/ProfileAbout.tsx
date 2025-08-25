@@ -18,16 +18,22 @@ export default function ProfileAbout({ isOwner = false, detail, loading = false,
     <ProfileAboutSkeleton isOwner={isOwner} />
   )
 
-  if (!summary) return (
-    <Card>
-      <CardContent className="flex flex-col gap-3 justify-center items-center p-6 outline-dashed outline-2 outline-neutral-300 outline-offset-1 rounded-lg bg-neutral-50">
-        <p className="font-inter font-paragraph text-sm text-center text-balance">You haven't added about section to your profile, share a brief overview of your professional journey, experience, and skills so people can get to know your strengths and capabilities at a glance.</p>
-        <button className="text-blue-600 font-inter text-sm font-medium hover:underline" onClick={onEdit}>
-          Start adding about section
-        </button>
-      </CardContent>
-    </Card>
-  )
+  if (!summary) {
+    if (!isOwner) {
+      return null;
+    }
+
+    return (
+      <Card>
+        <CardContent className="flex flex-col gap-3 justify-center items-center p-6 outline-dashed outline-2 outline-neutral-300 outline-offset-1 rounded-lg bg-neutral-50">
+          <p className="font-inter font-paragraph text-sm text-center text-balance">You haven't added about section to your profile, share a brief overview of your professional journey, experience, and skills so people can get to know your strengths and capabilities at a glance.</p>
+          <button className="text-blue-600 font-inter text-sm font-medium hover:underline" onClick={onEdit}>
+            Start adding about section
+          </button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-0 overflow-hidden space-y-0">
