@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router";
 import { Helmet } from "react-helmet";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileHeader from "./ProfileHeader";
 import ProfileAbout from "./ProfileAbout";
@@ -19,6 +19,7 @@ import ProfileCertification from "./ProfileCertification";
 import { CertificationDialog } from "./Dialog/CertificationDialog";
 import { fromNullable } from "@/lib/optionalField";
 import { sortByPeriod } from "@/utils/sortByPeriod";
+import { toast } from "@/hooks/useToast";
 
 type OpenTypes = {
   sectionMenu: boolean
@@ -46,6 +47,7 @@ export default function ProfileDetail() {
 
   const { id } = useParams()
   const { resumidActor, userData } = useAuth();
+  const queryClient = useQueryClient();
 
   const location = useLocation();
   const { state } = location;
@@ -76,24 +78,80 @@ export default function ProfileDetail() {
 
   if (!id) return;
 
-  async function handleEndorseProfile(userId: string | undefined, isEndorse: boolean) {
+    async function handleEndorseProfile(userId: string, isEndorse: boolean) {
     if (!resumidActor) throw new Error("Actor is undefined");
     if (!userId) throw new Error("userId is undefined");
 
     let result;
 
     if (isEndorse) {
-      result = await resumidActor.endorseProfile(userId);
-    } else {
       result = await resumidActor.unendorseProfile(userId);
+    } else {
+      result = await resumidActor.endorseProfile(userId);
     }
 
     if ("ok" in result) {
-      return { id: userId, message: result.ok };
+      return { userId, message: result.ok, isEndorse };
     } else {
       throw new Error(result.err ?? "Unknown Error");
     }
   }
+
+  const { mutateAsync: toggleEndorsement, isPending: isEndorsing } = useMutation({
+    mutationFn: ({ userId, isEndorse }: { userId: string; isEndorse: boolean }) => 
+      handleEndorseProfile(userId, isEndorse),
+    onMutate: async ({ userId, isEndorse }) => {
+      await queryClient.cancelQueries({ queryKey: [KEY, id] });
+      const previousData = queryClient.getQueryData([KEY, id]);
+      
+      queryClient.setQueryData([KEY, id], (old: ProfileDetailResponse) => {
+        if (!old) return old;
+        
+        const currentUserProfile = {
+          profileId: userData?.profile?.profileId || "",
+          name: userData?.profile?.name || "Unknown User",
+          avatar: userData?.profile?.profileCid
+        };
+        
+        let newEndorsementInfo = [...(old.endorsementInfo || [])];
+        
+        if (isEndorse) {
+          // Remove current user from endorsements (unendorse)
+          newEndorsementInfo = newEndorsementInfo.filter(
+            endorsement => endorsement.profileId !== currentUserProfile.profileId
+          );
+        } else {
+          // Add current user to endorsements (endorse)
+          newEndorsementInfo = [...newEndorsementInfo, currentUserProfile];
+        }
+        
+        return {
+          ...old,
+          endorsementInfo: newEndorsementInfo
+        };
+      });
+      
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData([KEY, id], context.previousData);
+      }
+      toast({
+        title: "Error",
+        description: `Error ${variables.isEndorse ? 'unendorsing' : 'endorsing'} profile: ${error?.message || "something happened"}`,
+        variant: "destructive",
+      });
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: [KEY, id] });
+      toast({ 
+        title: "Success", 
+        description: `Profile ${variables.isEndorse ? 'unendorsed' : 'endorsed'} successfully!`, 
+        variant: "success" 
+      });
+    }
+  });
 
   async function handleGetProfileDetail(id: string): Promise<ProfileDetailResponse> {
     if (!resumidActor) throw new Error("Actor is undefined");
@@ -252,7 +310,6 @@ export default function ProfileDetail() {
 
   const currentProfileId = userData?.profile?.profileId;
   const isOwner = !isLoading ? profileDetail!.profileId === currentProfileId : false;
-
   const hasEndorsed = !isOwner && endorsementInfo?.some((endorsement) => endorsement.profileId === currentProfileId) || false;
 
   if (error) {
@@ -299,10 +356,16 @@ export default function ProfileDetail() {
               handleSelected(key, null);
             }
           }}
-          onEndorseProfile={() => {
-            handleEndorseProfile(profileDetail!.userId, hasEndorsed)
+         onEndorseProfile={() => {
+            toggleEndorsement({ 
+              userId: profileDetail!.userId, 
+              isEndorse: hasEndorsed 
+            });
           }}
-          isEndorsed={hasEndorsed}
+          endorsementState={{
+            hasEndorsed,
+            isLoading: isEndorsing
+          }}
           endorsmentInfo={endorsementInfo}
         />
         <div className="responsive-container py-6 sm:py-8 flex flex-col-reverse sm:flex-row gap-4 sm:gap-8">

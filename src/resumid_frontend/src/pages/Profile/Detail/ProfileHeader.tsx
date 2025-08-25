@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Briefcase, Pencil, PlusIcon, UserCheck, Eye, UserMinus } from "lucide-react";
+import { Briefcase, Pencil, PlusIcon, UserCheck, Eye, UserMinus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AvatarDialog } from "./Dialog/AvatarDialog";
 import { useEffect, useState } from "react";
@@ -27,9 +27,12 @@ interface ProfileHeaderProps {
   loading?: boolean,
   isOwner?: boolean,
   isNewUser?: boolean,
-  isEndorsed?: boolean,
   endorsmentInfo: any[],
   onEndorseProfile?: () => void,
+  endorsementState?: {
+    hasEndorsed: boolean;
+    isLoading: boolean;
+  },
   onSectionAdd?: (key: any) => void
 }
 
@@ -39,12 +42,11 @@ export default function ProfileHeader({
   loading = false,
   isOwner = false,
   isNewUser = false,
-  isEndorsed = false,
   endorsmentInfo = [],
   onSectionAdd,
-  onEndorseProfile
-}: ProfileHeaderProps
-) {
+  onEndorseProfile,
+  endorsementState
+}: ProfileHeaderProps) {
   const basePinataUrl = import.meta.env.VITE_PINATA_GATEWAY_URL
 
   const avatarCid = detail?.profileDetail?.profileCid || null;
@@ -89,6 +91,8 @@ export default function ProfileHeader({
   const notAddedSections = availableSections.filter(
     (section) => isEmptySection(sectionValues?.[section.key])
   );
+
+  const { hasEndorsed = false, isLoading: isEndorsing = false } = endorsementState || {};
 
   useEffect(() => {
     if (isNewUser && isOwner) {
@@ -205,7 +209,7 @@ export default function ProfileHeader({
                           {endorsmentInfo.slice(0, 3).map((item, index) => {
                             const endorsedAvatarCid = item?.profileCid || null;
                             const endorsedAvatarUrl = endorsedAvatarCid ? `${basePinataUrl}/ipfs/${endorsedAvatarCid}` : null;
-                            
+
                             return (
                               <Avatar className={cn("w-8 h-8 border-[2px] border-white", index > 0 ? "-ml-3" : "")}>
                                 <AvatarImage
@@ -263,9 +267,25 @@ export default function ProfileHeader({
                     </div>
                   ) : (
                     <div className="flex gap-4 mt-2">
-                      <Button variant="default" size="sm" onClick={onEndorseProfile}>
-                        {isEndorsed ? <UserMinus /> : <UserCheck />}
-                        {isEndorsed ? "Unendorse Profile" : "Endors Profile"}
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={onEndorseProfile}
+                        disabled={isEndorsing}
+                      >
+                        {isEndorsing ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : hasEndorsed ? (
+                          <UserMinus />
+                        ) : (
+                          <UserCheck />
+                        )}
+                        {isEndorsing
+                          ? "Processing..."
+                          : hasEndorsed
+                            ? "Unendorse Profile"
+                            : "Endorse Profile"
+                        }
                       </Button>
                       <button className="text-blue-600 font-inter text-sm font-medium hover:underline">
                         Contact Info

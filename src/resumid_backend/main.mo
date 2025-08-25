@@ -770,7 +770,8 @@ actor Resumid {
   // SEARCH
   // -------------------------
   public shared (msg) func searchProfiles(searchInput : Text) : async [ProfileTypes.SearchResult] {
-    return await ProfileServices.globalSearch(profiles, searchInput);
+    let userId = Principal.toText(msg.caller);
+    return await ProfileServices.globalSearch(userId, profiles, searchInput);
   };
 
   // -------------------------
