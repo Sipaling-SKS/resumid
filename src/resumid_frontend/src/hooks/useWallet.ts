@@ -68,10 +68,10 @@ export function useWallet() {
   // const fetchWalletData = async () => {
   //   try {
   //     setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
+
   //     // Simulate API call delay
   //     await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
   //     let dataToUse: WalletData = mockWalletData;
   //     try {
   //       if (typeof window !== 'undefined') {
@@ -107,7 +107,7 @@ export function useWallet() {
   //   try {
   //     // In real app, this would make an API call
   //     console.log('Buying package:', packageId, 'Amount:', amount);
-      
+
   //     // Prevent multiple trial claims (FE guard)
   //     if (packageId === 'trial' && hasClaimedTrial) {
   //       throw new Error('Trial package has already been claimed.');
@@ -194,7 +194,7 @@ export function useWallet() {
   //   try {
   //     // In real app, this would make an API call
   //     console.log('Applying promotion:', promotionCode);
-      
+
   //     // Update local state
   //     if (state.data) {
   //       const newData: WalletData = {

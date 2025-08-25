@@ -13,7 +13,7 @@ dfx identity use default
 DEFAULT_ACCOUNT_ID=$(dfx ledger account-id)
 
 # Deploy the ICP ledger canister
-dfx deploy icp_ledger_canister --argument "
+dfx deploy --specified-id ryjl3-tyaaa-aaaaa-aaaba-cai icp_ledger_canister --argument "
   (variant {
     Init = record {
       minting_account = \"$MINTER_ACCOUNT_ID\";

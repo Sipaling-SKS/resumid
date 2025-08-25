@@ -30,6 +30,7 @@ import ProfileTypes "types/ProfileTypes";
 import ProfileServices "services/ProfileServices";
 import ResumeExtractTypes "types/ResumeExtractTypes";
 import DraftServices "services/DraftServices";
+import TransactionServices "services/TransactionServices";
 
 actor Resumid {
   // Storage for user data and analysis histories
@@ -39,7 +40,8 @@ actor Resumid {
   private var tokenEntries : TransactionTypes.TokenEntries = HashMap.HashMap<Principal, [TransactionTypes.TokenEntry]>(0, Principal.equal, Principal.hash);
   private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
   private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, [ResumeExtractTypes.ResumeHistoryItem]>(0, Text.equal, Text.hash);
-
+  private var transactions : TransactionTypes.Transactions = HashMap.HashMap<Principal, [TransactionTypes.Transaction]>(0, Principal.equal, Principal.hash);
+  
   // ==============================
   // Authentication and User Methods
   // ==============================
@@ -879,6 +881,13 @@ actor Resumid {
     return await PackageServices.initDefaultPackage(packages);
   };
 
+  public shared (msg) func deleteAllPackages() : async Result.Result<Text, Text> {
+    for (k in packages.keys()) {
+      packages.delete(k);
+    };
+    return #ok("Success delete all packages");
+  };
+
   // ==============================
   // Transaction Package Methods
   // ==============================
@@ -891,9 +900,37 @@ actor Resumid {
   public shared (msg) func getUserTokenEntries() : async [TransactionTypes.TokenEntry] {
     let userId = Principal.toText(msg.caller);
 
-    switch (tokenEntries.get(msg.caller)) {
+    switch (tokenEntries.get(Principal.fromText(userId))) {
       case (null) { [] };
       case (?entries) { entries };
     };
+  };
+
+  // TODO: Remove this after development
+  public shared (msg) func getUserTokenEntriesDevelopment(userId: Text) : async [TransactionTypes.TokenEntry] {
+    switch (tokenEntries.get(Principal.fromText(userId))) {
+      case (null) { [] };
+      case (?entries) { entries };
+    };
+  };
+
+  public shared (msg) func createTransaction(packageId : Text) : async Result.Result<TransactionTypes.Transaction, Text> {
+    let userId = msg.caller;
+    Debug.print(Principal.toText(userId));
+    let package : ?PackageTypes.Package = await PackageServices.getPackageById(packages, packageId);
+    switch (package) {
+      case (null) {
+        return #err("Selected package is not found");
+      };
+      case (?pkg) {
+        let balance = await UserServices.getBalance(userId);
+        if (balance < pkg.price) {
+          return #err("Insufficient balance");
+        };
+
+        return await TransactionServices.createTransaction(transactions, tokenEntries, users, pkg, userId);
+      };
+    };
+
   };
 };

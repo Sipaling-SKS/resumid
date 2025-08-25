@@ -4,10 +4,10 @@ import Principal "mo:base/Principal";
 import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import Result "mo:base/Result";
-import Array "mo:base/Array";
 import DateHelper "../helpers/DateHelper";
 import TransactionTypes "../types/TransactionTypes";
-import GlobalHelper "../helpers/GlobalHelper";
+import ledger "canister:icp_ledger_canister";
+import TransactionServices "TransactionServices";
 
 module UserService {
   public func authenticateUser(
@@ -31,34 +31,18 @@ module UserService {
 
         let timestamp = Time.now();
         let createdAt = DateHelper.formatTimestamp(timestamp);
+        let qtyToken: Int64 = 3;
 
         let newUser : UserTypes.UserData = {
           id = userId;
           name = name;
           role = #user;
           depositAddr = depositAddr;
-          token = 3;
+          token = qtyToken;
           createdAt = createdAt;
         };
 
-        // let entryId = await GlobalHelper.GenerateUUID();
-        let entryNo = GlobalHelper.GetNextEntryNo(tokenEntries, userId);
-        let newEntry : TransactionTypes.TokenEntry = {
-          entryNo = entryNo;
-          description = "Initial trial token";
-          timestamp = DateHelper.formatTimestamp(timestamp);
-          entryType = #initial;
-          quantity = 3;
-        };
-        switch (tokenEntries.get(userId)) {
-          case (null) {
-            tokenEntries.put(userId, [newEntry]);
-          };
-          case (?entries) {
-            let updated = Array.append<TransactionTypes.TokenEntry>(entries, [newEntry]);
-            tokenEntries.put(userId, updated);
-          };
-        };
+        TransactionServices.createTokenEntry(tokenEntries, userId, "Initial trial token", #initial, qtyToken);
 
         // Create new user data
         users.put(userId, newUser);
@@ -68,11 +52,11 @@ module UserService {
     };
   };
 
-  // public func getBalance(principalId: Principal) : async Nat {
-  //   let currBalance = await ledger.icrc1_balance_of({
-  //     owner = principalId;
-  //     subaccount = null;
-  //   });
-  //   return currBalance;
-  // };
+  public func getBalance(principalId : Principal) : async Nat {
+    let currBalance = await ledger.icrc1_balance_of({
+      owner = principalId;
+      subaccount = null;
+    });
+    return currBalance;
+  };
 };

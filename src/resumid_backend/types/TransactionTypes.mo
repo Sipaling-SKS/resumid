@@ -1,18 +1,16 @@
 import HashMap "mo:base/HashMap";
 import Principal "mo:base/Principal";
 import Text "mo:base/Text";
-import Int32 "mo:base/Int32";
-import PackageTypes "PackageTypes";
+import Int64 "mo:base/Int64";
 
 module TransactionTypes {
-  public type Transactions = HashMap.HashMap<Principal, Transaction>;
+  public type Transactions = HashMap.HashMap<Principal, [Transaction]>;
   public type TokenEntries = HashMap.HashMap<Principal, [TokenEntry]>;
 
   public type Transaction = {
     id : Text;
     from : Principal;
-    to : Principal;
-    package : PackageTypes.Package;
+    package : Text;
     amount : Nat;
     timestamp : Text;
   };
@@ -22,7 +20,7 @@ module TransactionTypes {
     entryType: TokenEntryType;
     description : Text;
     timestamp: Text;
-    quantity: Int32;
+    quantity: Int64;
   };
   
   public type TokenEntryType = {

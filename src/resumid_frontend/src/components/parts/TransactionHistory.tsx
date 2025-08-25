@@ -77,7 +77,7 @@ export default function TransactionHistory({ transactions }: TransactionHistoryP
                 }`}
             >
               {transaction.quantity > 0 ? "+" : ""}
-              {transaction.quantity} Token
+              {Number(transaction.quantity)} Token
             </span>
           </div>
         </div>

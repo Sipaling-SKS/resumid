@@ -12,11 +12,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import CheckoutDialog, { CheckoutPlan } from "@/components/parts/CheckoutDialog";
+import { Package } from "../../../../declarations/resumid_backend/resumid_backend.did";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 
 type Plan = {
   title: string
   description: string
-  price?: number
+  price?: bigint
   list: string[]
   highlightFirstItem?: boolean
   highlightPlan?: boolean
@@ -47,9 +50,9 @@ function Plan({ title, description, price, list, highlightPlan, highlightFirstIt
           {price !== undefined && <section className="inline-flex items-end space-x-2 pt-2">
             <div className="inline-flex items-center space-x-2">
               <img src={ICW} alt="Internet Computer" className="w-8 object-center object-cover" />
-              <p className="font-inter text-5xl font-semibold text-paragraph">{price}</p>
+              <p className="font-inter text-5xl font-semibold text-paragraph">{price.toString()}</p>
             </div>
-            
+
           </section>}
         </CardHeader>
         <hr className="h-[1px] w-full bg-neutral-200" />
@@ -79,50 +82,62 @@ function Plan({ title, description, price, list, highlightPlan, highlightFirstIt
 function Pricing() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
+  const { resumidActor } = useAuth();
 
   const openCheckout = (plan: CheckoutPlan) => {
     setSelectedPlan(plan);
     setCheckoutOpen(true);
   };
 
-  const planList: Plan[] = [
-    {
-      title: "Basic",
-      description: "For individuals",
-      price: 5,
-      id: "trial",
-      tokens: 10,
-      list: [
-        "Get 10 Tokens",
-        "Great for first-time users to try the service.",
-      ],
-    },
-    {
-      title: "Pro",
-      description: "For individuals or teams",
-      price: 10,
-      id: "standard",
-      tokens: 25,
-      list: [
-        "Get 25 Tokens",
-        "Ideal for regular users who need consistent feedback",
-      ],
-      highlightFirstItem: true,
-      highlightPlan: true,
-    },
-    {
-      title: "Premium",
-      description: "For teams",
-      price: 20,
-      id: "premium",
-      tokens: 60,
-      list: [
-        "Get 60 Tokens",
-        "Bulk analysis, custom AI models, and dedicated support.",
-      ],
-      highlightFirstItem: true,
-    }
-  ]
+  // const planList: Plan[] = [
+  //   {
+  //     title: "Basic",
+  //     description: "For individuals",
+  //     price: 5,
+  //     id: "trial",
+  //     tokens: 10,
+  //     list: [
+  //       "Get 10 Tokens",
+  //       "Great for first-time users to try the service.",
+  //     ],
+  //   },
+  //   {
+  //     title: "Pro",
+  //     description: "For individuals or teams",
+  //     price: 10,
+  //     id: "standard",
+  //     tokens: 25,
+  //     list: [
+  //       "Get 25 Tokens",
+  //       "Ideal for regular users who need consistent feedback",
+  //     ],
+  //     highlightFirstItem: true,
+  //     highlightPlan: true,
+  //   },
+  //   {
+  //     title: "Premium",
+  //     description: "For teams",
+  //     price: 20,
+  //     id: "premium",
+  //     tokens: 60,
+  //     list: [
+  //       "Get 60 Tokens",
+  //       "Bulk analysis, custom AI models, and dedicated support.",
+  //     ],
+  //     highlightFirstItem: true,
+  //   }
+  // ]
+
+  const fetchPackage = async () => {
+    const result: Package[] = await resumidActor.getPackages();
+    return result;
+  }
+
+  const { data: packages, isLoading: loadingPackages, error: errorPackages } = useQuery({
+    initialData: [],
+    queryKey: ['list-of-packages'],
+    queryFn: () => fetchPackage()
+  })
 
   return (
     <section id="pricing" className="responsive-container py-12 md:py-16 lg:pt-24 lg:pb-32 border-b border-neutral-200">
@@ -130,18 +145,18 @@ function Pricing() {
         Flexible Plans for Every Need
       </h2>
       <div className="mx-auto max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        {planList.map((plan: Plan, index: number) => (
+        {packages.map((plan: Package, index: number) => (
           <Plan
             key={index}
             className={cn(index === 1 && "order-first lg:order-none")}
             title={plan.title}
-            description={plan.description}
+            description={plan.subtitle}
             price={plan?.price}
-            list={plan.list}
+            list={plan.description}
             highlightFirstItem={plan?.highlightFirstItem}
             highlightPlan={plan?.highlightPlan}
-            buttonLabel={plan?.buttonLabel}
-            onPress={() => plan?.id && plan?.tokens !== undefined && plan?.price !== undefined && openCheckout({ id: plan.id, name: plan.title, tokens: plan.tokens, price: plan.price })}
+            buttonLabel={''}
+            onPress={() => plan?.id && plan?.token !== undefined && plan?.price !== undefined && openCheckout({ id: plan.id, name: plan.title, tokens: plan.token, price: plan.price })}
           />
         ))}
       </div>

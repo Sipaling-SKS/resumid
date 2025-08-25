@@ -10,7 +10,7 @@ import SkeletonWallet from "@/components/parts/skeleton/SkeletonWallet";
 import { useToast } from "@/hooks/useToast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { TokenEntry } from "../../../../declarations/resumid_backend/resumid_backend.did";
+import { TokenEntry, UserData } from "../../../../declarations/resumid_backend/resumid_backend.did";
 
 export default function Wallet() {
   const {
@@ -20,7 +20,7 @@ export default function Wallet() {
     // applyPromotion,
   } = useWallet();
 
-  const { userData, loading: userDataLoading, resumidActor } = useAuth();
+  const { userData, resumidActor } = useAuth();
 
   const [buyPackageOpen, setBuyPackageOpen] = useState(false);
   const [promotionOpen, setPromotionOpen] = useState(false);
@@ -29,18 +29,28 @@ export default function Wallet() {
 
   const fetchTokenEntries = async () => {
     const result: TokenEntry[] = await resumidActor.getUserTokenEntries();
+
+    return result;
+  }
+  const fetchUserDetail = async() => {
+    const result = await resumidActor.getUserById();
     console.log(result);
     return result;
   }
 
   const { data: tokenEntries, isLoading: loadingTokenEntries, error: tokenEntriesError } = useQuery({
-    initialData: [],
     queryKey: ['token-entries', userData.name],
     queryFn: () => fetchTokenEntries(),
-    // staleTime: 5 * 60 * 1000,
-    // gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   })
   
+  const { data: userInfo, isLoading: loadingUserInfo, error: errorUserInfo} = useQuery({
+    queryKey: ['user-info', userData.name],
+    queryFn: () => fetchUserDetail(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  })
 
   const handleBuyPackage = async (packageId: string, amount: number) => {
     // try {
@@ -80,7 +90,7 @@ export default function Wallet() {
     console.log("Navigate to full history page");
   };
 
-  if (userDataLoading || loadingTokenEntries) {
+  if (loadingUserInfo || loadingTokenEntries) {
     return (
       <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
         <div className="container mx-auto px-3 sm:px-4 max-w-4xl">
@@ -139,9 +149,9 @@ export default function Wallet() {
         {/* Wallet Card */}
         <div className="mb-6 sm:mb-8">
           <WalletCard
-            userName={userData.ok.name}
-            icpAddress={userData.ok.depositAddr}
-            balance={userData.ok.token}
+            userName={userInfo.ok.name}
+            icpAddress={userInfo.ok.depositAddr}
+            balance={userInfo.ok.token.toString()}
             onBuyPackage={() => setBuyPackageOpen(true)}
             onPromotion={() => setPromotionOpen(true)}
           />
@@ -150,7 +160,7 @@ export default function Wallet() {
         {/* Transaction History */}
         <div className="mb-6 sm:mb-8">
           <TransactionHistory
-            transactions={tokenEntries}
+            transactions={tokenEntries ?? []}
             onViewAll={handleViewAllHistory}
           />
         </div>
