@@ -7,6 +7,7 @@ module PackageTypes{
 
   public type Package = {
     id: Text;
+    order: Int32;
     title: Text;
     subtitle: Text;
     price: Nat;

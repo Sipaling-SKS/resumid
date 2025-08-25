@@ -28,11 +28,13 @@ export default function Wallet() {
   const { toast } = useToast();
 
   const fetchTokenEntries = async () => {
+    if (!resumidActor) return null;
     const result: TokenEntry[] = await resumidActor.getUserTokenEntries();
 
     return result;
   }
-  const fetchUserDetail = async() => {
+  const fetchUserDetail = async () => {
+    if (!resumidActor) return null;
     const result = await resumidActor.getUserById();
     console.log(result);
     return result;
@@ -42,8 +44,8 @@ export default function Wallet() {
     queryKey: ['token-entries', userData.name],
     queryFn: () => fetchTokenEntries()
   })
-  
-  const { data: userInfo, isLoading: loadingUserInfo, error: errorUserInfo} = useQuery({
+
+  const { data: userInfo, isLoading: loadingUserInfo, error: errorUserInfo } = useQuery({
     queryKey: ['user-info', userData.name],
     queryFn: () => fetchUserDetail()
   })
@@ -145,9 +147,9 @@ export default function Wallet() {
         {/* Wallet Card */}
         <div className="mb-6 sm:mb-8">
           <WalletCard
-            userName={userInfo.ok.name ?? ""}
-            icpAddress={userInfo.ok.depositAddr}
-            balance={userInfo.ok.token.toString()}
+            userName={userInfo && "ok" in userInfo ? userInfo.ok.name : ""}
+            icpAddress={userInfo && "ok" in userInfo ? userInfo.ok.depositAddr : ""}
+            balance={userInfo && "ok" in userInfo ? Number(userInfo.ok.token) : 0}
             onBuyPackage={() => setBuyPackageOpen(true)}
             onPromotion={() => setPromotionOpen(true)}
           />

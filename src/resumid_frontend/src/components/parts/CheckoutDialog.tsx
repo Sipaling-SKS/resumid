@@ -57,9 +57,11 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
       return;
     }
 
-    const validated = await resumidActor.checkUserICPBalance(plan.price);
+    if (!resumidActor) return null;
 
-    if (validated.err) {
+    const validated = await resumidActor.checkUserICPBalance(BigInt(plan.price));
+
+    if ("err" in validated) {
       throw new Error(validated.err);
     }
 
@@ -68,10 +70,10 @@ export default function CheckoutDialog({ open, onOpenChange, plan }: CheckoutDia
     } catch (err: any) {
       throw new Error('Error when transfer ICP, remaining balance: ' + err.balance)
     }
-    
+
     const data = await resumidActor.createTransaction(plan.id);
 
-    if (data.err) {
+    if ("err" in data) {
       throw new Error(data.err);
     }
   };

@@ -10,7 +10,7 @@ import { CircleCheck, ArrowRightIcon, Stars } from "lucide-react";
 import ICW from "@/assets/internet-computer-icp-logo.svg"
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import React, { useState } from "react";
 import CheckoutDialog, { CheckoutPlan } from "@/components/parts/CheckoutDialog";
 import { Package } from "../../../../declarations/resumid_backend/resumid_backend.did";
 import { useAuth } from "@/contexts/AuthContext";
@@ -132,9 +132,12 @@ function Pricing() {
   // ]
 
   const fetchPackage = async () => {
+    if (!resumidActor) return null;
     const result: Package[] = await resumidActor.getPackages();
-    console.log(result);
-    return result;
+
+    const sortedPackages: Package[] = result.sort((a, b) => a.order - b.order);
+
+    return sortedPackages;
   }
 
   const { data: packages = [], isLoading: loadingPackages, error: errorPackages } = useQuery({
@@ -148,7 +151,7 @@ function Pricing() {
         Flexible Plans for Every Need
       </h2>
       <div className="mx-auto max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        {packages.map((plan: Package, index: number) => (
+        {packages && packages.map((plan: Package, index: number) => (
           <Plan
             key={index}
             className={cn(index === 1 && "order-first lg:order-none")}
@@ -159,7 +162,7 @@ function Pricing() {
             highlightFirstItem={plan?.highlightFirstItem}
             highlightPlan={plan?.highlightPlan}
             buttonLabel={''}
-            onPress={() => plan?.id && plan?.token !== undefined && plan?.price !== undefined && openCheckout({ id: plan.id, name: plan.title, tokens: plan.token, price: plan.price })}
+            onPress={() => plan?.id && plan?.token !== undefined && plan?.price !== undefined && openCheckout({ id: plan.id, name: plan.title, tokens: Number(plan.token), price: Number(plan.price) })}
           />
         ))}
       </div>

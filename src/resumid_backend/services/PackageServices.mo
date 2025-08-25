@@ -18,6 +18,7 @@ module PackageServices {
         "Get 10 Tokens",
         "Great for first-time users to try the service.",
       ];
+      order = 1;
       highlightPlan = false;
       highlightFirstItem = false;
     };
@@ -25,6 +26,7 @@ module PackageServices {
 
     let package2Id = await HttpHelper._generateIdempotencyKey();
     let package2 : PackagesTypes.Package = {
+      order = 2;
       id = package2Id;
       title = "Pro";
       subtitle = "For individuals or small teams";
@@ -42,6 +44,7 @@ module PackageServices {
 
     let package3Id = await GlobalHelper.GenerateUUID();
     let package3 : PackagesTypes.Package = {
+      order = 3;
       id = package3Id;
       title = "Premiun";
       subtitle = "For organization";
