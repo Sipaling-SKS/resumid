@@ -5,35 +5,38 @@ import { FileText, Package, ArrowRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
+import { TokenEntry, TokenEntryType } from "../../../../declarations/resumid_backend/resumid_backend.did";
 
-export interface Transaction {
-  id: string;
-  type: "analyze" | "buy" | "promo";
-  description: string;
-  date: string;
-  tokenChange: number;
-  icon?: React.ReactNode;
-}
+// export interface Transaction {
+//   id: string;
+//   type: "analyze" | "buy" | "promo";
+//   description: string;
+//   date: string;
+//   tokenChange: number;
+//   icon?: React.ReactNode;
+// }
 
 interface TransactionHistoryProps {
-  transactions: Transaction[];
+  transactions: TokenEntry[];
   onViewAll?: () => void;
 }
 
 export default function TransactionHistory({ transactions }: TransactionHistoryProps) {
   const [open, setOpen] = useState(false);
 
-  const getTransactionIcon = (type: Transaction["type"]) => {
-    switch (type) {
-      case "analyze":
-        return <FileText size={20} className="text-blue-600" />;
+  const getTransactionIcon = (type: TokenEntryType) => {
+    const key = Object.keys(type)[0];
+
+    switch (key) {
       case "buy":
         return <Package size={20} className="text-green-600" />;
-      case "promo":
-        return <Package size={20} className="text-purple-600" />;
+      case "sub":
+        return <Package size={20} className="text-red-600" />;
+      case "initial":
+        return <FileText size={20} className="text-blue-600" />;
+      case "analyze":
+        return <FileText size={20} className="text-purple-600" />;
       default:
         return <FileText size={20} className="text-gray-600" />;
     }
@@ -48,34 +51,33 @@ export default function TransactionHistory({ transactions }: TransactionHistoryP
     });
   };
 
-  const renderTransactionCard = (transaction: Transaction) => (
-    <Card key={transaction.id} className="border border-gray-200 shadow-sm">
-      <CardContent className="p-3 sm:p-4">
+  const renderTransactionCard = (transaction: TokenEntry) => (
+    <Card key={transaction.entryNo} className="border border-gray-200 shadow-sm p-6">
+      <CardContent>
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Icon */}
           <div className="flex-shrink-0">
-            {transaction.icon || getTransactionIcon(transaction.type)}
+            {getTransactionIcon(transaction.entryType)}
           </div>
 
           {/* Transaction Details */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
             <p className="font-inter text-sm font-medium text-gray-900 truncate">
               {transaction.description}
             </p>
             <p className="font-inter text-xs text-gray-500">
-              {formatDate(transaction.date)}
+              {formatDate(transaction.timestamp)}
             </p>
           </div>
 
           {/* Token Change */}
           <div className="flex-shrink-0">
             <span
-              className={`font-inter text-xs sm:text-sm font-semibold ${
-                transaction.tokenChange > 0 ? "text-green-600" : "text-red-600"
-              }`}
+              className={`font-inter text-xs sm:text-sm font-semibold ${transaction.quantity > 0 ? "text-green-600" : "text-red-600"
+                }`}
             >
-              {transaction.tokenChange > 0 ? "+" : ""}
-              {transaction.tokenChange} Token
+              {transaction.quantity > 0 ? "+" : ""}
+              {Number(transaction.quantity)} Token
             </span>
           </div>
         </div>

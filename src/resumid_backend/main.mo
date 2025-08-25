@@ -3,15 +3,16 @@ import HashMap "mo:base/HashMap";
 import Result "mo:base/Result";
 import Text "mo:base/Text";
 import Debug "mo:base/Debug";
-import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
 import Int "mo:base/Int";
 import Time "mo:base/Time";
 import Array "mo:base/Array";
 import Float "mo:base/Float";
+import Iter "mo:base/Iter";
 import UUID "mo:idempotency-keys/idempotency-keys";
 import Random "mo:base/Random";
 import { JSON } = "mo:serde";
+import DateHelper "helpers/DateHelper";
 import Error "mo:base/Error";
 
 import GptTypes "types/GptTypes";
@@ -19,22 +20,29 @@ import GptServices "services/GptServices";
 import HistoryTypes "types/HistoryTypes_new";
 import HistoryServices "services/HistoryServices_new";
 import UserTypes "types/UserTypes";
-import UserServices "services/UserServices";
+import PackageTypes "types/PackageTypes";
 import GeminiTypes "types/GeminiTypes";
+
+import UserServices "services/UserServices";
+import PackageServices "services/PackageServices";
 import GeminiServices "services/GeminiServices";
+import TransactionTypes "types/TransactionTypes";
 import ProfileTypes "types/ProfileTypes";
 import ProfileServices "services/ProfileServices";
 import ResumeExtractTypes "types/ResumeExtractTypes";
 
-import DateHelper "helpers/DateHelper";
 import DraftServices "services/DraftServices";
+import TransactionServices "services/TransactionServices";
 
 actor Resumid {
   // Storage for user data and analysis histories
   private var users : UserTypes.User = HashMap.HashMap<Principal, UserTypes.UserData>(0, Principal.equal, Principal.hash);
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
+  private var packages : PackageTypes.Packages = HashMap.HashMap<Text, PackageTypes.Package>(0, Text.equal, Text.hash);
+  private var tokenEntries : TransactionTypes.TokenEntries = HashMap.HashMap<Principal, [TransactionTypes.TokenEntry]>(0, Principal.equal, Principal.hash);
   private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
   private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, [ResumeExtractTypes.ResumeHistoryItem]>(0, Text.equal, Text.hash);
+  private var transactions : TransactionTypes.Transactions = HashMap.HashMap<Principal, [TransactionTypes.Transaction]>(0, Principal.equal, Principal.hash);
 
   // ==============================
   // Authentication and User Methods
@@ -53,12 +61,12 @@ actor Resumid {
   //    await ProfileServices.createUserProfile(profiles, userId);
   //   return
   // };
-  public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
+  public shared (msg) func authenticateUser(depositAddr : Text) : async Result.Result<UserTypes.UserData, Text> {
     let userId = msg.caller;
     Debug.print("Caller Principal for auth: " # Principal.toText(userId));
 
     // First authenticate the user
-    let authResult = await UserServices.authenticateUser(users, userId);
+    let authResult = await UserServices.authenticateUser(users, tokenEntries, depositAddr, userId);
 
     switch (authResult) {
       case (#err(errorMsg)) {
@@ -95,6 +103,22 @@ actor Resumid {
     };
   };
 
+  // TODO: Only for development - remove this after function is ready
+  public shared (msg) func getUserByIdDevelopment(userId : Principal) : async Result.Result<UserTypes.UserData, Text> {
+    // let userId = msg.caller;
+
+    Debug.print("Caller Principal for getUserById: " # Principal.toText(userId));
+
+    switch (users.get(userId)) {
+      case (?userData) {
+        return #ok(userData);
+      };
+      case null {
+        return #err("User not found");
+      };
+    };
+  };
+
   // ==============================
   // Resume Analysis Methods
   // ==============================
@@ -102,6 +126,16 @@ actor Resumid {
   public shared (msg) func AnalyzeResumeV2(fileName : Text, historycid : Text, resumeContent : Text, jobTitle : Text) : async ?HistoryTypes.History {
     let userId = Principal.toText(msg.caller);
     Debug.print("Caller Principal for AnalyzeResume: " # userId);
+
+    let user = TransactionServices.hasSufficientBalance(users, msg.caller, 2);
+
+    switch (user) {
+      case (#err(message)) {
+        Debug.print(message);
+        return null;
+      };
+      case (#ok(message)) {};
+    };
 
     let analyzeResult = await GeminiServices.AnalyzeResume(resumeContent, jobTitle);
     Debug.print("Analyze result: " # debug_show (analyzeResult));
@@ -166,7 +200,25 @@ actor Resumid {
         switch (addResult) {
           case (#ok(history)) {
             Debug.print("Berhasil menambahkan history ID: " # history.historyId);
-            ?history;
+
+            let resTrans = TransactionServices.chargeTokenBalance(
+              users,
+              tokenEntries,
+              msg.caller,
+              "Analyze Resume",
+              #analyze,
+              -1,
+            );
+
+            switch (resTrans) {
+              case (#err(message)) {
+                null;
+              };
+              case (#ok(message)) {
+                ?history;
+              };
+            }
+
           };
           case (#err(errMsg)) {
             Debug.print("Gagal menambahkan history: " # errMsg);
@@ -848,4 +900,77 @@ actor Resumid {
     return HistoryServices.deleteHistory(histories, userId, input.historyId);
   };
 
+  // ==============================
+  // Master Package Methods
+  // ==============================
+  public shared (msg) func getPackages() : async [PackageTypes.Package] {
+    return Iter.toArray(packages.vals());
+  };
+
+  public shared (msg) func initPackages() : async [PackageTypes.Package] {
+    return await PackageServices.initDefaultPackage(packages);
+  };
+
+  public shared (msg) func deleteAllPackages() : async Result.Result<Text, Text> {
+    for (k in packages.keys()) {
+      packages.delete(k);
+    };
+    return #ok("Success delete all packages");
+  };
+
+  // ==============================
+  // Transaction Package Methods
+  // ==============================
+
+  public shared (msg) func getAllTokenEntries() : async [TransactionTypes.TokenEntry] {
+    let arrays : [[TransactionTypes.TokenEntry]] = Iter.toArray(tokenEntries.vals());
+    Array.flatten<TransactionTypes.TokenEntry>(arrays);
+  };
+
+  public shared (msg) func getUserTokenEntries() : async [TransactionTypes.TokenEntry] {
+    let userId = Principal.toText(msg.caller);
+
+    switch (tokenEntries.get(Principal.fromText(userId))) {
+      case (null) { [] };
+      case (?entries) { entries };
+    };
+  };
+
+  // TODO: Remove this after development
+  public shared (msg) func getUserTokenEntriesDevelopment(userId : Text) : async [TransactionTypes.TokenEntry] {
+    switch (tokenEntries.get(Principal.fromText(userId))) {
+      case (null) { [] };
+      case (?entries) { entries };
+    };
+  };
+
+  public shared (msg) func checkUserICPBalance(chargedBalance: Nat): async Result.Result<Text, Text> {
+    let currBalance = await UserServices.getBalance(msg.caller);
+
+    if(currBalance < chargedBalance) {
+      return #err("Insufficient ICP Balance");
+    };
+
+    #ok("Validated");
+  };
+
+  public shared (msg) func createTransaction(packageId : Text) : async Result.Result<TransactionTypes.Transaction, Text> {
+    let userId = msg.caller;
+    Debug.print(Principal.toText(userId));
+    let package : ?PackageTypes.Package = await PackageServices.getPackageById(packages, packageId);
+    switch (package) {
+      case (null) {
+        return #err("Selected package is not found");
+      };
+      case (?pkg) {
+        let balance = await UserServices.getBalance(userId);
+        if (balance < pkg.price) {
+          return #err("Insufficient balance");
+        };
+
+        return await TransactionServices.createTransaction(transactions, tokenEntries, users, pkg, userId);
+      };
+    };
+
+  };
 };

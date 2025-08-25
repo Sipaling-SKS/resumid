@@ -5,6 +5,7 @@ import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declaratio
 import { toast } from "@/hooks/useToast";
 import { useNavigate } from "react-router";
 import { LoaderCircle } from "lucide-react";
+import { AccountIdentifier } from '@dfinity/ledger-icp';
 import { fromNullable } from "@/lib/optionalField";
 import { _SERVICE } from "../../../declarations/resumid_backend/resumid_backend.did";
 import { ActorSubclass } from "@dfinity/agent";
@@ -208,8 +209,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               agentOptions: { identity },
             });
 
+            const accountIdentifier = AccountIdentifier.fromPrincipal({
+              principal,
+              subAccount: undefined,
+            });
+
             await actor.whoami();
-            await actor.authenticateUser();
+            await actor.authenticateUser(accountIdentifier.toHex());
 
             setResumidActor(actor);
 
@@ -234,6 +240,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       },
     });
+
+    setLoading(false);
   };
 
 
