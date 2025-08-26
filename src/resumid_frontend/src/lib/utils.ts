@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { format, parseISO, differenceInMonths, differenceInYears } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -40,6 +41,10 @@ export function shorten(str: string, length: number): string {
   return str && str.length > length ? str.slice(0, length).split(' ').slice(0, -1).join(' ') + "..." : str
 }
 
+export function truncate(str: string, length: number): string {
+  return str && str.length > length ? str.slice(0, length) + "..." : str
+}
+
 export function getTextSizeClass(length: number) {
   if (length <= 30) return "text-lg";
   if (length <= 60) return "text-base";
@@ -63,4 +68,25 @@ export function formatISOToDate(isoDate: string, includeTime: boolean = false) {
       year: 'numeric',
     };
   return date.toLocaleDateString('en-US', options);
+}
+
+export function formatDate(dateStr?: string) {
+  if (!dateStr) return "Now";
+  try {
+    return format(parseISO(dateStr), "MMM yyyy");
+  } catch {
+    return dateStr;
+  }
+}
+
+export function getPeriodLength(startStr: string, endStr?: string) {
+  const start = parseISO(startStr);
+  const end = endStr ? parseISO(endStr) : new Date();
+  const months = differenceInMonths(end, start) + 1;
+  if (months < 12) return `${months} mo${months === 1 ? "" : "s"}`;
+  const years = differenceInYears(end, start);
+  const remMonths = months % 12;
+  return remMonths > 0
+    ? `${years} yr${years === 1 ? "" : "s"} ${remMonths} mo${remMonths === 1 ? "" : "s"}`
+    : `${years} yr${years === 1 ? "" : "s"}`;
 }

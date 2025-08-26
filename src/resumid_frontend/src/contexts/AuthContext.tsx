@@ -5,6 +5,10 @@ import { canisterId as CANISTER_ID_INTERNET_IDENTITY } from "../../../declaratio
 import { toast } from "@/hooks/useToast";
 import { useNavigate } from "react-router";
 import { LoaderCircle } from "lucide-react";
+import { AccountIdentifier } from '@dfinity/ledger-icp';
+import { fromNullable } from "@/lib/optionalField";
+import { _SERVICE } from "../../../declarations/resumid_backend/resumid_backend.did";
+import { ActorSubclass } from "@dfinity/agent";
 
 type AuthLoginOptions = {
   onSuccessNavigate?: () => void;
@@ -19,9 +23,10 @@ interface AuthContextType {
   authClient: AuthClient | null;
   identity: any | null;
   principal: any | null;
-  resumidActor: any | null;
+  resumidActor: ActorSubclass<_SERVICE> | null;
   userData: any | null;
   fetchUserData: () => Promise<void>;
+  updateUserData: (updates: Partial<any>) => void;
   loading: boolean;
 }
 
@@ -60,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [identity, setIdentity] = useState<any | null>(null);
   const [principal, setPrincipal] = useState<any | null>(null);
-  const [resumidActor, setResumidActor] = useState<any | null>(null);
+  const [resumidActor, setResumidActor] = useState<ActorSubclass<_SERVICE> | null>(null);
   const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -78,25 +83,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     try {
-      const data = await resumidActor.getUserById();
+      const userRes = await resumidActor.getUserById();
+      let user;
 
-      if (!data || Object.keys(data).length === 0) {
-        console.error("No user data found");
+      if ("ok" in userRes) {
+        user = userRes.ok;
+      } else {
+        console.error(userRes?.err || "No user data found")
         setUserData(null);
         setLoading(false);
         return;
       }
 
-      const serializedData = JSON.parse(
-        JSON.stringify(data, (key, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
-      );
+      const profileRes = await resumidActor.getProfileByUserId();
 
-      console.log("Serialized user data:", serializedData);
+      if ("ok" in profileRes) {
+        const { profile: _profile } = profileRes.ok;
 
-      setUserData(serializedData);
-      localStorage.setItem("userData", JSON.stringify(serializedData));
+        const profileDetail = fromNullable(_profile.profileDetail);
+
+        const serializedData = JSON.parse(
+          JSON.stringify({
+            user,
+            profile: {
+              profileId: _profile.profileId,
+              ...(profileDetail && {
+                name: fromNullable(profileDetail.name),
+                profileCid: fromNullable(profileDetail.profileCid),
+                current_position: fromNullable(profileDetail.current_position)
+              })
+            }
+          }, (key, value) =>
+            typeof value === "bigint" ? value.toString() : value
+          )
+        );
+        console.log("Serialized user data:", serializedData);
+  
+        setUserData(serializedData);
+        localStorage.setItem("userData", JSON.stringify(serializedData));
+      } else {
+        console.error(profileRes?.err && "Error serializing user data");
+        setUserData(null);
+        setLoading(false);
+        return;
+      }
     } catch (error) {
       console.error("Error fetching user data:", error);
       setUserData(null);
@@ -179,8 +209,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               agentOptions: { identity },
             });
 
+            const accountIdentifier = AccountIdentifier.fromPrincipal({
+              principal,
+              subAccount: undefined,
+            });
+
             await actor.whoami();
-            await actor.authenticateUser();
+            await actor.authenticateUser(accountIdentifier.toHex());
 
             setResumidActor(actor);
 
@@ -205,6 +240,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       },
     });
+
+    setLoading(false);
   };
 
 
@@ -237,6 +274,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
 
+  const updateUserData = (updates: Partial<any>) => {
+    setUserData((prevData: any) => ({
+      ...prevData,
+      ...updates,
+      profile: {
+        ...prevData?.profile,
+        ...updates.profile
+      }
+    }));
+
+    const updatedData = {
+      ...userData,
+      ...updates,
+      profile: {
+        ...userData?.profile,
+        ...updates.profile
+      }
+    };
+    localStorage.setItem("userData", JSON.stringify(updatedData));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -249,6 +307,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         resumidActor,
         userData,
         fetchUserData,
+        updateUserData,
         loading,
       }}
     >

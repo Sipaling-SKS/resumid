@@ -6,6 +6,9 @@ const dotenv = require("dotenv").config({
 });
 const axios = require("axios");
 const { GeminiConfig } = require("../constants/geminiConfig");
+const { fillDefaults } = require("../helpers/helper");
+const { resumeExtractConfig } = require("../constants/resumeExtractConfig");
+
 
 const TrGptRequestLog = require("../models/TrGptRequestLog");
 
@@ -33,6 +36,7 @@ const AnalyzeResume = async (req) => {
       },
     });
 
+
     const newData = new TrGeminiRequestLog({
       idempotency_key: req.headers[API_IDEMPOTENCY_KEY],
       gemini_request: JSON.stringify(req.body),
@@ -43,7 +47,7 @@ const AnalyzeResume = async (req) => {
     });
 
     await newData.save();
-    console.log(JSON.parse(response.text)[0])
+    console.log(JSON.stringify(response))
     return JSON.parse(response.text)[0];
   } catch (err) {
     console.log(err);
@@ -268,7 +272,140 @@ const MockupAnalyzeResume = (req) => {
   return cvReview;
 };
 
+
+// const ExtractResume = async (req) => {
+//   const cvContent = req.body.cvContent;
+
+//   const now = new Date();
+//   const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
+
+//   try {
+//     const response = await ai.models.generateContent({
+//       model: resumeExtractConfig.model,
+//       contents: [{ type: "input_text", text: cvContent }],
+//       config: {
+//         systemInstruction: { parts: resumeExtractConfig.systemInstruction },
+//         responseMimeType: resumeExtractConfig.generationConfig.responseMimeType,
+//         responseSchema: resumeExtractConfig.generationConfig.responseSchema,
+//       },
+//     });
+
+//     // --- Selalu parsing ke object ---
+//     let parsedResponseRaw = response.output;
+
+//     if (typeof parsedResponseRaw === "string") {
+//       try {
+//         parsedResponseRaw = JSON.parse(parsedResponseRaw);
+//       } catch {
+//         parsedResponseRaw = {};
+//       }
+//     } else if (!parsedResponseRaw || typeof parsedResponseRaw !== "object") {
+//       // Fallback kalau SDK pakai candidates
+//       const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
+//       try {
+//         parsedResponseRaw = text ? JSON.parse(text) : {};
+//       } catch {
+//         parsedResponseRaw = {};
+//       }
+//     }
+
+//     const parsedResponseCleaned = fillDefaults(parsedResponseRaw);
+
+
+//     // Simpan log
+//     await new TrGeminiRequestLog({
+//       idempotency_key: req.headers["idempotency-key"],
+//       gemini_request: JSON.stringify(req.body),
+//       gemini_response: JSON.stringify(parsedResponseCleaned),
+//       expired_date,
+//       created_at: now,
+//       updated_at: now,
+//     }).save();
+
+//     return parsedResponseCleaned;
+
+//   } catch (err) {
+//     console.error("ExtractResume error:", err);
+//     throw err;
+//   }
+// };
+
+
+// mockExtractResume.js
+
+
+const ExtractResume = async (req) => {
+  const cvContent = req.body.cvContent;
+
+  const now = new Date();
+  const expired_date = new Date(now.getTime() + 2 * 60 * 1000);
+
+  try {
+    const response = await ai.models.generateContent({
+      model: resumeExtractConfig.model,
+      contents: [{ type: "input_text", text: cvContent }],
+      config: {
+        systemInstruction: { parts: resumeExtractConfig.systemInstruction },
+        responseMimeType: resumeExtractConfig.generationConfig.responseMimeType,
+        responseSchema: resumeExtractConfig.generationConfig.responseSchema,
+      },
+    });
+
+    let parsedResponseRaw = response.output;
+
+    if (typeof parsedResponseRaw === "string") {
+      try {
+        parsedResponseRaw = JSON.parse(parsedResponseRaw);
+      } catch {
+        parsedResponseRaw = {};
+      }
+    } else if (!parsedResponseRaw || typeof parsedResponseRaw !== "object") {
+      // Fallback kalau SDK pakai candidates
+      const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
+      try {
+        parsedResponseRaw = text ? JSON.parse(text) : {};
+      } catch {
+        parsedResponseRaw = {};
+      }
+    }
+
+    const parsedResponseCleaned = fillDefaults(parsedResponseRaw);
+
+    // Simpan log
+    await new TrGeminiRequestLog({
+      idempotency_key: req.headers["idempotency-key"],
+      gemini_request: JSON.stringify(req.body),
+      gemini_response: JSON.stringify(parsedResponseCleaned),
+      expired_date,
+      created_at: now,
+      updated_at: now,
+    }).save();
+
+    return parsedResponseCleaned;
+
+  } catch (err) {
+    console.error("ExtractResume error:", err);
+    throw err;
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports = {
   AnalyzeResume,
   MockupAnalyzeResume,
+  ExtractResume,
+  // ExtractResumeMock,
 };

@@ -10,17 +10,23 @@ import { CircleCheck, ArrowRightIcon, Stars } from "lucide-react";
 import ICW from "@/assets/internet-computer-icp-logo.svg"
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router";
+import React, { useState } from "react";
+import CheckoutDialog, { CheckoutPlan } from "@/components/parts/CheckoutDialog";
+import { Package } from "../../../../declarations/resumid_backend/resumid_backend.did";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 
 type Plan = {
   title: string
   description: string
-  price?: number
+  price?: bigint
   list: string[]
   highlightFirstItem?: boolean
   highlightPlan?: boolean
   buttonLabel?: string
   onPress?: () => void
+  id?: string
+  tokens?: number
 }
 
 interface PlanProps extends Plan {
@@ -44,9 +50,9 @@ function Plan({ title, description, price, list, highlightPlan, highlightFirstIt
           {price !== undefined && <section className="inline-flex items-end space-x-2 pt-2">
             <div className="inline-flex items-center space-x-2">
               <img src={ICW} alt="Internet Computer" className="w-8 object-center object-cover" />
-              <p className="font-inter text-5xl font-semibold text-paragraph">{price}</p>
+              <p className="font-inter text-5xl font-semibold text-paragraph">{price.toString()}</p>
             </div>
-            <p className="font-inter text-paragraph">Monthly</p>
+
           </section>}
         </CardHeader>
         <hr className="h-[1px] w-full bg-neutral-200" />
@@ -74,42 +80,70 @@ function Plan({ title, description, price, list, highlightPlan, highlightFirstIt
 }
 
 function Pricing() {
-  const navigate = useNavigate();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<CheckoutPlan | null>(null);
+  const { resumidActor } = useAuth();
 
-  const planList: Plan[] = [
-    {
-      title: "Starter",
-      description: "For individuals",
-      price: 0,
-      list: [
-        "Includes a summary of strengths and areas for improvement.",
-        "Limited to only 3 resume analysis.",
-      ],
-      onPress: () => navigate("/resume-analyzer")
-    },
-    {
-      title: "Pro",
-      description: "For individuals or teams",
-      price: 5,
-      list: [
-        "Everything included in Starter Tier",
-        "Unlimited analysis, detailed reports, and job-specific recommendations.",
-      ],
-      highlightFirstItem: true,
-      highlightPlan: true,
-      onPress: () => navigate("/resume-analyzer")
-    },
-    {
-      title: "Enterprise",
-      description: "For organizations",
-      list: [
-        "Everything included in Pro Tier",
-        "Bulk analysis, custom AI models, and dedicated support.",
-      ],
-      highlightFirstItem: true,
-      buttonLabel: "Contact Sales"
-    }
-  ]
+  const openCheckout = (plan: CheckoutPlan) => {
+    setSelectedPlan(plan);
+    setCheckoutOpen(true);
+  };
+
+  // const planList: Package[] = [
+  //   {
+  //     title: "Basic",
+  //     subtitle: "For individuals",
+  //     price: 5n,
+  //     id: "trial",
+  //     token: 10n,
+  //     description: [
+  //       "Get 10 Tokens",
+  //       "Great for first-time users to try the service.",
+  //     ],
+  //     highlightFirstItem: false,
+  //     highlightPlan: false,
+  //   },
+  //   {
+  //     title: "Pro",
+  //     subtitle: "For individuals or teams",
+  //     price: 10n,
+  //     id: "standard",
+  //     token: 25n,
+  //     description: [
+  //       "Get 25 Tokens",
+  //       "Ideal for regular users who need consistent feedback",
+  //     ],
+  //     highlightFirstItem: true,
+  //     highlightPlan: true,
+  //   },
+  //   {
+  //     title: "Premium",
+  //     subtitle: "For teams",
+  //     price: 20n,
+  //     id: "premium",
+  //     token: 60n,
+  //     description: [
+  //       "Get 60 Tokens",
+  //       "Bulk analysis, custom AI models, and dedicated support.",
+  //     ],
+  //     highlightPlan: false,
+  //     highlightFirstItem: true,
+  //   }
+  // ]
+
+  const fetchPackage = async () => {
+    if (!resumidActor) return null;
+    const result: Package[] = await resumidActor.getPackages();
+
+    const sortedPackages: Package[] = result.sort((a, b) => a.order - b.order);
+
+    return sortedPackages;
+  }
+
+  const { data: packages = [], isLoading: loadingPackages, error: errorPackages } = useQuery({
+    queryKey: ['list-of-packages'],
+    queryFn: () => fetchPackage(),
+  })
 
   return (
     <section id="pricing" className="responsive-container py-12 md:py-16 lg:pt-24 lg:pb-32 border-b border-neutral-200">
@@ -117,21 +151,23 @@ function Pricing() {
         Flexible Plans for Every Need
       </h2>
       <div className="mx-auto max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        {planList.map((plan: Plan, index: number) => (
+        {packages && packages.map((plan: Package, index: number) => (
           <Plan
             key={index}
             className={cn(index === 1 && "order-first lg:order-none")}
             title={plan.title}
-            description={plan.description}
+            description={plan.subtitle}
             price={plan?.price}
-            list={plan.list}
+            list={plan.description}
             highlightFirstItem={plan?.highlightFirstItem}
             highlightPlan={plan?.highlightPlan}
-            buttonLabel={plan?.buttonLabel}
-            onPress={plan?.onPress}
+            buttonLabel={''}
+            onPress={() => plan?.id && plan?.token !== undefined && plan?.price !== undefined && openCheckout({ id: plan.id, name: plan.title, tokens: Number(plan.token), price: Number(plan.price) })}
           />
         ))}
       </div>
+
+      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} plan={selectedPlan} />
     </section>
   )
 }
