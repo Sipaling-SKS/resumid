@@ -84,7 +84,7 @@ dfx start --background
 
 #### Deploy Internet Computer Environment App
 ```bash
-dfx deploy
+sh deploy-canister.sh
 ```
 
 #### Insert Express Environment to root .env (below are examples)
@@ -93,8 +93,19 @@ dfx deploy
 EXPRESS_MONGODB_URI='mongodb+srv://<user>:<password>@cluster0.afxyv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
 EXPRESS_API_KEY = 'EXPRESS_API_KEY'
 EXPRESS_GEMINI_API_KEY = 'GEMINI_API_KEY'
-EXPRESS_PORT = 5000
+EXPRESS_API_SECRET="EXPRESS_API_SECRET"
+EXPRESS_PINATA_API_KEY='EXPRESS_PINATA_API_KEY'
+EXPRESS_PINATA_API_SECRET='EXPRESS_PINATA_API_SECRET'
+EXPRESS_PINATA_JWT='EXPRESS_PINATA_JWT'
+EXPRESS_PINATA_GATEWAY_URL='EXPRESS_PINATA_GATEWAY_URL'
+EXPRESS_PORT = 5173
 # END EXPRESS ENVIRONMENT VARIABLES
+
+# START FRONTEND ENVIRONMENT VARIABLES
+VITE_PINATA_GATEWAY_URL='VITE_PINATA_GATEWAY_URL'
+VITE_SERVICE_URL='http://localhost:5173'
+VITE_SERVICE_API_KEY = 'PINATA_API_SERVICE_KEY'
+# END FRONTEND ENVIRONMENT VARIABLES
 ```
 
 #### Install and Start Resumid Api Service
