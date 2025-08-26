@@ -46,7 +46,7 @@ module PackageServices {
     let package3 : PackagesTypes.Package = {
       order = 3;
       id = package3Id;
-      title = "Premiun";
+      title = "Premium";
       subtitle = "For organization";
       price = 20;
       token = 60;
