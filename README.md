@@ -26,6 +26,10 @@ Demo Video: [Youtube](https://youtu.be/HEiYWsDFzQ8)
 - **Internet Identity Authentication:** provides personalized access to users keeping their data private and secure using Internet Identity.
 - **Resume Analyzer:** performs in-depth resume analysis with AI technology, provides a match score, outlines resume strengths and weaknesses, and provides personalized recommendations to improve the resume according to the position applied for. The analysis delivers a compatibility score with the targeted job position, detailed feedback, and specific improvement pointers for every section. In addition, users receive personalized job recommendations to help them tailor their resumes to better match employer requirements and stand out in the recruitment process
 - **History:** all analyzes performed are saved in history so users can easily track the development of their resume over time.
+- **Tokenized Premium Packages:** Users purchase premium packages that generate tokens. These tokens are used to access the Resume Analyzer and other advanced features.
+- **Built-in Wallet:** The wallet securely stores tokens, displays balances, and records transaction history. Tokens are automatically deducted whenever a resume analysis is performed.
+- **Public Profiles & Endorsements:** CVs can be transformed into interactive, customizable public profiles. A reputation-based endorsement system strengthens users’ personal branding and professional credibility.
+
 
 ---
 
@@ -107,7 +111,8 @@ Once the setup & installation, your application will be available at `http://{ca
 ---
 
 ## Future Plans
-- **Business Processes and Monetization:** Integrate the platform with Web 2 technology for a seamless user experience, broader adoption, and sustainable monetization opportunities.
-- **Web 3 Payment Integration:** Explore Web 3-based payment features, including ICP top-up, for enhanced transaction ease and user flexibility.
-- **Exclusive Access to Premium Resume Templates:** Provide professional resume templates exclusively for subscribers, ensuring premium features for members only.
-- **Blockchain Job Portal:** A blockchain-based job portal connecting users with companies and enabling automated matching between user resumes and company needs.
+- **Automatic Profile Builder:** An intelligent feature that automatically generates a personalized profile from an uploaded CV. This will streamline onboarding, save users time, and ensure profile accuracy for better resume analysis.
+- **Exclusive Access to Premium Resume Templates:** Access to professional resume templates available exclusively to subscribed users, ensuring premium features are reserved for members only.
+- **Blockchain Job Portal:** A blockchain-based job portal that connects users with companies and enables automatic matching between user resumes and company needs.
+- **Gamified Referral & Rewards:**  Implement a gamified system that rewards users with tokens for active participation, such as inviting friends, updating profiles, or receiving endorsements.
+- **Promotion:** The platform will introduce a dedicated Promotion feature, offering monthly challenges such as “Best Resume Score.” Winners will receive vouchers, token rewards, or complimentary premium access, designed to enhance user engagement and provide additional value to the overall user experience.
