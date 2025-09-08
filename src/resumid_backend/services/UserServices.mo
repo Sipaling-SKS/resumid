@@ -7,10 +7,22 @@ import Result "mo:base/Result";
 import DateHelper "../helpers/DateHelper";
 
 module UserService {
+    
+    public func adminExists(users: UserTypes.User) :  Bool {
+        for ((principal, userData) in users.entries()) {
+            if (userData.role == 0) {
+                return true;
+            };
+        };
+        false;
+    };
+
     public func authenticateUser(
         users: UserTypes.User,
         userId: Principal,
-    ) : async Result.Result<UserTypes.UserData, Text> {
+        userRole: Int,
+        userName: Text,
+    ) :  Result.Result<UserTypes.UserData, Text> {
         if (Principal.isAnonymous(userId)) {
             return #err("Anonymous users are not allowed to authenticate.");
         };
@@ -20,27 +32,21 @@ module UserService {
                 return #ok(existingUser); 
             };
             case null {
-                let entropy = await Random.blob();
-                let uid = UUID.generateV4(entropy);
-                let name = "user-" # uid;
-
                 let timestamp = Time.now();
                 let createdAt = DateHelper.formatTimestamp(timestamp);
 
-                let role = 1;
-
                 let newUser: UserTypes.UserData = {
                     id = userId;
-                    name = name;
-                    role = role;
+                    name = userName;
+                    role = userRole;
                     createdAt = createdAt;
                 };
 
-                // Create new user data
                 users.put(userId, newUser);
 
                 return #ok(newUser);
             };
         };
     };
+
 };

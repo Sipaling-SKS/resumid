@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
 
             await actor.whoami();
-            await actor.authenticateUser();
+            await actor.authenticateUser(["admin-secret-id"]);
 
             setResumidActor(actor);
 

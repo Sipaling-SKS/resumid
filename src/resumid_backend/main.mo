@@ -35,7 +35,7 @@ actor Resumid {
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
   private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
   private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, [ResumeExtractTypes.ResumeHistoryItem]>(0, Text.equal, Text.hash);
-
+  private let ADMIN_ID : Text = "admin-secret-id";
   // ==============================
   // Authentication and User Methods
   // ==============================
@@ -45,35 +45,92 @@ actor Resumid {
     return msg.caller;
   };
 
-  // public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
-  //   let userId = msg.caller;
+  public shared (msg) func authenticateUser(id : ?Text) : async Result.Result<UserTypes.UserData, Text> {
 
-  //   Debug.print("Caller Principal for auth: " # Principal.toText(userId));
-  //    await UserServices.authenticateUser(users, userId);
-  //    await ProfileServices.createUserProfile(profiles, userId);
-  //   return
-  // };
-  public shared (msg) func authenticateUser() : async Result.Result<UserTypes.UserData, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot authenticate");
+    };
     let userId = msg.caller;
     Debug.print("Caller Principal for auth: " # Principal.toText(userId));
 
-    // First authenticate the user
-    let authResult = await UserServices.authenticateUser(users, userId);
+    switch (id) {
+      case (?providedId) {
+        switch (providedId == ADMIN_ID) {
+          case true {
+            switch (UserServices.adminExists(users)) {
+              case true {
+                switch (users.get(userId)) {
+                  case (?existingUser) {
+                    return #ok(existingUser);
+                  };
+                  case null {
+                    return #err("Admin user not found");
+                  };
+                };
+              };
+              case false {
+                let role = 0;
+                let name = "admin";
 
-    switch (authResult) {
-      case (#err(errorMsg)) {
-        return #err(errorMsg);
-      };
-      case (#ok(userData)) {
-        let profileResult = await ProfileServices.createUserProfile(profiles, Principal.toText(userId));
-
-        switch (profileResult) {
-          case (#err(profileError)) {
-            Debug.print("Profile creation failed: " # profileError);
-            return #ok(userData);
+                let authResult =  UserServices.authenticateUser(users, userId, role, name);
+                switch (authResult) {
+                  case (#err(errorMsg)) {
+                    return #err(errorMsg);
+                  };
+                  case (#ok(userData)) {
+                    return #ok(userData);
+                  };
+                };
+              };
+            };
           };
-          case (#ok(_)) {
-            return #ok(userData);
+          case false {
+            let role = 1;
+            let entropy = await Random.blob();
+            let uid = UUID.generateV4(entropy);
+            let name = "user-" # uid;
+            
+            let authResult =  UserServices.authenticateUser(users, userId, role, name);
+            switch (authResult) {
+              case (#err(errorMsg)) {
+                return #err(errorMsg);
+              };
+              case (#ok(userData)) {
+                switch (await ProfileServices.createUserProfile(profiles, Principal.toText(userId))) {
+                  case (#err(profileError)) {
+                    Debug.print("Profile creation failed: " # profileError);
+                    return #ok(userData);
+                  };
+                  case (#ok(_)) {
+                    return #ok(userData);
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+      case null {
+        let role = 1;
+        let entropy = await Random.blob();
+        let uid = UUID.generateV4(entropy);
+        let name = "user-" # uid;
+        
+        let authResult =  UserServices.authenticateUser(users, userId, role, name);
+        switch (authResult) {
+          case (#err(errorMsg)) {
+            return #err(errorMsg);
+          };
+          case (#ok(userData)) {
+            switch (await ProfileServices.createUserProfile(profiles, Principal.toText(userId))) {
+              case (#err(profileError)) {
+                Debug.print("Profile creation failed: " # profileError);
+                return #ok(userData);
+              };
+              case (#ok(_)) {
+                return #ok(userData);
+              };
+            };
           };
         };
       };
@@ -81,6 +138,9 @@ actor Resumid {
   };
 
   public shared (msg) func getUserById() : async Result.Result<UserTypes.UserData, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot authenticate");
+    };
     let userId = msg.caller;
 
     Debug.print("Caller Principal for getUserById: " # Principal.toText(userId));
@@ -185,10 +245,11 @@ actor Resumid {
   // Fixed extractResumeToDraft function
   public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
     if (Principal.isAnonymous(msg.caller)) {
-      Debug.print("Anonymous users cannot extract resumes");
       return null;
     };
+
     let userId = Principal.toText(msg.caller);
+
     let rawJsonOpt = await GeminiServices.Extract(resumeContent);
 
     switch (rawJsonOpt) {
@@ -260,6 +321,9 @@ actor Resumid {
   };
 
   public shared (msg) func GetDraftByUserId() : async [ResumeExtractTypes.ResumeHistoryItem] {
+    if (Principal.isAnonymous(msg.caller)) {
+      return [];
+    };
     let userId = Principal.toText(msg.caller);
 
     switch (draftMap.get(userId)) {
@@ -420,33 +484,6 @@ actor Resumid {
     };
   };
 
-  // public shared (msg) func updateProfileDetail(
-  //   profileDetailInput : ?{
-  //     name : ?Text;
-  //     current_position : ?Text;
-  //     description : ?Text;
-  //   },
-  //   contactInfo : ?ProfileTypes.ContactInfo,
-  // ) : async Text {
-  //   let userId = Principal.toText(msg.caller);
-
-  //   let result = await ProfileServices.updateProfileDetailAndContact(
-  //     profiles,
-  //     userId,
-  //     profileDetailInput,
-  //     contactInfo,
-  //   );
-
-  //   switch (result) {
-  //     case (#ok(_)) {
-  //       return "Profile for user " # userId # " updated successfully";
-  //     };
-  //     case (#err(errMsg)) {
-  //       return "Failed to update profile: " # errMsg;
-  //     };
-  //   };
-  // };
-
   public shared (msg) func updateProfileDetail(
     profileDetailInput : ?{
       name : ?Text;
@@ -510,23 +547,6 @@ actor Resumid {
     };
   };
 
-  // --- Work Experience ---
-  // public shared (msg) func addWorkExperienceShared(
-  //   newWorkExperience : {
-  //     company : Text;
-  //     location : ?Text;
-  //     position : Text;
-  //     employment_type : ?Text;
-  //     period : {
-  //       start : ?Text;
-  //       end : ?Text;
-  //     };
-  //     description : ?Text;
-  //   }
-  // ) : async Result.Result<Text, Text> {
-  //   let userId = Principal.toText(msg.caller);
-  //   return await ProfileServices.addWorkExperience(profiles, userId, newWorkExperience);
-  // };
   public shared (msg) func addWorkExperienceShared(
     newWorkExperience : {
       company : Text;
@@ -818,10 +838,10 @@ actor Resumid {
 
     switch (result) {
       case (#ok(history)) {
-        return #ok(history.historyId); // hanya kirim ID-nya
+        return #ok(history.historyId);
       };
       case (#err(errMsg)) {
-        return #err(errMsg); // kirim error asli dari service
+        return #err(errMsg);
       };
     };
   };
