@@ -881,6 +881,7 @@ module ProfileServices {
   };
 
   public func globalSearch(
+    userId : Text,
     profiles : ProfileTypes.Profiles,
     searchInput : Text,
   ) : async [ProfileTypes.SearchResult] {
@@ -889,11 +890,13 @@ module ProfileServices {
     };
 
     let lower = Text.toLowercase(searchInput);
+    let currentUserId = userId;
     var results : [ProfileTypes.SearchResult] = [];
 
     for ((userId, profile) in profiles.entries()) {
+      if (userId != currentUserId) {
       var match = false;
-
+        
       switch (profile.profileDetail) {
         case (?detail) {
           switch (detail.name) {
@@ -929,156 +932,157 @@ module ProfileServices {
         };
         case null {};
       };
+      
 
       // Check ResumeData if no match yet
-      // if (not match) {
-      //   switch (profile.resume) {
-      //     case (?resumeData) {
-      //       // Check Summary
-      //       switch (resumeData.summary) {
-      //         case (?s) {
-      //           switch (s.content) {
-      //             case (?content) {
-      //               if (Text.contains(Text.toLowercase(content), #text lower)) {
-      //                 match := true;
-      //               };
-      //             };
-      //             case null {};
-      //           };
-      //         };
-      //         case null {};
-      //       };
+      if (not match) {
+        switch (profile.resume) {
+          case (?resumeData) {
+            // Check Summary
+            switch (resumeData.summary) {
+              case (?s) {
+                switch (s.content) {
+                  case (?content) {
+                    if (Text.contains(Text.toLowercase(content), #text lower)) {
+                      match := true;
+                    };
+                  };
+                  case null {};
+                };
+              };
+              case null {};
+            };
 
-      //       // Check Skills
-      //       if (not match) {
-      //         switch (resumeData.skills) {
-      //           case (?skillsObj) {
-      //             let foundSkill = Array.find<Text>(
-      //               skillsObj.skills,
-      //               func(skill : Text) : Bool {
-      //                 Text.contains(Text.toLowercase(skill), #text lower);
-      //               },
-      //             );
-      //             switch (foundSkill) {
-      //               case (?_) { match := true };
-      //               case null {};
-      //             };
-      //           };
-      //           case null {};
-      //         };
-      //       };
+            // Check Skills
+            if (not match) {
+              switch (resumeData.skills) {
+                case (?skillsObj) {
+                  let foundSkill = Array.find<Text>(
+                    skillsObj.skills,
+                    func(skill : Text) : Bool {
+                      Text.contains(Text.toLowercase(skill), #text lower);
+                    },
+                  );
+                  switch (foundSkill) {
+                    case (?_) { match := true };
+                    case null {};
+                  };
+                };
+                case null {};
+              };
+            };
 
-      //       // Check Work Experiences
-      //       if (not match) {
-      //         switch (resumeData.workExperiences) {
-      //           case (?workExps) {
-      //             let foundWork = Array.find<ProfileTypes.WorkExperience>(
-      //               workExps,
-      //               func(we : ProfileTypes.WorkExperience) : Bool {
-      //                 var weMatch = false;
+            // Check Work Experiences
+            if (not match) {
+              switch (resumeData.workExperiences) {
+                case (?workExps) {
+                  let foundWork = Array.find<ProfileTypes.WorkExperience>(
+                    workExps,
+                    func(we : ProfileTypes.WorkExperience) : Bool {
+                      var weMatch = false;
 
-      //                 if (Text.contains(Text.toLowercase(we.company), #text lower)) {
-      //                   weMatch := true;
-      //                 };
+                      if (Text.contains(Text.toLowercase(we.company), #text lower)) {
+                        weMatch := true;
+                      };
 
-      //                 if (not weMatch) {
-      //                   switch (we.location) {
-      //                     case (?loc) {
-      //                       if (Text.contains(Text.toLowercase(loc), #text lower)) {
-      //                         weMatch := true;
-      //                       };
-      //                     };
-      //                     case null {};
-      //                   };
-      //                 };
+                      if (not weMatch) {
+                        switch (we.location) {
+                          case (?loc) {
+                            if (Text.contains(Text.toLowercase(loc), #text lower)) {
+                              weMatch := true;
+                            };
+                          };
+                          case null {};
+                        };
+                      };
 
-      //                 if (not weMatch) {
-      //                   if (Text.contains(Text.toLowercase(we.position), #text lower)) {
-      //                     weMatch := true;
-      //                   };
-      //                 };
+                      if (not weMatch) {
+                        if (Text.contains(Text.toLowercase(we.position), #text lower)) {
+                          weMatch := true;
+                        };
+                      };
 
-      //                 if (not weMatch) {
-      //                   switch (we.description) {
-      //                     case (?desc) {
-      //                       if (Text.contains(Text.toLowercase(desc), #text lower)) {
-      //                         weMatch := true;
-      //                       };
-      //                     };
-      //                     case null {};
-      //                   };
-      //                 };
+                      if (not weMatch) {
+                        switch (we.description) {
+                          case (?desc) {
+                            if (Text.contains(Text.toLowercase(desc), #text lower)) {
+                              weMatch := true;
+                            };
+                          };
+                          case null {};
+                        };
+                      };
 
-      //                 weMatch;
-      //               },
-      //             );
+                      weMatch;
+                    },
+                  );
 
-      //             switch (foundWork) {
-      //               case (?_) { match := true };
-      //               case null {};
-      //             };
-      //           };
-      //           case null {};
-      //         };
-      //       };
+                  switch (foundWork) {
+                    case (?_) { match := true };
+                    case null {};
+                  };
+                };
+                case null {};
+              };
+            };
 
-      //       // Check Educations
-      //       if (not match) {
-      //         switch (resumeData.educations) {
-      //           case (?edus) {
-      //             let foundEdu = Array.find<ProfileTypes.Education>(
-      //               edus,
-      //               func(ed : ProfileTypes.Education) : Bool {
-      //                 var eduMatch = false;
+            // Check Educations
+            if (not match) {
+              switch (resumeData.educations) {
+                case (?edus) {
+                  let foundEdu = Array.find<ProfileTypes.Education>(
+                    edus,
+                    func(ed : ProfileTypes.Education) : Bool {
+                      var eduMatch = false;
 
-      //                 switch (ed.institution) {
-      //                   case (?inst) {
-      //                     if (Text.contains(Text.toLowercase(inst), #text lower)) {
-      //                       eduMatch := true;
-      //                     };
-      //                   };
-      //                   case null {};
-      //                 };
+                      switch (ed.institution) {
+                        case (?inst) {
+                          if (Text.contains(Text.toLowercase(inst), #text lower)) {
+                            eduMatch := true;
+                          };
+                        };
+                        case null {};
+                      };
 
-      //                 if (not eduMatch) {
-      //                   switch (ed.degree) {
-      //                     case (?degree) {
-      //                       if (Text.contains(Text.toLowercase(degree), #text lower)) {
-      //                         eduMatch := true;
-      //                       };
-      //                     };
-      //                     case null {};
-      //                   };
-      //                 };
+                      if (not eduMatch) {
+                        switch (ed.degree) {
+                          case (?degree) {
+                            if (Text.contains(Text.toLowercase(degree), #text lower)) {
+                              eduMatch := true;
+                            };
+                          };
+                          case null {};
+                        };
+                      };
 
-      //                 if (not eduMatch) {
-      //                   switch (ed.description) {
-      //                     case (?desc) {
-      //                       if (Text.contains(Text.toLowercase(desc), #text lower)) {
-      //                         eduMatch := true;
-      //                       };
-      //                     };
-      //                     case null {};
-      //                   };
-      //                 };
+                      if (not eduMatch) {
+                        switch (ed.description) {
+                          case (?desc) {
+                            if (Text.contains(Text.toLowercase(desc), #text lower)) {
+                              eduMatch := true;
+                            };
+                          };
+                          case null {};
+                        };
+                      };
 
-      //                 eduMatch;
-      //               },
-      //             );
+                      eduMatch;
+                    },
+                  );
 
-      //             switch (foundEdu) {
-      //               case (?_) { match := true };
-      //               case null {};
-      //             };
-      //           };
-      //           case null {};
-      //         };
-      //       };
-      //     };
-      //     case null {};
-      //   };
-      // };
-
+                  switch (foundEdu) {
+                    case (?_) { match := true };
+                    case null {};
+                  };
+                };
+                case null {};
+              };
+            };
+          };
+          case null {};
+        };
+      };
+      
       // If match found, add simplified result
       if (match) {
         let searchResult : ProfileTypes.SearchResult = {
@@ -1088,6 +1092,7 @@ module ProfileServices {
           endorsements = profile.endorsements;
         };
         results := Array.append<ProfileTypes.SearchResult>(results, [searchResult]);
+      };
       };
     };
 

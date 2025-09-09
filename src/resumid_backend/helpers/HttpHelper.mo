@@ -43,6 +43,7 @@ module HttpHelper {
       body = req.body;
       method = #post;
       transform = null;
+      is_replicated = null;
     };
 
     Cycles.add<system>(230_850_258_000);

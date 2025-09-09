@@ -47,7 +47,7 @@ const AnalyzeResume = async (req) => {
     });
 
     await newData.save();
-    console.log(JSON.parse(response.text)[0])
+    console.log(JSON.stringify(response))
     return JSON.parse(response.text)[0];
   } catch (err) {
     console.log(err);

@@ -106,7 +106,6 @@ module {
       };
       case (?hs) {
         var h = hs;
-
         // === Filter by Specific Fields ===
         switch (filterBys) {
           case null {};

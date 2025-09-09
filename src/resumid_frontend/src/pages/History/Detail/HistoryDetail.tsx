@@ -14,7 +14,6 @@ import HistoryResultAnalyze from "@/components/parts/HistoryResultAnalyze";
 import SectionAnalysis from "@/components/parts/SectionAnalysis";
 
 import type { HistoryIdInput } from "../../../../../../src/declarations/resumid_backend/resumid_backend.did";
-import summaryExample from "./summary_example.json";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { HistoryDataTransformer } from "@/utils/historyDataTransform";

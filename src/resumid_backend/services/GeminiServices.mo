@@ -14,7 +14,7 @@ import ResumeExtractTypes "../types/ResumeExtractTypes";
 
 module GeminiServices {
   public func AnalyzeResume(resumeContent : Text, jobTitle : Text) : async ?GeminiTypes.AnalyzeStructureResponse {
-    let route : Text = "/gemini-service";
+    let route : Text = "/analyze/gemini-service";
     // let route : Text = "/gemini-mockup";
 
     // Construct Request Body
