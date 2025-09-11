@@ -10,10 +10,16 @@ import HistoryList from "@/pages/History";
 import ProfileDetail from "@/pages/Profile/Detail/ProfileDetail";
 import SearchResults from "@/pages/SearchResults";
 import Wallet from "@/pages/Wallet/Wallet";
+import DashboardLayout from "@/components/dashboard";
+import DashboardAnalytics from "@/pages/Dashboard/DashboardAnalytics";
 
 function Router() {
   return (
     <Routes>
+      <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardAnalytics />} />
+          {/* More admin pages here */}
+        </Route>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route element={<ProtectedRoute redirectTo="/" />}>
