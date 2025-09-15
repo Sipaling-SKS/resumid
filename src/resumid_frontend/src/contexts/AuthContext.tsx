@@ -215,7 +215,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
 
             await actor.whoami();
-            await actor.authenticateUser(accountIdentifier.toHex());
+            await actor.authenticateUser([], accountIdentifier.toHex());
 
             setResumidActor(actor);
 

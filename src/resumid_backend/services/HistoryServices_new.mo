@@ -13,42 +13,9 @@ import Option "mo:base/Option";
 import Int "mo:base/Int";
 import Debug "mo:base/Debug";
 import Float "mo:base/Float";
+import ResumeExtractTypes "../types/ResumeExtractTypes";
 
 module {
-  // public func addHistory(
-  // histories : HistoryTypes.Histories,
-  // userId : Text,
-  // historyCid : Text,
-  // input : HistoryTypes.AddHistoryInput,
-  //   ) : async Result.Result<HistoryTypes.History, Text> {
-  //   let entropy = await Random.blob();
-  //   let historyId = UUID.generateV4(entropy);
-  //   let timestamp = Time.now();
-  //   let createdAt = DateHelper.formatTimestamp(timestamp);
-
-  //   let newHistory : HistoryTypes.History = {
-  //       userId = userId;
-  //       historycid = historyCid;
-  //       historyId = historyId;
-  //       fileName = input.fileName;
-  //       jobTitle = input.jobTitle;
-  //       summary = input.summary;
-  //       conclusion = input.conclusion;
-  //       content = input.content;
-  //       createdAt = createdAt;
-  //   };
-
-  //   switch (histories.get(userId)) {
-  //       case null {
-  //       histories.put(userId, [newHistory]);
-  //       };
-  //       case (?existingHistories) {
-  //       histories.put(userId, Array.append([newHistory], existingHistories));
-  //       };
-  //   };
-
-  //   return #ok(newHistory);
-  //   };
   public func addHistory(
     histories : HistoryTypes.Histories,
     userId : Text,
@@ -316,34 +283,6 @@ module {
     };
   };
 
-  // public func getHistoryById(
-  //   histories : HistoryTypes.Histories,
-  //   userId : Text,
-  //   historyId : Text,
-  // ) : Result.Result<HistoryTypes.HistoryOutput, Text> {
-  //   switch (histories.get(userId)) {
-  //     case null { return #err("No analysis records found for your account.") };
-  //     case (?userHistories) {
-  //       for (history in userHistories.vals()) {
-  //         if (history.historyId == historyId) {
-  //           return #ok({
-  //             fileName = history.fileName;
-  //             jobTitle = history.jobTitle;
-  //             summary = history.summary;
-  //             conclusion = history.conclusion;
-  //             content = history.content;
-  //             createdAt = history.createdAt;
-  //             userId = history.userId;
-  //             historyId = history.historyId;
-  //             historyCid = history.historycid;
-  //           });
-
-  //         };
-  //       };
-  //       return #err("No record found with the analysis ID: " # historyId # ". Please check and try again.");
-  //     };
-  //   };
-  // };
   public func getHistoryById(
     histories : HistoryTypes.Histories,
     userId : Text,
@@ -372,8 +311,37 @@ module {
     };
   };
 
+  // public func deleteHistory(
+  //   histories : HistoryTypes.Histories,
+  //   userId : Text,
+  //   historyId : Text,
+  // ) : Result.Result<Text, Text> {
+  //   switch (histories.get(userId)) {
+  //     case null {
+  //       return #err("No analysis records found for your account. Please upload a resume first.");
+  //     };
+  //     case (?userHistories) {
+  //       // Filter out the history with the specified ID
+  //       let updatedHistories = Array.filter<HistoryTypes.History>(
+  //         userHistories,
+  //         func(history : HistoryTypes.History) : Bool {
+  //           history.historyId != historyId;
+  //         },
+  //       );
+
+  //       if (Array.size(userHistories) == Array.size(updatedHistories)) {
+  //         return #err("No record found with the analysis ID: " # historyId # ". Please check and try again.");
+  //       };
+
+  //       histories.put(userId, updatedHistories);
+  //       return #ok("Resume analysis with ID: " # historyId # " has been successfully deleted.");
+  //     };
+  //   };
+  // };
+
   public func deleteHistory(
     histories : HistoryTypes.Histories,
+    draftMap : ResumeExtractTypes.Draft, // Add draft map parameter
     userId : Text,
     historyId : Text,
   ) : Result.Result<Text, Text> {
@@ -382,7 +350,6 @@ module {
         return #err("No analysis records found for your account. Please upload a resume first.");
       };
       case (?userHistories) {
-        // Filter out the history with the specified ID
         let updatedHistories = Array.filter<HistoryTypes.History>(
           userHistories,
           func(history : HistoryTypes.History) : Bool {
@@ -395,6 +362,16 @@ module {
         };
 
         histories.put(userId, updatedHistories);
+
+        switch (draftMap.get(historyId)) {
+          case null {
+            
+          };
+          case (?_) {
+            draftMap.delete(historyId);
+          };
+        };
+
         return #ok("Resume analysis with ID: " # historyId # " has been successfully deleted.");
       };
     };

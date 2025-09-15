@@ -16,17 +16,33 @@ module TransactionTypes {
   };
 
   public type TokenEntry = {
-    entryNo: Nat;
-    entryType: TokenEntryType;
+    entryNo : Nat;
+    entryType : TokenEntryType;
     description : Text;
-    timestamp: Text;
-    quantity: Int64;
+    timestamp : Text;
+    quantity : Int64;
   };
-  
+
   public type TokenEntryType = {
     #initial;
     #analyze;
     #buy;
     #sub;
-  }
+  };
+
+  public type PackageData = {
+    package : Text;
+    totalPurchases : Int64;
+    totalAmount : Nat;
+  };
+
+  public type PackagePurchaseData = [PackageData];
+
+  public type MonthlyAnalyzeData = {
+    month : Text; 
+    totalQuantity : Int64;
+  };
+
+  public type MonthlyAnalyzeDataArray = [MonthlyAnalyzeData];
+
 };

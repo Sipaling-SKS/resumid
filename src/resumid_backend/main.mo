@@ -33,6 +33,8 @@ import ResumeExtractTypes "types/ResumeExtractTypes";
 
 import DraftServices "services/DraftServices";
 import TransactionServices "services/TransactionServices";
+import Analytics "services/Analytics";
+import GlobalHelper "helpers/GlobalHelper";
 
 actor Resumid {
   // Storage for user data and analysis histories
@@ -40,14 +42,12 @@ actor Resumid {
   private var histories : HistoryTypes.Histories = HashMap.HashMap<Text, [HistoryTypes.History]>(0, Text.equal, Text.hash);
   private var packages : PackageTypes.Packages = HashMap.HashMap<Text, PackageTypes.Package>(0, Text.equal, Text.hash);
   private var tokenEntries : TransactionTypes.TokenEntries = HashMap.HashMap<Principal, [TransactionTypes.TokenEntry]>(0, Principal.equal, Principal.hash);
-  private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
-  private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, [ResumeExtractTypes.ResumeHistoryItem]>(0, Text.equal, Text.hash);
-<<<<<<< HEAD
-  private let ADMIN_ID : Text = "admin-secret-id";
-=======
   private var transactions : TransactionTypes.Transactions = HashMap.HashMap<Principal, [TransactionTypes.Transaction]>(0, Principal.equal, Principal.hash);
 
->>>>>>> env-development
+  private var profiles : ProfileTypes.Profiles = HashMap.HashMap<Text, ProfileTypes.Profile>(0, Text.equal, Text.hash);
+  private var draftMap : ResumeExtractTypes.Draft = HashMap.HashMap<Text, ResumeExtractTypes.ResumeHistoryItem>(0, Text.equal, Text.hash);
+
+  private let ADMIN_ID : Text = "admin-secret-id";
   // ==============================
   // Authentication and User Methods
   // ==============================
@@ -57,18 +57,19 @@ actor Resumid {
     return msg.caller;
   };
 
-  public shared (msg) func authenticateUser(id : ?Text) : async Result.Result<UserTypes.UserData, Text> {
-
+  public shared (msg) func authenticateUser(key : ?Text, depositAddr : Text) : async Result.Result<UserTypes.UserData, Text> {
     if (Principal.isAnonymous(msg.caller)) {
       return #err("Anonymous users cannot authenticate");
     };
+
     let userId = msg.caller;
     Debug.print("Caller Principal for auth: " # Principal.toText(userId));
 
-    switch (id) {
+    switch (key) {
       case (?providedId) {
         switch (providedId == ADMIN_ID) {
           case true {
+            // Admin authentication
             switch (UserServices.adminExists(users)) {
               case true {
                 switch (users.get(userId)) {
@@ -81,10 +82,9 @@ actor Resumid {
                 };
               };
               case false {
-                let role = 0;
                 let name = "admin";
-
-                let authResult =  UserServices.authenticateUser(users, userId, role, name);
+                let qtyToken : Int64 = 0;
+                let authResult = await UserServices.authenticateUser(users, tokenEntries, depositAddr, qtyToken, userId, #admin, name);
                 switch (authResult) {
                   case (#err(errorMsg)) {
                     return #err(errorMsg);
@@ -97,21 +97,22 @@ actor Resumid {
             };
           };
           case false {
-            let role = 1;
-            let entropy = await Random.blob();
-            let uid = UUID.generateV4(entropy);
-            let name = "user-" # uid;
-            
-            let authResult =  UserServices.authenticateUser(users, userId, role, name);
+            // Regular user with provided key
+            let id = await GlobalHelper.GenerateUUID();
+            let name = "user-" # id;
+            let qtyToken : Int64 = 3;
+
+            let authResult = await UserServices.authenticateUser(users, tokenEntries, depositAddr, qtyToken, userId, #user, name);
             switch (authResult) {
               case (#err(errorMsg)) {
                 return #err(errorMsg);
               };
               case (#ok(userData)) {
+                // Create profile after successful authentication
                 switch (await ProfileServices.createUserProfile(profiles, Principal.toText(userId))) {
                   case (#err(profileError)) {
                     Debug.print("Profile creation failed: " # profileError);
-                    return #ok(userData);
+                    return #ok(userData); // Still return success, profile is optional
                   };
                   case (#ok(_)) {
                     return #ok(userData);
@@ -123,21 +124,22 @@ actor Resumid {
         };
       };
       case null {
-        let role = 1;
-        let entropy = await Random.blob();
-        let uid = UUID.generateV4(entropy);
-        let name = "user-" # uid;
-        
-        let authResult =  UserServices.authenticateUser(users, userId, role, name);
+        // No key provided - create regular user
+        let id = await GlobalHelper.GenerateUUID();
+        let name = "user-" # id;
+        let qtyToken : Int64 = 3;
+
+        let authResult = await UserServices.authenticateUser(users, tokenEntries, depositAddr, qtyToken, userId, #user, name);
         switch (authResult) {
           case (#err(errorMsg)) {
             return #err(errorMsg);
           };
           case (#ok(userData)) {
+            // Create profile after successful authentication
             switch (await ProfileServices.createUserProfile(profiles, Principal.toText(userId))) {
               case (#err(profileError)) {
                 Debug.print("Profile creation failed: " # profileError);
-                return #ok(userData);
+                return #ok(userData); // Still return success, profile is optional
               };
               case (#ok(_)) {
                 return #ok(userData);
@@ -183,6 +185,35 @@ actor Resumid {
     };
   };
 
+  // ==============================
+  // Analytics Methods
+  // ==============================
+
+  public shared func getMonthlyAnalyzeData() : async TransactionTypes.MonthlyAnalyzeDataArray {
+    switch (tokenEntries.size()) {
+      case (0) { [] };
+      case (_) {
+        Analytics.getMonthlyAnalyzeData(tokenEntries);
+      };
+    };
+  };
+
+  public shared func getPackagePurchaseData() : async TransactionTypes.PackagePurchaseData {
+    switch (transactions.size()) {
+      case (0) { [] };
+      case (_) {
+        switch (packages.size()) {
+          case (0) {
+            Debug.print("Warning: No packages available");
+            [];
+          };
+          case (_) {
+            Analytics.getPackagePurchaseDataCached(transactions, packages);
+          };
+        };
+      };
+    };
+  };
   // ==============================
   // Resume Analysis Methods
   // ==============================
@@ -299,7 +330,8 @@ actor Resumid {
   // ==============================
 
   // Fixed extractResumeToDraft function
-  public shared (msg) func extractResumeToDraft(resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
+  // Updated extractResumeToDraft function
+  public shared (msg) func extractResumeToDraft(historyId : Text, resumeContent : Text) : async ?ResumeExtractTypes.ResumeData {
     if (Principal.isAnonymous(msg.caller)) {
       return null;
     };
@@ -358,33 +390,18 @@ actor Resumid {
           skills = input.skills;
         };
 
-        let entropy = await Random.blob();
-        let draftId = UUID.generateV4(entropy);
-
         let historyItem : ResumeExtractTypes.ResumeHistoryItem = {
-          userId = userId;
-          draftId = draftId;
+          historyId = historyId;
           data = resumeData;
           createdAt = formatted;
           updatedAt = formatted;
         };
 
-        draftMap.put(userId, [historyItem]);
+        // Store using historyId as key (not userId)
+        draftMap.put(historyId, historyItem);
 
         return ?resumeData;
       };
-    };
-  };
-
-  public shared (msg) func GetDraftByUserId() : async [ResumeExtractTypes.ResumeHistoryItem] {
-    if (Principal.isAnonymous(msg.caller)) {
-      return [];
-    };
-    let userId = Principal.toText(msg.caller);
-
-    switch (draftMap.get(userId)) {
-      case null { [] };
-      case (?arr) { arr };
     };
   };
 
@@ -392,9 +409,9 @@ actor Resumid {
   // Draft Management Methods
   // ==============================
 
-  // editWorkExperienceDraft
+  // editWorkExperienceDraft - removed userId parameter
   public shared (msg) func editWorkExperienceDraft(
-    draftId : Text,
+    historyId : Text,
     workExpId : Text,
     updatedFields : {
       company : Text;
@@ -411,110 +428,159 @@ actor Resumid {
     if (Principal.isAnonymous(msg.caller)) {
       return #err("Anonymous users cannot edit drafts");
     };
-    let userId = Principal.toText(msg.caller);
 
-    let result = await DraftServices.editWorkExperienceDraft(draftMap, draftId, userId, workExpId, updatedFields);
+    let result = await DraftServices.editWorkExperienceDraft(draftMap, historyId, workExpId, updatedFields);
     switch (result) {
       case (#ok(successMsg)) {
         #ok("Work experience draft updated successfully");
       };
       case (#err(errMsg)) {
-        #err("Failed to update work experience draft for user " # userId # ": " # errMsg);
+        #err("Failed to update work experience draft: " # errMsg);
       };
     };
   };
 
-  // editEducationDraft
+  // editEducationDraft - fixed field names and removed userId parameter
   public shared (msg) func editEducationDraft(
-    draftId : Text,
+    historyId : Text,
     educationId : Text,
     updatedFields : {
       institution : Text;
       degree : Text;
-      study_period : {
+      period : {
+        // Changed from study_period to period
         start : ?Text;
         end : ?Text;
       };
-      score : Text;
-      description : ?Text;
+      description : ?Text; // Removed score field
     },
   ) : async Result.Result<Text, Text> {
     if (Principal.isAnonymous(msg.caller)) {
       return #err("Anonymous users cannot edit drafts");
     };
-    let userId = Principal.toText(msg.caller);
 
-    let result = await DraftServices.editEducationDraft(draftMap, draftId, userId, educationId, updatedFields);
+    let result = await DraftServices.editEducationDraft(draftMap, historyId, educationId, updatedFields);
     switch (result) {
       case (#ok(successMsg)) {
         #ok("Education draft updated successfully");
       };
       case (#err(errMsg)) {
-        #err("Failed to update education draft for user " # userId # ": " # errMsg);
+        #err("Failed to update education draft: " # errMsg);
       };
     };
   };
 
-  // editSkillsDraft
+  // editSkillsDraft - removed userId parameter
   public shared (msg) func editSkillsDraft(
-    draftId : Text,
+    historyId : Text,
     skills : [Text],
   ) : async Result.Result<Text, Text> {
     if (Principal.isAnonymous(msg.caller)) {
       return #err("Anonymous users cannot edit drafts");
     };
-    let userId = Principal.toText(msg.caller);
 
-    let result = await DraftServices.editSkillsDraft(draftMap, draftId, userId, skills);
+    let result = await DraftServices.editSkillsDraft(draftMap, historyId, skills);
     switch (result) {
       case (#ok(successMsg)) {
         #ok("Skills draft updated successfully");
       };
       case (#err(errMsg)) {
-        #err("Failed to update skills draft for user " # userId # ": " # errMsg);
+        #err("Failed to update skills draft: " # errMsg);
       };
     };
   };
 
-  public shared (msg) func removeDraftItem(
-    draftId : Text,
-    itemType : Text,
-    itemId : ?Text,
+  // editSummaryDraft - new function
+  public shared (msg) func editSummaryDraft(
+    historyId : Text,
+    summary : Text,
+  ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot edit drafts");
+    };
+
+    let result = await DraftServices.editSummaryDraft(draftMap, historyId, summary);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Summary draft updated successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to update summary draft: " # errMsg);
+      };
+    };
+  };
+
+  // deleteWorkExperience - updated function name and parameters
+  public shared (msg) func deleteWorkExperience(
+    historyId : Text,
+    workExpId : Text,
   ) : async Result.Result<Text, Text> {
     if (Principal.isAnonymous(msg.caller)) {
       return #err("Anonymous users cannot delete draft items");
     };
-    let userId = Principal.toText(msg.caller);
-    let result = await DraftServices.deleteDraftItem(
-      draftMap,
-      draftId,
-      userId,
-      itemType,
-      itemId,
-    );
+
+    let result = await DraftServices.deleteWorkExperience(draftMap, historyId, workExpId);
     switch (result) {
       case (#ok(successMsg)) {
-        #ok("Draft item deleted successfully");
+        #ok("Work experience deleted successfully");
       };
       case (#err(errMsg)) {
-        #err("Failed to delete draft item for user " # userId # ": " # errMsg);
+        #err("Failed to delete work experience: " # errMsg);
       };
     };
   };
 
-  //saveDraftToProfile
-  public shared (msg) func saveDraftToProfile(draftId : Text) : async Result.Result<Text, Text> {
+  // deleteEducation - updated function name and parameters
+  public shared (msg) func deleteEducation(
+    historyId : Text,
+    educationId : Text,
+  ) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot delete draft items");
+    };
+
+    let result = await DraftServices.deleteEducation(draftMap, historyId, educationId);
+    switch (result) {
+      case (#ok(successMsg)) {
+        #ok("Education deleted successfully");
+      };
+      case (#err(errMsg)) {
+        #err("Failed to delete education: " # errMsg);
+      };
+    };
+  };
+
+  // saveDraftToProfile - updated parameter order
+  public shared (msg) func saveDraftToProfile(historyId : Text) : async Result.Result<Text, Text> {
     if (Principal.isAnonymous(msg.caller)) {
       return #err("Anonymous users cannot save drafts to profiles");
     };
     let userId = Principal.toText(msg.caller);
-    let result = await DraftServices.saveDraftToProfile(draftMap, profiles, draftId, userId);
+
+    let result = await DraftServices.saveDraftToProfile(draftMap, profiles, userId, historyId);
     switch (result) {
       case (#ok(successMsg)) {
         #ok("Draft saved to profile successfully");
       };
       case (#err(errMsg)) {
-        #err("Failed to save draft to profile for user " # userId # ": " # errMsg);
+        #err("Failed to save draft to profile: " # errMsg);
+      };
+    };
+  };
+
+  // getDraftByHistoryId - new function
+  public shared (msg) func getDraftByHistoryId(historyId : Text) : async Result.Result<ResumeExtractTypes.ResumeHistoryItem, Text> {
+    if (Principal.isAnonymous(msg.caller)) {
+      return #err("Anonymous users cannot access drafts");
+    };
+
+    let result = await DraftServices.getDraftByHistoryId(draftMap, historyId);
+    switch (result) {
+      case (#ok(item)) {
+        #ok(item);
+      };
+      case (#err(errMsg)) {
+        #err("Failed to get draft: " # errMsg);
       };
     };
   };
@@ -921,7 +987,7 @@ actor Resumid {
 
   public shared (msg) func deleteHistory(input : HistoryTypes.HistoryIdInput) : async Result.Result<Text, Text> {
     let userId = Principal.toText(msg.caller);
-    return HistoryServices.deleteHistory(histories, userId, input.historyId);
+    return HistoryServices.deleteHistory(histories, draftMap, userId, input.historyId);
   };
 
   // ==============================
@@ -968,10 +1034,10 @@ actor Resumid {
     };
   };
 
-  public shared (msg) func checkUserICPBalance(chargedBalance: Nat): async Result.Result<Text, Text> {
+  public shared (msg) func checkUserICPBalance(chargedBalance : Nat) : async Result.Result<Text, Text> {
     let currBalance = await UserServices.getBalance(msg.caller);
 
-    if(currBalance < chargedBalance) {
+    if (currBalance < chargedBalance) {
       return #err("Insufficient ICP Balance");
     };
 

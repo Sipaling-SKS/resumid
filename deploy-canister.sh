@@ -34,6 +34,7 @@ dfx deploy --specified-id ryjl3-tyaaa-aaaaa-aaaba-cai icp_ledger_canister --argu
     }
   })
 "
+dfx deploy internet_identity
 
 dfx deploy resumid_backend
 

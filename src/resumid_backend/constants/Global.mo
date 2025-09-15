@@ -13,6 +13,6 @@ module GlobalConstants {
     public let API_KEY : Text = "f8b8d923-3bc2-4cf3-b999-141a8fbc5df1";
 
     public let API_HOST = "http://localhost:5173";
-    public let API_BASE_URL = "http://localhost:5173/api";
+    public let API_BASE_URL = "http://localhost:6000/api";
     public let API_CONTENT_TYPE = "application/json";
 };
